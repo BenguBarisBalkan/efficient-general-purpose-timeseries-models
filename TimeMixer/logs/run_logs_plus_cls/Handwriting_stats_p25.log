@@ -1,0 +1,106 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=16, c_out=7, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=16, data='UEA', data_path='ETTh1.csv', dec_in=7, decomp_method='moving_avg', des='ClsP', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=1, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=48, learning_rate=0.001, loss='MSE', lradj='TST', mask_rate=0.125, model='SparseTSFPlus', model_id='CLSP_Handwriting_stats_p25', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=10, pct_start=0.2, percent=100, period_len=25, pred_len=0, root_path='<workspace>\\dataset\\Handwriting', seasonal_patterns='Monthly', seq_len=96, stsf_cls_head='stats', stsf_cls_segments=8, stsf_decomp='off', stsf_decomp_kernel=25, stsf_diag_mask=0, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_kernel=3, stsf_phase_mix='off', stsf_phase_rank=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='classification', top_k=5, track_emissions=0, train_epochs=30, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+150
+TRAIN 150
+850
+TEST 850
+trainable_params:285
+units:cls_head=stats
+>>>>>>>start training : classification_CLSP_Handwriting_stats_p25_none_SparseTSFPlus_UEA_sl96_pl0_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_ClsP_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+150
+TRAIN 150
+850
+TEST 850
+850
+TEST 850
+Epoch: 1 cost time: 1.9126014709472656
+Epoch: 1, Steps: 10 | Train Loss: 3.806 Vali Loss: 3.909 Vali Acc: 0.039 Test Loss: 3.915 Test Acc: 0.039
+Validation loss decreased (inf --> -0.038824).  Saving model ...
+Epoch: 2 cost time: 0.04205918312072754
+Epoch: 2, Steps: 10 | Train Loss: 3.861 Vali Loss: 3.923 Vali Acc: 0.039 Test Loss: 3.893 Test Acc: 0.039
+Validation loss decreased (-0.038824 --> -0.038824).  Saving model ...
+Epoch: 3 cost time: 0.041884422302246094
+Epoch: 3, Steps: 10 | Train Loss: 3.921 Vali Loss: 3.901 Vali Acc: 0.039 Test Loss: 3.925 Test Acc: 0.039
+Validation loss decreased (-0.038824 --> -0.038824).  Saving model ...
+Epoch: 4 cost time: 0.045519113540649414
+Epoch: 4, Steps: 10 | Train Loss: 3.884 Vali Loss: 3.893 Vali Acc: 0.039 Test Loss: 3.903 Test Acc: 0.039
+Validation loss decreased (-0.038824 --> -0.038824).  Saving model ...
+Epoch: 5 cost time: 0.04404592514038086
+Epoch: 5, Steps: 10 | Train Loss: 3.880 Vali Loss: 3.877 Vali Acc: 0.038 Test Loss: 3.897 Test Acc: 0.038
+EarlyStopping counter: 1 out of 10
+Epoch: 6 cost time: 0.04140830039978027
+Epoch: 6, Steps: 10 | Train Loss: 3.839 Vali Loss: 3.890 Vali Acc: 0.038 Test Loss: 3.889 Test Acc: 0.038
+EarlyStopping counter: 2 out of 10
+Epoch: 7 cost time: 0.04473137855529785
+Epoch: 7, Steps: 10 | Train Loss: 3.865 Vali Loss: 3.883 Vali Acc: 0.038 Test Loss: 3.875 Test Acc: 0.038
+EarlyStopping counter: 3 out of 10
+Epoch: 8 cost time: 0.043096303939819336
+Epoch: 8, Steps: 10 | Train Loss: 3.894 Vali Loss: 3.884 Vali Acc: 0.038 Test Loss: 3.869 Test Acc: 0.038
+EarlyStopping counter: 4 out of 10
+Epoch: 9 cost time: 0.04212045669555664
+Epoch: 9, Steps: 10 | Train Loss: 3.832 Vali Loss: 3.856 Vali Acc: 0.038 Test Loss: 3.867 Test Acc: 0.038
+EarlyStopping counter: 5 out of 10
+Epoch: 10 cost time: 0.047223806381225586
+Epoch: 10, Steps: 10 | Train Loss: 3.830 Vali Loss: 3.855 Vali Acc: 0.038 Test Loss: 3.880 Test Acc: 0.038
+EarlyStopping counter: 6 out of 10
+Epoch: 11 cost time: 0.04744601249694824
+Epoch: 11, Steps: 10 | Train Loss: 3.832 Vali Loss: 3.873 Vali Acc: 0.038 Test Loss: 3.859 Test Acc: 0.038
+EarlyStopping counter: 7 out of 10
+Epoch: 12 cost time: 0.04490065574645996
+Epoch: 12, Steps: 10 | Train Loss: 3.795 Vali Loss: 3.867 Vali Acc: 0.038 Test Loss: 3.875 Test Acc: 0.038
+EarlyStopping counter: 8 out of 10
+Epoch: 13 cost time: 0.04110288619995117
+Epoch: 13, Steps: 10 | Train Loss: 3.829 Vali Loss: 3.843 Vali Acc: 0.038 Test Loss: 3.851 Test Acc: 0.038
+EarlyStopping counter: 9 out of 10
+Epoch: 14 cost time: 0.04629039764404297
+Epoch: 14, Steps: 10 | Train Loss: 3.803 Vali Loss: 3.837 Vali Acc: 0.039 Test Loss: 3.852 Test Acc: 0.039
+Validation loss decreased (-0.038824 --> -0.038824).  Saving model ...
+Epoch: 15 cost time: 0.04095053672790527
+Epoch: 15, Steps: 10 | Train Loss: 3.875 Vali Loss: 3.829 Vali Acc: 0.039 Test Loss: 3.877 Test Acc: 0.039
+Validation loss decreased (-0.038824 --> -0.038824).  Saving model ...
+Epoch: 16 cost time: 0.0407261848449707
+Epoch: 16, Steps: 10 | Train Loss: 3.847 Vali Loss: 3.861 Vali Acc: 0.039 Test Loss: 3.842 Test Acc: 0.039
+Validation loss decreased (-0.038824 --> -0.038824).  Saving model ...
+Epoch: 17 cost time: 0.044472455978393555
+Epoch: 17, Steps: 10 | Train Loss: 3.852 Vali Loss: 3.822 Vali Acc: 0.038 Test Loss: 3.859 Test Acc: 0.038
+EarlyStopping counter: 1 out of 10
+Epoch: 18 cost time: 0.04341411590576172
+Epoch: 18, Steps: 10 | Train Loss: 3.807 Vali Loss: 3.824 Vali Acc: 0.039 Test Loss: 3.859 Test Acc: 0.039
+Validation loss decreased (-0.038824 --> -0.038824).  Saving model ...
+Epoch: 19 cost time: 0.046643733978271484
+Epoch: 19, Steps: 10 | Train Loss: 3.829 Vali Loss: 3.832 Vali Acc: 0.038 Test Loss: 3.828 Test Acc: 0.038
+EarlyStopping counter: 1 out of 10
+Epoch: 20 cost time: 0.04691576957702637
+Epoch: 20, Steps: 10 | Train Loss: 3.816 Vali Loss: 3.837 Vali Acc: 0.038 Test Loss: 3.850 Test Acc: 0.038
+EarlyStopping counter: 2 out of 10
+Epoch: 21 cost time: 0.04525470733642578
+Epoch: 21, Steps: 10 | Train Loss: 3.798 Vali Loss: 3.821 Vali Acc: 0.035 Test Loss: 3.834 Test Acc: 0.035
+EarlyStopping counter: 3 out of 10
+Epoch: 22 cost time: 0.047319889068603516
+Epoch: 22, Steps: 10 | Train Loss: 3.812 Vali Loss: 3.831 Vali Acc: 0.035 Test Loss: 3.820 Test Acc: 0.035
+EarlyStopping counter: 4 out of 10
+Epoch: 23 cost time: 0.042157888412475586
+Epoch: 23, Steps: 10 | Train Loss: 3.785 Vali Loss: 3.800 Vali Acc: 0.035 Test Loss: 3.826 Test Acc: 0.035
+EarlyStopping counter: 5 out of 10
+Epoch: 24 cost time: 0.05064892768859863
+Epoch: 24, Steps: 10 | Train Loss: 3.834 Vali Loss: 3.817 Vali Acc: 0.036 Test Loss: 3.797 Test Acc: 0.036
+EarlyStopping counter: 6 out of 10
+Epoch: 25 cost time: 0.04447817802429199
+Epoch: 25, Steps: 10 | Train Loss: 3.741 Vali Loss: 3.823 Vali Acc: 0.036 Test Loss: 3.793 Test Acc: 0.036
+EarlyStopping counter: 7 out of 10
+Epoch: 26 cost time: 0.050840139389038086
+Epoch: 26, Steps: 10 | Train Loss: 3.827 Vali Loss: 3.809 Vali Acc: 0.036 Test Loss: 3.821 Test Acc: 0.036
+EarlyStopping counter: 8 out of 10
+Epoch: 27 cost time: 0.044577836990356445
+Epoch: 27, Steps: 10 | Train Loss: 3.735 Vali Loss: 3.805 Vali Acc: 0.036 Test Loss: 3.793 Test Acc: 0.036
+EarlyStopping counter: 9 out of 10
+Epoch: 28 cost time: 0.042402029037475586
+Epoch: 28, Steps: 10 | Train Loss: 3.730 Vali Loss: 3.807 Vali Acc: 0.035 Test Loss: 3.809 Test Acc: 0.035
+EarlyStopping counter: 10 out of 10
+Early stopping
+>>>>>>>testing : classification_CLSP_Handwriting_stats_p25_none_SparseTSFPlus_UEA_sl96_pl0_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_ClsP_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+850
+TEST 850
+test shape: torch.Size([850, 26]) torch.Size([850, 1])
+accuracy:0.03882352941176471

@@ -1,0 +1,61 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=16, c_out=7, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=16, data='UEA', data_path='ETTh1.csv', dec_in=7, decomp_method='moving_avg', des='ClsP', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=1, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=48, learning_rate=0.001, loss='MSE', lradj='TST', mask_rate=0.125, model='SparseTSFPlus', model_id='CLSP_EthanolConcentration_stats_p25', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=10, pct_start=0.2, percent=100, period_len=25, pred_len=0, root_path='<workspace>\\dataset\\EthanolConcentration', seasonal_patterns='Monthly', seq_len=96, stsf_cls_head='stats', stsf_decomp='off', stsf_decomp_kernel=25, stsf_diag_mask=0, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_kernel=3, stsf_phase_mix='off', stsf_phase_rank=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='classification', top_k=5, track_emissions=0, train_epochs=30, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+261
+TRAIN 261
+263
+TEST 263
+trainable_params:65
+units:cls_head=stats
+>>>>>>>start training : classification_CLSP_EthanolConcentration_stats_p25_none_SparseTSFPlus_UEA_sl96_pl0_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_ClsP_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+261
+TRAIN 261
+263
+TEST 263
+263
+TEST 263
+Epoch: 1 cost time: 3.1589033603668213
+Epoch: 1, Steps: 17 | Train Loss: 28.470 Vali Loss: 21.191 Vali Acc: 0.274 Test Loss: 21.040 Test Acc: 0.274
+Validation loss decreased (inf --> -0.273764).  Saving model ...
+Epoch: 2 cost time: 0.38512086868286133
+Epoch: 2, Steps: 17 | Train Loss: 27.988 Vali Loss: 22.317 Vali Acc: 0.274 Test Loss: 20.439 Test Acc: 0.274
+Validation loss decreased (-0.273764 --> -0.273764).  Saving model ...
+Epoch: 3 cost time: 0.3560676574707031
+Epoch: 3, Steps: 17 | Train Loss: 27.376 Vali Loss: 20.096 Vali Acc: 0.274 Test Loss: 19.881 Test Acc: 0.274
+Validation loss decreased (-0.273764 --> -0.273764).  Saving model ...
+Epoch: 4 cost time: 0.3680739402770996
+Epoch: 4, Steps: 17 | Train Loss: 26.693 Vali Loss: 19.398 Vali Acc: 0.270 Test Loss: 20.064 Test Acc: 0.270
+EarlyStopping counter: 1 out of 10
+Epoch: 5 cost time: 0.41967153549194336
+Epoch: 5, Steps: 17 | Train Loss: 26.578 Vali Loss: 18.975 Vali Acc: 0.266 Test Loss: 18.872 Test Acc: 0.266
+EarlyStopping counter: 2 out of 10
+Epoch: 6 cost time: 0.415665864944458
+Epoch: 6, Steps: 17 | Train Loss: 26.375 Vali Loss: 18.887 Vali Acc: 0.259 Test Loss: 18.636 Test Acc: 0.259
+EarlyStopping counter: 3 out of 10
+Epoch: 7 cost time: 0.33838534355163574
+Epoch: 7, Steps: 17 | Train Loss: 27.388 Vali Loss: 18.315 Vali Acc: 0.259 Test Loss: 18.135 Test Acc: 0.259
+EarlyStopping counter: 4 out of 10
+Epoch: 8 cost time: 0.3396310806274414
+Epoch: 8, Steps: 17 | Train Loss: 26.232 Vali Loss: 17.944 Vali Acc: 0.259 Test Loss: 18.250 Test Acc: 0.259
+EarlyStopping counter: 5 out of 10
+Epoch: 9 cost time: 0.40556955337524414
+Epoch: 9, Steps: 17 | Train Loss: 27.407 Vali Loss: 17.709 Vali Acc: 0.255 Test Loss: 17.593 Test Acc: 0.255
+EarlyStopping counter: 6 out of 10
+Epoch: 10 cost time: 0.4772326946258545
+Epoch: 10, Steps: 17 | Train Loss: 26.684 Vali Loss: 17.320 Vali Acc: 0.247 Test Loss: 17.224 Test Acc: 0.247
+EarlyStopping counter: 7 out of 10
+Epoch: 11 cost time: 0.36078572273254395
+Epoch: 11, Steps: 17 | Train Loss: 26.532 Vali Loss: 17.764 Vali Acc: 0.247 Test Loss: 17.027 Test Acc: 0.247
+EarlyStopping counter: 8 out of 10
+Epoch: 12 cost time: 0.327042818069458
+Epoch: 12, Steps: 17 | Train Loss: 25.255 Vali Loss: 17.747 Vali Acc: 0.243 Test Loss: 17.438 Test Acc: 0.243
+EarlyStopping counter: 9 out of 10
+Epoch: 13 cost time: 0.38960933685302734
+Epoch: 13, Steps: 17 | Train Loss: 25.031 Vali Loss: 16.269 Vali Acc: 0.236 Test Loss: 16.780 Test Acc: 0.236
+EarlyStopping counter: 10 out of 10
+Early stopping
+>>>>>>>testing : classification_CLSP_EthanolConcentration_stats_p25_none_SparseTSFPlus_UEA_sl96_pl0_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_ClsP_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+263
+TEST 263
+test shape: torch.Size([263, 4]) torch.Size([263, 1])
+accuracy:0.2737642585551331

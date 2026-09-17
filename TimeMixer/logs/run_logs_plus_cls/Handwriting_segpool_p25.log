@@ -1,0 +1,55 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=16, c_out=7, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=16, data='UEA', data_path='ETTh1.csv', dec_in=7, decomp_method='moving_avg', des='ClsP', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=1, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=48, learning_rate=0.001, loss='MSE', lradj='TST', mask_rate=0.125, model='SparseTSFPlus', model_id='CLSP_Handwriting_segpool_p25', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=10, pct_start=0.2, percent=100, period_len=25, pred_len=0, root_path='<workspace>\\dataset\\Handwriting', seasonal_patterns='Monthly', seq_len=96, stsf_cls_head='segpool', stsf_cls_segments=8, stsf_decomp='off', stsf_decomp_kernel=25, stsf_diag_mask=0, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_kernel=3, stsf_phase_mix='off', stsf_phase_rank=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='classification', top_k=5, track_emissions=0, train_epochs=30, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+150
+TRAIN 150
+850
+TEST 850
+trainable_params:675
+units:cls_head=segpool
+>>>>>>>start training : classification_CLSP_Handwriting_segpool_p25_none_SparseTSFPlus_UEA_sl96_pl0_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_ClsP_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+150
+TRAIN 150
+850
+TEST 850
+850
+TEST 850
+Epoch: 1 cost time: 2.0497686862945557
+Epoch: 1, Steps: 10 | Train Loss: 3.299 Vali Loss: 3.284 Vali Acc: 0.049 Test Loss: 3.286 Test Acc: 0.049
+Validation loss decreased (inf --> -0.049412).  Saving model ...
+Epoch: 2 cost time: 0.04093813896179199
+Epoch: 2, Steps: 10 | Train Loss: 3.310 Vali Loss: 3.283 Vali Acc: 0.048 Test Loss: 3.290 Test Acc: 0.048
+EarlyStopping counter: 1 out of 10
+Epoch: 3 cost time: 0.043729305267333984
+Epoch: 3, Steps: 10 | Train Loss: 3.297 Vali Loss: 3.284 Vali Acc: 0.047 Test Loss: 3.287 Test Acc: 0.047
+EarlyStopping counter: 2 out of 10
+Epoch: 4 cost time: 0.0408015251159668
+Epoch: 4, Steps: 10 | Train Loss: 3.298 Vali Loss: 3.287 Vali Acc: 0.045 Test Loss: 3.288 Test Acc: 0.045
+EarlyStopping counter: 3 out of 10
+Epoch: 5 cost time: 0.04531574249267578
+Epoch: 5, Steps: 10 | Train Loss: 3.294 Vali Loss: 3.288 Vali Acc: 0.045 Test Loss: 3.286 Test Acc: 0.045
+EarlyStopping counter: 4 out of 10
+Epoch: 6 cost time: 0.03866386413574219
+Epoch: 6, Steps: 10 | Train Loss: 3.292 Vali Loss: 3.286 Vali Acc: 0.045 Test Loss: 3.283 Test Acc: 0.045
+EarlyStopping counter: 5 out of 10
+Epoch: 7 cost time: 0.03934478759765625
+Epoch: 7, Steps: 10 | Train Loss: 3.292 Vali Loss: 3.285 Vali Acc: 0.045 Test Loss: 3.284 Test Acc: 0.045
+EarlyStopping counter: 6 out of 10
+Epoch: 8 cost time: 0.037506818771362305
+Epoch: 8, Steps: 10 | Train Loss: 3.289 Vali Loss: 3.284 Vali Acc: 0.046 Test Loss: 3.286 Test Acc: 0.046
+EarlyStopping counter: 7 out of 10
+Epoch: 9 cost time: 0.04549860954284668
+Epoch: 9, Steps: 10 | Train Loss: 3.295 Vali Loss: 3.288 Vali Acc: 0.046 Test Loss: 3.285 Test Acc: 0.046
+EarlyStopping counter: 8 out of 10
+Epoch: 10 cost time: 0.03865861892700195
+Epoch: 10, Steps: 10 | Train Loss: 3.291 Vali Loss: 3.284 Vali Acc: 0.046 Test Loss: 3.285 Test Acc: 0.046
+EarlyStopping counter: 9 out of 10
+Epoch: 11 cost time: 0.0422520637512207
+Epoch: 11, Steps: 10 | Train Loss: 3.287 Vali Loss: 3.286 Vali Acc: 0.046 Test Loss: 3.282 Test Acc: 0.046
+EarlyStopping counter: 10 out of 10
+Early stopping
+>>>>>>>testing : classification_CLSP_Handwriting_segpool_p25_none_SparseTSFPlus_UEA_sl96_pl0_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_ClsP_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+850
+TEST 850
+test shape: torch.Size([850, 26]) torch.Size([850, 1])
+accuracy:0.04941176470588235

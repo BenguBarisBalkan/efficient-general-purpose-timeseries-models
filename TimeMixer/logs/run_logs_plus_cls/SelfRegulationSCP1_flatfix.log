@@ -1,0 +1,91 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=16, c_out=7, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=16, data='UEA', data_path='ETTh1.csv', dec_in=7, decomp_method='moving_avg', des='ClsP', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=1, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=48, learning_rate=0.001, loss='MSE', lradj='TST', mask_rate=0.125, model='SparseTSFPlus', model_id='CLSP_SelfRegulationSCP1_flatfix', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=10, pct_start=0.2, percent=100, period_len=1, pred_len=0, root_path='<workspace>\\dataset\\SelfRegulationSCP1', seasonal_patterns='Monthly', seq_len=96, stsf_cls_head='flat_fixed', stsf_cls_segments=8, stsf_decomp='off', stsf_decomp_kernel=25, stsf_diag_mask=0, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_kernel=3, stsf_phase_mix='off', stsf_phase_rank=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='classification', top_k=5, track_emissions=0, train_epochs=30, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+268
+TRAIN 268
+293
+TEST 293
+trainable_params:10755
+units:cls_head=flat_fixed
+>>>>>>>start training : classification_CLSP_SelfRegulationSCP1_flatfix_none_SparseTSFPlus_UEA_sl96_pl0_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_ClsP_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+268
+TRAIN 268
+293
+TEST 293
+293
+TEST 293
+Epoch: 1 cost time: 2.019766092300415
+Epoch: 1, Steps: 17 | Train Loss: 0.674 Vali Loss: 0.654 Vali Acc: 0.768 Test Loss: 0.656 Test Acc: 0.768
+Validation loss decreased (inf --> -0.767918).  Saving model ...
+Epoch: 2 cost time: 0.07003951072692871
+Epoch: 2, Steps: 17 | Train Loss: 0.646 Vali Loss: 0.631 Vali Acc: 0.768 Test Loss: 0.631 Test Acc: 0.768
+Validation loss decreased (-0.767918 --> -0.767918).  Saving model ...
+Epoch: 3 cost time: 0.07104730606079102
+Epoch: 3, Steps: 17 | Train Loss: 0.620 Vali Loss: 0.610 Vali Acc: 0.778 Test Loss: 0.610 Test Acc: 0.778
+Validation loss decreased (-0.767918 --> -0.778157).  Saving model ...
+Epoch: 4 cost time: 0.07004666328430176
+Epoch: 4, Steps: 17 | Train Loss: 0.600 Vali Loss: 0.588 Vali Acc: 0.792 Test Loss: 0.586 Test Acc: 0.792
+Validation loss decreased (-0.778157 --> -0.791809).  Saving model ...
+Epoch: 5 cost time: 0.07709383964538574
+Epoch: 5, Steps: 17 | Train Loss: 0.581 Vali Loss: 0.570 Vali Acc: 0.795 Test Loss: 0.571 Test Acc: 0.795
+Validation loss decreased (-0.791809 --> -0.795222).  Saving model ...
+Epoch: 6 cost time: 0.07808876037597656
+Epoch: 6, Steps: 17 | Train Loss: 0.562 Vali Loss: 0.553 Vali Acc: 0.799 Test Loss: 0.556 Test Acc: 0.799
+Validation loss decreased (-0.795222 --> -0.798635).  Saving model ...
+Epoch: 7 cost time: 0.07507467269897461
+Epoch: 7, Steps: 17 | Train Loss: 0.547 Vali Loss: 0.536 Vali Acc: 0.805 Test Loss: 0.538 Test Acc: 0.805
+Validation loss decreased (-0.798635 --> -0.805461).  Saving model ...
+Epoch: 8 cost time: 0.07858729362487793
+Epoch: 8, Steps: 17 | Train Loss: 0.533 Vali Loss: 0.534 Vali Acc: 0.805 Test Loss: 0.532 Test Acc: 0.805
+Validation loss decreased (-0.805461 --> -0.805461).  Saving model ...
+Epoch: 9 cost time: 0.08231067657470703
+Epoch: 9, Steps: 17 | Train Loss: 0.520 Vali Loss: 0.518 Vali Acc: 0.819 Test Loss: 0.508 Test Acc: 0.819
+Validation loss decreased (-0.805461 --> -0.819113).  Saving model ...
+Epoch: 10 cost time: 0.07223081588745117
+Epoch: 10, Steps: 17 | Train Loss: 0.510 Vali Loss: 0.502 Vali Acc: 0.823 Test Loss: 0.501 Test Acc: 0.823
+Validation loss decreased (-0.819113 --> -0.822526).  Saving model ...
+Epoch: 11 cost time: 0.08238601684570312
+Epoch: 11, Steps: 17 | Train Loss: 0.502 Vali Loss: 0.499 Vali Acc: 0.823 Test Loss: 0.493 Test Acc: 0.823
+Validation loss decreased (-0.822526 --> -0.822526).  Saving model ...
+Epoch: 12 cost time: 0.07320499420166016
+Epoch: 12, Steps: 17 | Train Loss: 0.490 Vali Loss: 0.488 Vali Acc: 0.823 Test Loss: 0.489 Test Acc: 0.823
+Validation loss decreased (-0.822526 --> -0.822526).  Saving model ...
+Epoch: 13 cost time: 0.07494306564331055
+Epoch: 13, Steps: 17 | Train Loss: 0.482 Vali Loss: 0.478 Vali Acc: 0.823 Test Loss: 0.486 Test Acc: 0.823
+Validation loss decreased (-0.822526 --> -0.822526).  Saving model ...
+Epoch: 14 cost time: 0.0804295539855957
+Epoch: 14, Steps: 17 | Train Loss: 0.475 Vali Loss: 0.472 Vali Acc: 0.816 Test Loss: 0.474 Test Acc: 0.816
+EarlyStopping counter: 1 out of 10
+Epoch: 15 cost time: 0.07864189147949219
+Epoch: 15, Steps: 17 | Train Loss: 0.468 Vali Loss: 0.477 Vali Acc: 0.809 Test Loss: 0.479 Test Acc: 0.809
+EarlyStopping counter: 2 out of 10
+Epoch: 16 cost time: 0.08367395401000977
+Epoch: 16, Steps: 17 | Train Loss: 0.461 Vali Loss: 0.472 Vali Acc: 0.819 Test Loss: 0.463 Test Acc: 0.819
+EarlyStopping counter: 3 out of 10
+Epoch: 17 cost time: 0.08463239669799805
+Epoch: 17, Steps: 17 | Train Loss: 0.457 Vali Loss: 0.456 Vali Acc: 0.819 Test Loss: 0.471 Test Acc: 0.819
+EarlyStopping counter: 4 out of 10
+Epoch: 18 cost time: 0.08109140396118164
+Epoch: 18, Steps: 17 | Train Loss: 0.451 Vali Loss: 0.461 Vali Acc: 0.819 Test Loss: 0.461 Test Acc: 0.819
+EarlyStopping counter: 5 out of 10
+Epoch: 19 cost time: 0.08656501770019531
+Epoch: 19, Steps: 17 | Train Loss: 0.444 Vali Loss: 0.446 Vali Acc: 0.819 Test Loss: 0.450 Test Acc: 0.819
+EarlyStopping counter: 6 out of 10
+Epoch: 20 cost time: 0.08509016036987305
+Epoch: 20, Steps: 17 | Train Loss: 0.438 Vali Loss: 0.463 Vali Acc: 0.819 Test Loss: 0.446 Test Acc: 0.819
+EarlyStopping counter: 7 out of 10
+Epoch: 21 cost time: 0.09259510040283203
+Epoch: 21, Steps: 17 | Train Loss: 0.433 Vali Loss: 0.451 Vali Acc: 0.819 Test Loss: 0.445 Test Acc: 0.819
+EarlyStopping counter: 8 out of 10
+Epoch: 22 cost time: 0.10388326644897461
+Epoch: 22, Steps: 17 | Train Loss: 0.429 Vali Loss: 0.446 Vali Acc: 0.819 Test Loss: 0.441 Test Acc: 0.819
+EarlyStopping counter: 9 out of 10
+Epoch: 23 cost time: 0.0997927188873291
+Epoch: 23, Steps: 17 | Train Loss: 0.426 Vali Loss: 0.443 Vali Acc: 0.819 Test Loss: 0.436 Test Acc: 0.819
+EarlyStopping counter: 10 out of 10
+Early stopping
+>>>>>>>testing : classification_CLSP_SelfRegulationSCP1_flatfix_none_SparseTSFPlus_UEA_sl96_pl0_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_ClsP_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+293
+TEST 293
+test shape: torch.Size([293, 2]) torch.Size([293, 1])
+accuracy:0.8225255972696246

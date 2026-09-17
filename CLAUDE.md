@@ -4,9 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A local **benchmark of three long-term time-series forecasting models** — **TimeMixer** (ICLR'24,
-upstream), **TimeMixer++** (ICLR'25, reimplemented from scratch), and **SparseTSF** (ICML'24,
-vendored) — compared on **accuracy** and **energy/carbon** on a Windows laptop with a 4 GB GPU.
+A local **benchmark of four time-series models** — **TimeMixer** (ICLR'24, upstream),
+**TimeMixer++** (ICLR'25, reimplemented from scratch), **SparseTSF** (ICML'24, vendored), and
+**SparseTSFPlus** (this study: SparseTSF with cheap units grafted on from the other two) —
+compared on **accuracy** and **energy/carbon** on a Windows laptop with a 4 GB GPU.
 The consolidated write-up is `TimeMixer/reports/results_final_report.md`; `README.md` (workspace
 root) is the navigation map.
 
@@ -51,6 +52,15 @@ venv/Scripts/python.exe benchmarks/run_anomaly_benchmarks.py          # anomaly 
 venv/Scripts/python.exe benchmarks/run_classification_benchmarks.py   # classification (accuracy)
 ```
 
+SparseTSFPlus ablations (which grafted units earn their parameters). All idempotent:
+
+```bash
+venv/Scripts/python.exe benchmarks/run_period_sensitivity.py              # period_len diagnostics, no model code
+venv/Scripts/python.exe benchmarks/run_sparsetsf_plus_imputation.py       # unit ablation, imputation
+venv/Scripts/python.exe benchmarks/run_sparsetsf_plus_classification.py   # unit ablation, 10 UEA sets
+venv/Scripts/python.exe benchmarks/tools/assert_sparsetsf_plus_equiv.py   # THE GATE (see below)
+```
+
 ```bash
 # Rebuild the v1 results table from existing logs WITHOUT training (fast smoke test of paths):
 venv/Scripts/python.exe benchmarks/run_all_long_term_benchmarks.py --update-from-logs-only
@@ -73,7 +83,8 @@ touching paths, imports or the exp loop:
 
 ```bash
 venv/Scripts/python.exe -m py_compile benchmarks/*.py benchmarks/tools/*.py models/*.py exp/*.py run.py
-venv/Scripts/python.exe -c "from models import TimeMixer, TimeMixerPP, SparseTSF"
+venv/Scripts/python.exe -c "from models import TimeMixer, TimeMixerPP, SparseTSF, SparseTSFPlus"
+venv/Scripts/python.exe benchmarks/tools/assert_sparsetsf_plus_equiv.py
 venv/Scripts/python.exe benchmarks/run_all_long_term_benchmarks.py --update-from-logs-only
 venv/Scripts/python.exe benchmarks/tools/build_task_summary.py
 ```
@@ -99,9 +110,11 @@ The workspace root is the git repo (branch `main`), pushed to the **public** Git
   `e246105` of github.com/kwuking/TimeMixer, 10 modified files). The original clone's `.git` was
   moved to `Masaüstü/timemixer-upstream-git-backup/` — outside any repo, not deleted.
 - `.gitattributes` pins `* text=auto`; without it every file on this Windows box shows as rewritten.
-- There is **no top-level LICENSE** for the project's own contributions yet (all rights reserved by
-  default). The vendored code carries its own: `TimeMixer/LICENSE` and
-  `implementations/sparsetsf/LICENSE-SparseTSF` (Apache-2.0).
+- The root `LICENSE` is **MIT** and covers this study's own contributions (harness, TimeMixer++
+  reimplementation, SparseTSFPlus, registry shims, reports). Keep the text pristine so GitHub's
+  detector still recognises it, and keep the scope note in `README.md` rather than in the file.
+  The vendored code keeps its own **Apache-2.0**: `TimeMixer/LICENSE` and
+  `implementations/sparsetsf/LICENSE-SparseTSF`. Do not relicense either.
 
 ## Architecture — the big picture
 
@@ -117,8 +130,9 @@ every benchmark runner regex-parses out of the logs. The other four (`exp_short_
 three models — TimeMixer, TimeMixer++, and (as of the multi-task extension) SparseTSF — support the
 full task set. Models are looked up by name in `exp/exp_basic.py`'s `model_dict`.
 
-**2. The three models, wired via a shim pattern.** `model_dict` maps `TimeMixer`, `TimeMixerPP`,
-`SparseTSF` → modules in `models/`, which is a **registry**: one file per registered model name.
+**2. The four models, wired via a shim pattern.** `model_dict` maps `TimeMixer`, `TimeMixerPP`,
+`SparseTSF`, `SparseTSFPlus` → modules in `models/`, which is a **registry**: one file per
+registered model name.
 The substantial code lives in `implementations/`, one package per model — `timemixer_pp/` (ours)
 and `sparsetsf/` (vendored, beside its own Apache-2.0 licence). Two registry entries are
 deliberately *thin*:
@@ -136,6 +150,20 @@ deliberately *thin*:
   (with an `__init__.py`), add a thin `models/<Name>.py` entry point that re-exports its `Model`,
   and register that name in `exp/exp_basic.py`. `models/TimeMixer.py` is the exception and stays
   where upstream put it, so upstream changes keep merging cleanly.
+- `models/SparseTSFPlus.py` — SparseTSF plus **individually-toggleable units** grafted from the
+  other two models (`implementations/sparsetsf_plus/`: `units.py` holds the units, `model.py` the
+  task branching). Controlled by the additive `--stsf_*` flags in `run.py`, **every one of which
+  defaults to stock-SparseTSF behaviour**. Residual units are zero-initialised, so with all units
+  off the model is *numerically identical* to `SparseTSF`, and vanilla forecasting delegates
+  straight to the vendored core. Measured results live in `reports/results_sparsetsf_plus_*.md`.
+
+### Adding a unit to SparseTSFPlus
+
+Add the flag to `_UNIT_DEFAULTS` in `implementations/sparsetsf_plus/units.py` **with the default
+equal to current behaviour**, add the matching `parser.add_argument` in `run.py`, build it in
+`Model._build_units`, and use it in the task path. Then re-run the equivalence gate — a unit whose
+default changes behaviour breaks the ablation's baseline row and silently invalidates every
+published SparseTSF number.
 
 **3. Forward-call & data conventions** (needed to modify any model or the loop). Every model is called
 as `model(batch_x, batch_x_mark, dec_inp, batch_y_mark)`. `data_provider/` yields
@@ -213,5 +241,32 @@ If you relocate any of these, the `REPO_ROOT`-relative path constants at the top
   *including* the comment, so it matches nothing and the directory is silently committed. Every
   note in that file must sit on its own line. This bit once already (`m4_results/` leaked into
   staging).
+- **The all-units-off equivalence gate is non-negotiable.**
+  `benchmarks/tools/assert_sparsetsf_plus_equiv.py` asserts that `SparseTSFPlus` with every unit at
+  its default is **bitwise identical** to `SparseTSF` on all five tasks (currently
+  `max|diff| = 0.0`). Run it after touching anything under `implementations/sparsetsf_plus/`. If it
+  fails, the ablation's baseline row is no longer SparseTSF and every published SparseTSF number
+  becomes unsafe to compare against.
+- **RevIN cannot help SparseTSF, and `--stsf_revin 1` is a mathematical no-op.** The forecast map is
+  linear and entirely bias-free, hence positively homogeneous: `f(x/σ)·σ == f(x)`, so per-window
+  per-channel scaling cancels exactly (measured `max|diff|` 1.5e-05, i.e. float32 rounding; it
+  changed nothing on PEMS08 or Weather). Std scaling only becomes live once something breaks
+  homogeneity — `--stsf_revin 2` (subtract_last), `--stsf_linear_bias 1`, or `--stsf_revin_affine 1`
+  (which costs `2·enc_in` and breaks zero-shot checkpoint portability). Do not report it as a unit.
+- **Three exp loops early-stop on the TEST split**, so they offer no clean validation signal:
+  `exp_imputation.py:164` and `exp_anomaly_detection.py:129` pass `test_loss` to `early_stopping`,
+  and `exp_classification.py:88-89` uses `flag='TEST'` for *both* the "vali" and "test" loaders.
+  Only `exp_long_term_forecasting.py:222` uses `vali_loss`. This is upstream TSLib behaviour and
+  every model here was trained under it, so cross-model comparisons stay internally consistent —
+  **do not "fix" it**, that would invalidate every existing table. Instead select hyperparameters
+  and units on the reported best-validation column where one exists, and label classification
+  results a sensitivity analysis.
+- **`period_len` is load-bearing far beyond forecasting, including where a comment says it is not.**
+  `run_classification_benchmarks.py:78` passes `--period_len 1` as "unused by the classification
+  head", but it sets the aggregating conv's kernel to `1 + 2*(period_len//2)` — so `1` means a
+  kernel of size **one**, i.e. no receptive field at all. Measured sensitivity is large: ETTh1
+  forecasting prefers `12` over the published `24` (−3.22% MSE), and PEMS08 prefers `1` over `12`
+  (−24% MAE, because the period fold is actively harmful there). See
+  `reports/results_period_sensitivity.md`.
 - **`--track_emissions` is opt-in** (default off) so ordinary accuracy runs carry no CodeCarbon
   overhead or dependency. `run.py` imports `codecarbon` lazily only when the flag is set.

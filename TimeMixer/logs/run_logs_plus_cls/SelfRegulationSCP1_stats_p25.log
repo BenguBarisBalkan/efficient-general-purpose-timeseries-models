@@ -1,0 +1,58 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=16, c_out=7, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=16, data='UEA', data_path='ETTh1.csv', dec_in=7, decomp_method='moving_avg', des='ClsP', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=1, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=48, learning_rate=0.001, loss='MSE', lradj='TST', mask_rate=0.125, model='SparseTSFPlus', model_id='CLSP_SelfRegulationSCP1_stats_p25', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=10, pct_start=0.2, percent=100, period_len=25, pred_len=0, root_path='<workspace>\\dataset\\SelfRegulationSCP1', seasonal_patterns='Monthly', seq_len=96, stsf_cls_head='stats', stsf_cls_segments=8, stsf_decomp='off', stsf_decomp_kernel=25, stsf_diag_mask=0, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_kernel=3, stsf_phase_mix='off', stsf_phase_rank=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='classification', top_k=5, track_emissions=0, train_epochs=30, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+268
+TRAIN 268
+293
+TEST 293
+trainable_params:63
+units:cls_head=stats
+>>>>>>>start training : classification_CLSP_SelfRegulationSCP1_stats_p25_none_SparseTSFPlus_UEA_sl96_pl0_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_ClsP_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+268
+TRAIN 268
+293
+TEST 293
+293
+TEST 293
+Epoch: 1 cost time: 2.060150384902954
+Epoch: 1, Steps: 17 | Train Loss: 0.720 Vali Loss: 0.703 Vali Acc: 0.505 Test Loss: 0.703 Test Acc: 0.505
+Validation loss decreased (inf --> -0.505119).  Saving model ...
+Epoch: 2 cost time: 0.09280109405517578
+Epoch: 2, Steps: 17 | Train Loss: 0.719 Vali Loss: 0.704 Vali Acc: 0.509 Test Loss: 0.704 Test Acc: 0.509
+Validation loss decreased (-0.505119 --> -0.508532).  Saving model ...
+Epoch: 3 cost time: 0.10172748565673828
+Epoch: 3, Steps: 17 | Train Loss: 0.717 Vali Loss: 0.701 Vali Acc: 0.491 Test Loss: 0.703 Test Acc: 0.491
+EarlyStopping counter: 1 out of 10
+Epoch: 4 cost time: 0.10073566436767578
+Epoch: 4, Steps: 17 | Train Loss: 0.717 Vali Loss: 0.702 Vali Acc: 0.488 Test Loss: 0.702 Test Acc: 0.488
+EarlyStopping counter: 2 out of 10
+Epoch: 5 cost time: 0.10267210006713867
+Epoch: 5, Steps: 17 | Train Loss: 0.715 Vali Loss: 0.700 Vali Acc: 0.478 Test Loss: 0.702 Test Acc: 0.478
+EarlyStopping counter: 3 out of 10
+Epoch: 6 cost time: 0.11219239234924316
+Epoch: 6, Steps: 17 | Train Loss: 0.715 Vali Loss: 0.701 Vali Acc: 0.481 Test Loss: 0.701 Test Acc: 0.481
+EarlyStopping counter: 4 out of 10
+Epoch: 7 cost time: 0.10927081108093262
+Epoch: 7, Steps: 17 | Train Loss: 0.714 Vali Loss: 0.699 Vali Acc: 0.474 Test Loss: 0.702 Test Acc: 0.474
+EarlyStopping counter: 5 out of 10
+Epoch: 8 cost time: 0.10103893280029297
+Epoch: 8, Steps: 17 | Train Loss: 0.713 Vali Loss: 0.702 Vali Acc: 0.471 Test Loss: 0.699 Test Acc: 0.471
+EarlyStopping counter: 6 out of 10
+Epoch: 9 cost time: 0.10657668113708496
+Epoch: 9, Steps: 17 | Train Loss: 0.712 Vali Loss: 0.699 Vali Acc: 0.444 Test Loss: 0.701 Test Acc: 0.444
+EarlyStopping counter: 7 out of 10
+Epoch: 10 cost time: 0.10602617263793945
+Epoch: 10, Steps: 17 | Train Loss: 0.711 Vali Loss: 0.700 Vali Acc: 0.413 Test Loss: 0.700 Test Acc: 0.413
+EarlyStopping counter: 8 out of 10
+Epoch: 11 cost time: 0.10663437843322754
+Epoch: 11, Steps: 17 | Train Loss: 0.710 Vali Loss: 0.698 Vali Acc: 0.396 Test Loss: 0.699 Test Acc: 0.396
+EarlyStopping counter: 9 out of 10
+Epoch: 12 cost time: 0.11135363578796387
+Epoch: 12, Steps: 17 | Train Loss: 0.712 Vali Loss: 0.699 Vali Acc: 0.392 Test Loss: 0.699 Test Acc: 0.392
+EarlyStopping counter: 10 out of 10
+Early stopping
+>>>>>>>testing : classification_CLSP_SelfRegulationSCP1_stats_p25_none_SparseTSFPlus_UEA_sl96_pl0_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_ClsP_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+293
+TEST 293
+test shape: torch.Size([293, 2]) torch.Size([293, 1])
+accuracy:0.5085324232081911

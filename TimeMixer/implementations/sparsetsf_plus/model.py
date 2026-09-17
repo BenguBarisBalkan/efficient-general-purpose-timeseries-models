@@ -139,10 +139,23 @@ class Model(nn.Module):
             # Statistics pooling over time: mean/std/max per channel. Removes the
             # seq_len scaling and adds translation invariance. On PEMS-SF this is
             # 20,230 params against the flat head's 971,397.
+            #
+            # MEASURED: this loses accuracy on shape-driven tasks, badly. Handwriting
+            # (pen trajectories, 26 classes) drops to 3.41% -- the 3.85% chance floor --
+            # because three statistics per channel cannot encode a trajectory. Use
+            # `segpool` when temporal ORDER carries the signal.
             self.projection = nn.Linear(3 * self.enc_in, n_class)
+        elif head == "segpool":
+            # Middle ground between `flat` (no invariance, scales with seq_len) and
+            # `stats` (throws temporal order away): mask-aware mean-pool into a fixed
+            # number of time segments, so coarse ORDER survives at a cost independent of
+            # seq_len. Handwriting: 8 segments -> 650 params vs the flat head's 11,882.
+            self.n_segments = max(1, int(self.units.cls_segments))
+            self.projection = nn.Linear(self.n_segments * self.enc_in, n_class)
         else:
             raise ValueError(
-                "SparseTSFPlus: unknown --stsf_cls_head '{}' (flat | flat_fixed | stats)".format(head))
+                "SparseTSFPlus: unknown --stsf_cls_head '{}' "
+                "(flat | flat_fixed | stats | segpool)".format(head))
 
     def _build_units(self):
         u = self.units
@@ -388,6 +401,19 @@ class Model(nn.Module):
 
         if head == "flat_fixed":
             return self.projection(x.reshape(x.shape[0], -1))
+
+        if head == "segpool":
+            # Mask-aware segment means: pool signal and mask with the same kernel, then
+            # divide, so padded steps contribute nothing. Segments that are entirely
+            # padding come out as 0.
+            m1 = None if padding_mask is None else padding_mask.unsqueeze(1)
+            num = F.adaptive_avg_pool1d(x if m1 is None else x * m1, self.n_segments)
+            if m1 is None:
+                seg = num
+            else:
+                den = F.adaptive_avg_pool1d(m1.expand_as(x), self.n_segments)
+                seg = num / torch.clamp(den, min=1e-6)
+            return self.projection(seg.reshape(seg.shape[0], -1))
 
         # `stats`: pool over time so the head no longer scales with seq_len.
         if padding_mask is not None:

@@ -36,7 +36,8 @@ _UNIT_DEFAULTS = {
     "stsf_mask_conv": 0,        # imputation: partial-conv renormalisation + passthrough
     "stsf_diag_mask": 0,        # reconstruction: leave-one-out (zero the diagonal)
     "stsf_impute_passes": 1,    # 2 -> weight-shared refinement pass
-    "stsf_cls_head": "flat",    # flat (current) | phase | stats
+    "stsf_cls_head": "flat",    # flat (current) | flat_fixed | stats | segpool
+    "stsf_cls_segments": 8,     # segpool: number of time segments to pool into
 }
 
 

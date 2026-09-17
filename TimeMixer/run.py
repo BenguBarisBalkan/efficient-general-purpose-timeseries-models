@@ -141,7 +141,9 @@ parser.add_argument('--stsf_diag_mask', type=int, default=0,
 parser.add_argument('--stsf_impute_passes', type=int, default=1,
                     help='2 = weight-shared refinement pass (0 extra parameters)')
 parser.add_argument('--stsf_cls_head', type=str, default='flat',
-                    help='classification head: flat (current) | phase | stats')
+                    help='classification head: flat (current) | flat_fixed | stats | segpool')
+parser.add_argument('--stsf_cls_segments', type=int, default=8,
+                    help='segpool head: number of time segments to mean-pool into')
 
 # few-shot forecasting: keep only this %% of the TRAIN split (100 = normal full-data training).
 # Only read by the ETT/Custom loaders, and only passed through when < 100, so default runs are
