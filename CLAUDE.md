@@ -10,8 +10,10 @@ vendored) — compared on **accuracy** and **energy/carbon** on a Windows laptop
 The consolidated write-up is `TimeMixer/reports/results_final_report.md`; `README.md` (workspace
 root) is the navigation map.
 
-All code lives under **`TimeMixer/`**. The workspace root also holds `dataset/` (shared data) and
-`_archive/` (disposable clutter — safe to delete, nothing depends on it).
+All code lives under **`TimeMixer/`**; the workspace root also holds `dataset/` (shared data).
+The workspace root **is the git repository** (branch `main`) — there is no nested repo inside
+`TimeMixer/` any more, and one root `.gitignore` governs everything. Fork provenance vs upstream
+TimeMixer is in `TimeMixer/UPSTREAM_FORK.md`.
 
 ## Environment & commands
 

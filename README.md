@@ -9,8 +9,10 @@ on a Windows laptop (RTX 3050 Ti, 4 GB VRAM):
 | **TimeMixer++** | ICLR 2025 | From-scratch reimplementation, benchmarked against v1. |
 | **SparseTSF** | ICML 2024 (Oral) | ~1k-parameter efficiency model, vendored + extended to all tasks. |
 
-All work lives in **`TimeMixer/`**. The other two top-level folders are `dataset/` (shared data)
-and `_archive/` (old clutter — safe to delete, see bottom).
+The workspace is a **git repository** (`main`). Study code lives in **`TimeMixer/`**; `dataset/`
+holds the shared data and is gitignored, as are the venv and all machine-generated run output —
+see [`.gitignore`](.gitignore) for what is and isn't tracked. Further studies get their own
+top-level folder alongside `TimeMixer/`, sharing `dataset/`.
 
 **Tasks.** All three models support the five Time-Series-Library tasks — long/short-term
 forecasting, imputation, anomaly detection, classification. SparseTSF was extended to the full set
@@ -71,7 +73,7 @@ timemixer/
 │
 ├── dataset/               ETT-small, electricity, traffic, weather, solar, PEMS, m4…
 │
-└── _archive/              old clutter, safe to delete (see below)
+└── .gitignore             one source of truth: ignores venv, dataset, run output
 ```
 
 ## How the models plug in
@@ -103,15 +105,20 @@ venv/Scripts/python.exe benchmarks/run_carbon_benchmarks.py  # energy/CO2 for al
 Runners are **idempotent**: a config whose log already holds a valid result is skipped, so
 re-launching after an interruption is safe. See `TimeMixer/benchmarks/README.md` for details.
 
-## `_archive/` (safe to delete)
+## What is not in the repository
 
-Moved here during cleanup — nothing in the project depends on it:
+Ignored because it is large and reproducible, not because it is unimportant:
 
-- `python-installers/` — Python 3.8 installers (the venv is already built).
-- `codecarbon-scratch/` — early standalone CodeCarbon test (iris), pre-integration.
-- `TimeMixer _plus (dead clone)/` — an abandoned early clone of upstream TimeMixer. Its
-  `models/` had only the stock `TimeMixer.py` (no ++/SparseTSF) and its run-logs were exact
-  duplicates of `TimeMixer/logs/run_logs/`. **Not** the TimeMixer++ code — that lives in
-  `TimeMixer/TimeMixer_plus/`.
+| Path | Size | How to get it back |
+|---|---:|---|
+| `TimeMixer/venv/` | 4.7 GB | `python -m venv TimeMixer/venv` + `pip install -r TimeMixer/requirements.txt` (Python 3.8) |
+| `dataset/` | 2.7 GB | ETT/Weather/ECL/M4/PEMS from upstream; PSM/SMD/UEA via `TimeMixer/benchmarks/tools/fetch_task_datasets.py` |
+| `TimeMixer/results/` | 7.4 GB | Re-run; it is `pred.npy`/`true.npy`/`metrics.npy` per run setting |
+| `TimeMixer/checkpoints/` | 270 MB | Re-run (saved weights) |
+| `TimeMixer/test_results/`, `m4_results/` | 52 MB | Re-run |
 
-Once you've confirmed you don't need any of it, delete the whole `_archive/` folder.
+`TimeMixer/logs/` **is** tracked — 290 per-run logs are the evidence behind every table in
+`reports/`, and the runners read them to decide what to skip.
+
+Relation to upstream TimeMixer (base commit, the 10 modified files, how to diff) is recorded in
+[`TimeMixer/UPSTREAM_FORK.md`](TimeMixer/UPSTREAM_FORK.md).
