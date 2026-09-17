@@ -14,11 +14,11 @@ Benchmark and compare three long-term forecasting models — one already public,
 from scratch, one vendored — on the same local hardware, measuring **both** predictive accuracy and
 **energy/CO₂ cost**, then write a consolidated report.
 
-| Model | Design | Params (ETTh, sl=720) |
+| Model | Design | Params (ETTh, sl=96 → sl=720) |
 |---|---|---:|
-| **TimeMixer** (ICLR 2024) | MLP-based multiscale mixing (PDM season/trend + FMM), channel-independent | ~100k+ |
-| **TimeMixer++** (ICLR 2025) | FFT time-imaging (MRTI) + dual-axis attention (TID) + conv multi-scale mixing | ~40k (our impl) |
-| **SparseTSF** (ICML 2024 Oral) | Cross-Period Sparse Forecasting — one shared linear layer | **925** |
+| **TimeMixer** (ICLR 2024) | MLP-based multiscale mixing (PDM season/trend + FMM), channel-independent | 75k → 4.0M |
+| **TimeMixer++** (ICLR 2025) | FFT time-imaging (MRTI) + dual-axis attention (TID) + conv multi-scale mixing | 113k → 1.1M |
+| **SparseTSF** (ICML 2024 Oral) | Cross-Period Sparse Forecasting — one shared linear layer | **41 → 925** |
 
 ---
 
@@ -75,7 +75,8 @@ from scratch, one vendored — on the same local hardware, measuring **both** pr
   narrowing to **1.19× on Weather** (21 channels raise TimeMixer's own channel-independent cost).
 
 **Takeaway:** SparseTSF is the **efficiency winner** — it ties TimeMixer's accuracy at ~1/11 the
-energy and ~1000× fewer parameters, and is the *most accurate* overall at its native lookback.
+energy and 1,800–4,400× fewer parameters (config-dependent), and is the *most accurate* overall at
+its native lookback.
 TimeMixer++'s added complexity bought **neither** accuracy nor efficiency in these runs.
 
 ---

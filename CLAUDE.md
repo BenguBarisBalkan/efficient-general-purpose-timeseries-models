@@ -92,7 +92,7 @@ The workspace root is the git repo (branch `main`), pushed to the **public** Git
   was folded into it and deleted — do not reintroduce a nested one.
 - **Ignored** (large and reproducible): `TimeMixer/venv/`, `dataset/`, `TimeMixer/results/`,
   `checkpoints/`, `test_results/`, `m4_results/`, `logs/result_*.txt`. Tracked is ~404 files / 8 MB.
-- **`TimeMixer/logs/run_logs*/` IS tracked on purpose** — those logs are the evidence behind every
+- **`TimeMixer/logs/run_logs*/` IS tracked on purpose** — the 268 per-run logs there are the evidence behind every
   table *and* the input to the idempotency/skip decision. Do not add them to `.gitignore` to "clean
   up" the repo.
 - **Fork provenance** is in `TimeMixer/UPSTREAM_FORK.md` + `upstream-fork.patch` (base commit

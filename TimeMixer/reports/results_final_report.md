@@ -5,11 +5,26 @@ Consolidated results for three long-term forecasting models benchmarked locally 
 `results_comparison.md` (TimeMixer), `results_comparison_pp.md` (TimeMixer++),
 `results_comparison_sparsetsf.md` (SparseTSF), and `results_carbon_comparison.md` (energy/CO2).
 
-| Model | Design | Params (ETTh, sl=720) |
-|---|---|---:|
-| **TimeMixer** (ICLR 2024) | MLP-based multiscale mixing (PDM + FMM) | ~100k+ |
-| **TimeMixer++** (ICLR 2025) | FFT time-imaging + dual-axis attention + conv mixing | ~40k (our impl) |
-| **SparseTSF** (ICML 2024) | Cross-period sparse forecasting, one shared linear layer | **925** |
+| Model | Design | Params @ sl=96 / pred=96 | Params @ sl=720 / pred=720 |
+|---|---|---:|---:|
+| **TimeMixer** (ICLR 2024) | MLP-based multiscale mixing (PDM + FMM) | 75,497 | 4,046,633 |
+| **TimeMixer++** (ICLR 2025) | FFT time-imaging + dual-axis attention + conv mixing | 112,951 | 1,080,385 |
+| **SparseTSF** (ICML 2024) | Cross-period sparse forecasting, one shared linear layer | **41** | **925** |
+
+Parameter counts are **measured**, reproducible via `benchmarks/tools/count_params.py` (ETTh, 7
+channels, each model's own hyperparameters). Two things they show that a single number hides:
+
+- **They are strongly config-dependent.** TimeMixer's `pdm_blocks` scale with `seq_len` (75.9% of
+  its parameters at sl=720) and its `predict_layers` with `seq_len × pred_len` (24.1%); SparseTSF's
+  single linear layer is shaped `(seq_len/period_len → pred_len/period_len)`. Quoting a ratio
+  without the configuration is meaningless.
+- **TimeMixer++ is not uniformly smaller.** It is *larger* than TimeMixer at sl=96 (112,951 vs
+  75,497) and smaller at sl=720 (1.08M vs 4.05M), because it does not carry
+  sequence-length-scaled mixing MLPs.
+
+*Correction: earlier revisions of this report quoted "~100k+" for TimeMixer and "~40k" for
+TimeMixer++. Those were unverified estimates — nothing in the pipeline logs a parameter count — and
+were low by roughly 40× and 27× respectively at sl=720. SparseTSF's 925 was correct.*
 
 ---
 
@@ -21,7 +36,7 @@ Consolidated results for three long-term forecasting models benchmarked locally 
    caveat: it is deliberately undertrained at `lr=5e-5` for numerical stability.
 
 2. **Accuracy (SparseTSF's native seq_len=720):** SparseTSF's mean MSE drops to **0.312, beating
-   TimeMixer's 0.348** — a **925-parameter** model outperforming a ~100k-parameter one when given
+   TimeMixer's 0.348** — a **925-parameter** model outperforming a 75,497-parameter one when given
    its proper lookback.
 
 3. **Energy:** For identical training work (matched 5-epoch protocol), **TimeMixer++ costs ~1.67×
@@ -124,8 +139,9 @@ Measured with **CodeCarbon 3.2.3** under a *matched* protocol (all three models:
 | **TimeMixer++** | 0.449 (undertrained) | 1.49e-01 | 1.67× (most) |
 
 - **SparseTSF is the efficiency winner by a wide margin**: it ties TimeMixer's accuracy while using
-  ~9% of its energy, and at its native lookback it is the *most accurate* model overall — all with
-  ~1000× fewer parameters.
+  ~9% of its energy, and at its native lookback it is the *most accurate* model overall — with
+  **~1,800× fewer parameters** at the sl=96 comparison (41 vs 75,497) and **~4,400× fewer** at
+  sl=720/pred=720 (925 vs 4.05M).
 - **TimeMixer** is the accuracy leader at the common protocol and a reasonable energy cost.
 - **TimeMixer++'s** heavier architecture bought neither accuracy (in our runs) nor efficiency here —
   though its accuracy figure is depressed by the stability-driven low LR (see caveats).
