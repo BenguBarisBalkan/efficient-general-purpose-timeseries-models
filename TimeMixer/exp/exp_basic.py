@@ -1,6 +1,6 @@
 import os
 import torch
-from models import TimeMixer, TimeMixerPP, SparseTSF
+from models import TimeMixer, TimeMixerPP, SparseTSF, SparseTSFPlus
 
 
 class Exp_Basic(object):
@@ -10,6 +10,7 @@ class Exp_Basic(object):
             'TimeMixer': TimeMixer,
             'TimeMixerPP': TimeMixerPP,
             'SparseTSF': SparseTSF,
+            'SparseTSFPlus': SparseTSFPlus,
         }
         self.device = self._acquire_device()
         self.model = self._build_model().to(self.device)

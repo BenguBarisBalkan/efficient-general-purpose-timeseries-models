@@ -111,6 +111,38 @@ parser.add_argument('--p_hidden_layers', type=int, default=2, help='number of hi
 parser.add_argument('--period_len', type=int, default=24, help='SparseTSF period length (must divide seq_len and pred_len)')
 parser.add_argument('--model_type', type=str, default='linear', help='SparseTSF variant: linear (<1k params) or mlp')
 
+# SparseTSFPlus units (only read by --model SparseTSFPlus; additive, other models ignore
+# them). EVERY default below reproduces stock SparseTSF, so all-units-off is identical to
+# --model SparseTSF and none of the published numbers are affected.
+parser.add_argument('--stsf_revin', type=int, default=0,
+                    help='0 mean-only (SparseTSF) | 1 mean+std RevIN | 2 subtract_last+std')
+parser.add_argument('--stsf_revin_affine', type=int, default=0,
+                    help='learnable RevIN affine; costs 2*enc_in and breaks enc_in-free counts')
+parser.add_argument('--stsf_phase_mix', type=str, default='off',
+                    help='intra-period (phase-axis) mixing: off | linear | conv')
+parser.add_argument('--stsf_phase_rank', type=int, default=0,
+                    help='0 = full period_len^2, >0 = low-rank phase mixing')
+parser.add_argument('--stsf_phase_kernel', type=int, default=3,
+                    help='kernel for --stsf_phase_mix conv (forced odd)')
+parser.add_argument('--stsf_periods', type=str, default='',
+                    help='extra comma-separated periods for the multi-period ensemble, e.g. "8,24"')
+parser.add_argument('--stsf_decomp', type=str, default='off',
+                    help='trend/season split: off | free (0 params) | linear')
+parser.add_argument('--stsf_decomp_kernel', type=int, default=25,
+                    help='moving_avg kernel for --stsf_decomp (forced odd)')
+parser.add_argument('--stsf_pad_fold', type=int, default=0,
+                    help='1 to allow period_len not dividing seq_len/pred_len (phase-aligned pad)')
+parser.add_argument('--stsf_linear_bias', type=int, default=0,
+                    help='bias on the cross-period linear')
+parser.add_argument('--stsf_mask_conv', type=int, default=0,
+                    help='imputation: partial-conv renormalisation + observed passthrough')
+parser.add_argument('--stsf_diag_mask', type=int, default=0,
+                    help='reconstruction: leave-one-out (zero the cross-period diagonal)')
+parser.add_argument('--stsf_impute_passes', type=int, default=1,
+                    help='2 = weight-shared refinement pass (0 extra parameters)')
+parser.add_argument('--stsf_cls_head', type=str, default='flat',
+                    help='classification head: flat (current) | phase | stats')
+
 # few-shot forecasting: keep only this %% of the TRAIN split (100 = normal full-data training).
 # Only read by the ETT/Custom loaders, and only passed through when < 100, so default runs are
 # byte-for-byte unaffected.
