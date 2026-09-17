@@ -1,7 +1,7 @@
 ## TimeMixer++ Reproduction Results vs Paper
 
 - **Paper**: TimeMixer++: A General Time Series Pattern Machine for Universal Predictive Analysis (ICLR 2025).
-- **Codebase**: `TimeMixer_plus/model.py` (this repo).
+- **Codebase**: `implementations/timemixer_pp/model.py` (this repo).
 - **Hardware**: Local Windows machine, RTX 3050 Ti Laptop GPU (4 GB VRAM).
 - **Setup**: `seq_len=96`, `down_sampling_layers=3`, `top_k=3`, `e_layers=2`, `num_workers=0`.
 - **Note**: Paper trained on multi A100 80GB GPUs with `batch_size=512`. Local runs use reduced batch sizes (4–64) to fit 4 GB VRAM, which may affect results.
@@ -17,7 +17,7 @@ following changes were made during development to get a numerically stable model
 PyTorch 1.7.1 / CUDA 11.0 with 4 GB VRAM:
 
 **New files**
-- `TimeMixer_plus/model.py` — full TimeMixer++ implementation (ChannelMixer, MRTI, dual-axis-attention TID, Conv-based multi-scale mixing, amplitude-weighted MRM, task heads).
+- `implementations/timemixer_pp/model.py` — full TimeMixer++ implementation (ChannelMixer, MRTI, dual-axis-attention TID, Conv-based multi-scale mixing, amplitude-weighted MRM, task heads).
 - `models/TimeMixerPP.py` — thin wrapper exposing the model to `run.py` as `--model TimeMixerPP`.
 - `run_all_pp_benchmarks.py` / `run_missing_pp.py` — benchmark runners (logs to `.run_logs_pp/`).
 

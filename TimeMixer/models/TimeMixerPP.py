@@ -1,5 +1,5 @@
 """
 Thin wrapper that exposes TimeMixer++ to the run.py / exp_basic.py model registry.
-All implementation lives in TimeMixer_plus/model.py.
+All implementation lives in implementations/timemixer_pp/model.py.
 """
-from TimeMixer_plus.model import Model  # noqa: F401
+from implementations.timemixer_pp.model import Model  # noqa: F401

@@ -1,7 +1,7 @@
 """
 Task-aware SparseTSF for this repo's experiment loops.
 
-Upstream SparseTSF (ICML 2024) is a forecasting-only model: `SparseTSF_model/model.py` maps
+Upstream SparseTSF (ICML 2024) is a forecasting-only model: `implementations/sparsetsf/model.py` maps
 `(B, seq_len, C) -> (B, pred_len, C)` with a single-argument `forward(self, x)`. This module
 extends it to the five Time-Series-Library tasks — long/short-term forecasting, imputation,
 anomaly detection, classification — the same set TimeMixer / TimeMixer++ support (see the
@@ -39,7 +39,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from SparseTSF_model.model import Model as SparseTSFCore
+from implementations.sparsetsf.model import Model as SparseTSFCore
 
 _FORECAST_TASKS = ("long_term_forecast", "short_term_forecast")
 _RECON_TASKS = ("imputation", "anomaly_detection")

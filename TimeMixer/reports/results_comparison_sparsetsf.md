@@ -2,7 +2,7 @@
 
 - **Paper**: SparseTSF: Modeling Long-term Time Series Forecasting with 1k Parameters (ICML 2024, Oral)
 - **Upstream**: https://github.com/lss-1138/SparseTSF (Apache-2.0)
-- **Vendored model**: `SparseTSF_model/model.py`; adapter for our exp loop: `models/SparseTSF.py`
+- **Vendored model**: `implementations/sparsetsf/model.py`; adapter for our exp loop: `models/SparseTSF.py`
 - **Hardware**: RTX 3050 Ti Laptop GPU (4 GB), Windows
 - **Runner**: `run_sparsetsf_benchmarks.py` -> logs in `.run_logs_sparsetsf/`
 

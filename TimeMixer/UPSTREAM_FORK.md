@@ -26,7 +26,7 @@ this file records everything that history was carrying.
 
 ## Added on top (not upstream)
 
-`TimeMixer_plus/` (TimeMixer++ reimplementation), `SparseTSF_model/` (vendored, Apache-2.0),
+`implementations/timemixer_pp/` (TimeMixer++ reimplementation), `implementations/sparsetsf/` (vendored, Apache-2.0),
 `models/TimeMixerPP.py` + `models/SparseTSF.py` (entry-point shims), `benchmarks/` (the runner
 harness), `reports/` (the write-ups), `logs/`, and the `scripts/**/*.bat` Windows ports of
 upstream's shell scripts.

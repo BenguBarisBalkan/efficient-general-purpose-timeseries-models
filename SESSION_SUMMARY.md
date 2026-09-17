@@ -27,7 +27,7 @@ from scratch, one vendored — on the same local hardware, measuring **both** pr
 1. **Completed the TimeMixer v1 accuracy table** (`results_comparison.md`) — ran only the missing
    experiments, updated the file as each run finished, and cleaned up redundant tables at the top.
 
-2. **Implemented TimeMixer++ from scratch** in `TimeMixer/TimeMixer_plus/model.py` (there is no
+2. **Implemented TimeMixer++ from scratch** in `TimeMixer/implementations/timemixer_pp/model.py` (there is no
    public implementation). Built the full architecture: learnable Conv1d downsampling, ChannelMixer
    (variate self-attention at the coarsest scale), MRTI (FFT → top-K periods → 2-D "time images"),
    dual-axis attention TID (season via column-attention / trend via row-attention), Conv2D +
@@ -36,7 +36,7 @@ from scratch, one vendored — on the same local hardware, measuring **both** pr
 
 3. **Fought and won a multi-day NaN-stability battle** on TimeMixer++ (see below).
 
-4. **Integrated SparseTSF** — vendored upstream under Apache-2.0 (`SparseTSF_model/`), wrote a
+4. **Integrated SparseTSF** — vendored upstream under Apache-2.0 (`implementations/sparsetsf/`), wrote a
    1-arg→4-arg adapter (`models/SparseTSF.py`), added `--period_len` / `--model_type` to `run.py`,
    and registered it in `exp/exp_basic.py`. Accuracy tracked in `results_comparison_sparsetsf.md`.
 
@@ -94,9 +94,9 @@ type1`. The low LR is *why* PP is undertrained in the epoch budget.
 
 | File | Purpose |
 |---|---|
-| `TimeMixer_plus/model.py` | From-scratch TimeMixer++ implementation |
+| `implementations/timemixer_pp/model.py` | From-scratch TimeMixer++ implementation |
 | `models/TimeMixerPP.py`, `models/SparseTSF.py` | Thin wrappers / adapters |
-| `SparseTSF_model/model.py` | Vendored SparseTSF (Apache-2.0) |
+| `implementations/sparsetsf/model.py` | Vendored SparseTSF (Apache-2.0) |
 | `run_all_pp_benchmarks.py`, `run_missing_pp.py` | TimeMixer++ accuracy runners |
 | `run_sparsetsf_benchmarks.py` | SparseTSF accuracy runner (40 runs) |
 | `run_carbon_benchmarks.py` | 3-model CodeCarbon sweep (60 runs) |

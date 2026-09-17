@@ -33,7 +33,7 @@ SWaT is gated (see that script's header).
 | Energy / CO₂ tables | `TimeMixer/reports/results_carbon_comparison.md` |
 | The scripts that run the benchmarks | `TimeMixer/benchmarks/` |
 | Raw run logs / emissions data | `TimeMixer/logs/` |
-| The 3 model definitions | `TimeMixer/models/` (+ `TimeMixer_plus/`, `SparseTSF_model/`) |
+| The 3 model definitions | `TimeMixer/models/` (registry) + `TimeMixer/implementations/` (the code) |
 | The Python environment | `TimeMixer/venv/` (Python 3.8, PyTorch CUDA) |
 | The datasets (files) | `dataset/` |
 | **What every dataset is** (all tasks, measured stats) | `TimeMixer/reports/datasets_reference.md` |
@@ -47,12 +47,13 @@ timemixer/
 ├── TimeMixer/              ← THE PROJECT (git → github.com/kwuking/TimeMixer, forked)
 │   │
 │   │   ── model code ──────────────────────────────────────────────
-│   ├── models/             Entry points registered in exp/exp_basic.py:
-│   │   ├── TimeMixer.py        self-contained TimeMixer (ICLR'24)
-│   │   ├── TimeMixerPP.py      5-line wrapper → TimeMixer_plus/model.py
-│   │   └── SparseTSF.py        adapter → SparseTSF_model/model.py
-│   ├── TimeMixer_plus/     TimeMixer++ from-scratch implementation (model.py)
-│   ├── SparseTSF_model/    SparseTSF vendored from upstream (Apache-2.0)
+│   ├── models/             Registry entry points (imported by exp/exp_basic.py):
+│   │   ├── TimeMixer.py        self-contained TimeMixer (ICLR'24), upstream file
+│   │   ├── TimeMixerPP.py      5-line shim → implementations/timemixer_pp/
+│   │   └── SparseTSF.py        adapter + the non-forecast task heads
+│   ├── implementations/    the substantial model code, one package each:
+│   │   ├── timemixer_pp/       TimeMixer++ (ICLR'25), written from scratch here
+│   │   └── sparsetsf/          SparseTSF (ICML'24) vendored + its Apache-2.0 LICENSE
 │   │
 │   │   ── shared TSLib scaffold (upstream, mostly untouched) ───────
 │   ├── run.py              CLI entry point (argparse → exp loop)
@@ -87,9 +88,10 @@ run.py  --model {TimeMixer|TimeMixerPP|SparseTSF}  --data … --seq_len 96 --pre
              └─ models/<name>.py             (thin entry point → real implementation)
 ```
 
-`TimeMixerPP.py` and `SparseTSF.py` are deliberately thin shims: they keep the real
-implementation in a sibling package (`TimeMixer_plus/`, `SparseTSF_model/`) so the upstream
-`models/` folder stays clean and the exp loop needs no changes.
+`TimeMixerPP.py` and `SparseTSF.py` are deliberately thin: they keep the substantial code in
+`implementations/`, one package per model, so `models/` stays a registry and the exp loop needs
+no changes. Vendored SparseTSF sits next to its own licence, which keeps the "whose code is this"
+boundary visible. `TimeMixer.py` stays put as an upstream file, so upstream changes still merge.
 
 ## Running a benchmark
 

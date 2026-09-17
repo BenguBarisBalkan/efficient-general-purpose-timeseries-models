@@ -90,7 +90,7 @@ would risk the existing TimeMixer / TimeMixer++ results. Instead `models/SparseT
 **task-aware adapter** that branches on `configs.task_name`, absorbing the differences internally.
 The loops never learned that SparseTSF is unusual.
 
-**Design decision: never touch the vendored core.** `SparseTSF_model/model.py` is upstream code
+**Design decision: never touch the vendored core.** `implementations/sparsetsf/model.py` is upstream code
 (Apache-2.0). The forecasting path simply delegates to it:
 
 ```python

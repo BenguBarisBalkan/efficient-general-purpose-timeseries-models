@@ -4,7 +4,7 @@ SparseTSF — vendored from the official implementation.
 Source : https://github.com/lss-1138/SparseTSF  (models/SparseTSF.py)
 Paper  : "SparseTSF: Modeling Long-term Time Series Forecasting with 1k Parameters",
          Lin et al., ICML 2024 (Oral)
-License: Apache License 2.0 (upstream). See SparseTSF_model/LICENSE-SparseTSF.
+License: Apache License 2.0 (upstream). See implementations/sparsetsf/LICENSE-SparseTSF.
 
 Cross-Period Sparse Forecasting: subtract the sequence mean, aggregate with a 1-D conv,
 downsample into `period_len` segments, then apply ONE shared linear (or MLP) layer across

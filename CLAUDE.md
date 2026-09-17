@@ -82,19 +82,24 @@ three models — TimeMixer, TimeMixer++, and (as of the multi-task extension) Sp
 full task set. Models are looked up by name in `exp/exp_basic.py`'s `model_dict`.
 
 **2. The three models, wired via a shim pattern.** `model_dict` maps `TimeMixer`, `TimeMixerPP`,
-`SparseTSF` → modules in `models/`. Two of those are deliberately *thin*:
+`SparseTSF` → modules in `models/`, which is a **registry**: one file per registered model name.
+The substantial code lives in `implementations/`, one package per model — `timemixer_pp/` (ours)
+and `sparsetsf/` (vendored, beside its own Apache-2.0 licence). Two registry entries are
+deliberately *thin*:
 - `models/TimeMixer.py` — self-contained (uses `layers/`); multi-scale downsample →
   `PastDecomposableMixing` (season mixed bottom-up, trend top-down) → `FutureMultipredictorMixing`.
-- `models/TimeMixerPP.py` — 5-line wrapper re-exporting `TimeMixer_plus/model.py` (the from-scratch
+- `models/TimeMixerPP.py` — 5-line wrapper re-exporting `implementations/timemixer_pp/model.py` (the from-scratch
   ICLR'25 reimplementation: FFT top-K "time imaging" MRTI, dual-axis attention TID, conv multi-scale
   mixing).
 - `models/SparseTSF.py` — a **task-aware** model. The `long_term_forecast`/`short_term_forecast`
-  path **delegates to the untouched vendored core** `SparseTSF_model/model.py` (Apache-2.0), so
+  path **delegates to the untouched vendored core** `implementations/sparsetsf/model.py` (Apache-2.0), so
   forecast results are reproduced bit-for-bit; the `imputation`/`anomaly_detection` (cross-period
   reconstruction) and `classification` (conv-aggregation → flatten → linear) heads are built here
   from SparseTSF's own primitives. It branches on `configs.task_name` and returns the per-task shape
-  each `exp/exp_*.py` expects. To add a model: implement it, add a thin `models/*.py` entry point,
-  and register it in `exp/exp_basic.py`.
+  each `exp/exp_*.py` expects. To add a model: put the implementation in `implementations/<name>/`
+  (with an `__init__.py`), add a thin `models/<Name>.py` entry point that re-exports its `Model`,
+  and register that name in `exp/exp_basic.py`. `models/TimeMixer.py` is the exception and stays
+  where upstream put it, so upstream changes keep merging cleanly.
 
 **3. Forward-call & data conventions** (needed to modify any model or the loop). Every model is called
 as `model(batch_x, batch_x_mark, dec_inp, batch_y_mark)`. `data_provider/` yields
@@ -126,7 +131,7 @@ If you relocate any of these, the `REPO_ROOT`-relative path constants at the top
   `exp/exp_long_term_forecasting.py`: skip a batch whose loss is non-finite, and — crucially — skip
   the optimizer step when `clip_grad_norm_` returns a non-finite total norm (grad NaNs can be hidden
   from the loss by output sanitization). In `utils/tools.py`: `EarlyStopping` treats a non-finite
-  val-loss as non-improving so it never overwrites a good checkpoint. In `TimeMixer_plus/model.py`:
+  val-loss as non-improving so it never overwrites a good checkpoint. In `implementations/timemixer_pp/model.py`:
   FFT-amplitude `isfinite`/clamp before softmax, attention-score clamps, output `_sanitize`. PP is
   run at a conservative `lr=5e-5` + `lradj type1`, and Solar needs `use_norm=1`.
 - **PP is undertrained by design.** That `lr=5e-5` is a stability requirement, so PP's *accuracy*

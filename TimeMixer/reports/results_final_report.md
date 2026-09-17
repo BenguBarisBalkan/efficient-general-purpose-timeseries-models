@@ -157,5 +157,5 @@ fraction of the carbon cost.
   very cheap, but its 720-lookback energy is not directly in the energy table.
 - **Scope**: 5 light datasets (ETTh1/2, ETTm1/2, Weather). Solar-Energy, Electricity, Traffic were
   excluded as too heavy for the 4 GB GPU.
-- **SparseTSF** is vendored under Apache-2.0 (`SparseTSF_model/`) with a 1-arg→4-arg adapter
+- **SparseTSF** is vendored under Apache-2.0 (`implementations/sparsetsf/`) with a 1-arg→4-arg adapter
   (`models/SparseTSF.py`); `model_type=linear` (the <1k-param variant) is used throughout.
