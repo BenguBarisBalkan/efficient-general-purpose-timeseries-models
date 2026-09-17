@@ -1,0 +1,42 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=64, c_out=7, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=64, d_layers=1, d_model=32, data='ETTh2', data_path='ETTh2.csv', dec_in=7, decomp_method='moving_avg', des='Carbon', devices='0,1', distil=True, down_sampling_layers=3, down_sampling_method='avg', down_sampling_window=2, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions_timemixer.csv', emissions_output_dir='C:\\Users\\bbbal\\OneDrive\\Masaüstü\\timemixer\\TimeMixer', enc_in=7, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=0, learning_rate=5e-05, loss='MSE', lradj='type1', mask_rate=0.125, model='TimeMixerPP', model_id='CARBON_TimeMixerPP_ETTh2_96_192', moving_avg=25, n_heads=4, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=999, pct_start=0.2, pred_len=192, root_path='C:\\Users\\bbbal\\OneDrive\\Masaüstü\\timemixer\\dataset\\ETT-small', seasonal_patterns='Monthly', seq_len=96, target='OT', task_name='long_term_forecast', top_k=3, track_emissions=1, train_epochs=5, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+[codecarbon WARNING @ 14:59:44] Multiple instances of codecarbon are allowed to run at the same time.
+>>>>>>>start training : long_term_forecast_CARBON_TimeMixerPP_ETTh2_96_192_none_TimeMixerPP_ETTh2_sl96_pl192_dm32_nh4_el2_dl1_df64_fc1_ebtimeF_dtTrue_Carbon_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 8353
+val 2689
+test 2689
+	iters: 100, epoch: 1 | loss: 0.5214379
+	speed: 0.2679s/iter; left time: 147.6333s
+Epoch: 1 cost time: 33.602399587631226
+Epoch: 1, Steps: 130 | Train Loss: 0.7184802 Vali Loss: 0.3752559 Test Loss: 0.5181719
+Validation loss decreased (inf --> 0.375256).  Saving model ...
+Updating learning rate to 5e-05
+	iters: 100, epoch: 2 | loss: 0.6252022
+	speed: 0.3471s/iter; left time: 146.1390s
+Epoch: 2 cost time: 29.022987127304077
+Epoch: 2, Steps: 130 | Train Loss: 0.6766143 Vali Loss: 0.3446524 Test Loss: 0.4729690
+Validation loss decreased (0.375256 --> 0.344652).  Saving model ...
+Updating learning rate to 2.5e-05
+	iters: 100, epoch: 3 | loss: 0.6793060
+	speed: 0.3480s/iter; left time: 101.2707s
+Epoch: 3 cost time: 29.036871910095215
+Epoch: 3, Steps: 130 | Train Loss: 0.6462702 Vali Loss: 0.3385638 Test Loss: 0.4645056
+Validation loss decreased (0.344652 --> 0.338564).  Saving model ...
+Updating learning rate to 1.25e-05
+	iters: 100, epoch: 4 | loss: 0.3367479
+	speed: 0.3476s/iter; left time: 55.9620s
+Epoch: 4 cost time: 29.363194465637207
+Epoch: 4, Steps: 130 | Train Loss: 0.6333977 Vali Loss: 0.3360876 Test Loss: 0.4613401
+Validation loss decreased (0.338564 --> 0.336088).  Saving model ...
+Updating learning rate to 6.25e-06
+	iters: 100, epoch: 5 | loss: 0.8404605
+	speed: 0.3514s/iter; left time: 10.8922s
+Epoch: 5 cost time: 29.479372262954712
+Epoch: 5, Steps: 130 | Train Loss: 0.6303448 Vali Loss: 0.3350910 Test Loss: 0.4599634
+Validation loss decreased (0.336088 --> 0.335091).  Saving model ...
+Updating learning rate to 3.125e-06
+>>>>>>>testing : long_term_forecast_CARBON_TimeMixerPP_ETTh2_96_192_none_TimeMixerPP_ETTh2_sl96_pl192_dm32_nh4_el2_dl1_df64_fc1_ebtimeF_dtTrue_Carbon_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test 2689
+mse:0.45996350049972534, mae:0.45205169916152954
+emissions_kg:0.0015512643861760466

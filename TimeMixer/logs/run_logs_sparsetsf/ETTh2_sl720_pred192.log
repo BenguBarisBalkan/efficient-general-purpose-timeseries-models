@@ -1,0 +1,58 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=256, c_out=7, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=128, data='ETTh2', data_path='ETTh2.csv', dec_in=7, decomp_method='moving_avg', des='Sparse', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=7, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=0, learning_rate=0.02, loss='MSE', lradj='type3', mask_rate=0.125, model='SparseTSF', model_id='SPARSE_ETTh2_720_192', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=5, pct_start=0.2, period_len=24, pred_len=192, root_path='C:\\Users\\bbbal\\OneDrive\\Masaüstü\\timemixer\\dataset\\ETT-small', seasonal_patterns='Monthly', seq_len=720, target='OT', task_name='long_term_forecast', top_k=5, track_emissions=0, train_epochs=30, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+>>>>>>>start training : long_term_forecast_SPARSE_ETTh2_720_192_none_SparseTSF_ETTh2_sl720_pl192_dm128_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_Sparse_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 7729
+val 2689
+test 2689
+Epoch: 1 cost time: 3.3187694549560547
+Epoch: 1, Steps: 30 | Train Loss: 0.8034642 Vali Loss: 0.4967688 Test Loss: 0.4012765
+Validation loss decreased (inf --> 0.496769).  Saving model ...
+Updating learning rate to 0.02
+Epoch: 2 cost time: 1.1605207920074463
+Epoch: 2, Steps: 30 | Train Loss: 0.8333385 Vali Loss: 0.4443144 Test Loss: 0.3624494
+Validation loss decreased (0.496769 --> 0.444314).  Saving model ...
+Updating learning rate to 0.02
+Epoch: 3 cost time: 1.154783010482788
+Epoch: 3, Steps: 30 | Train Loss: 0.6071862 Vali Loss: 0.3158479 Test Loss: 0.3336047
+Validation loss decreased (0.444314 --> 0.315848).  Saving model ...
+Updating learning rate to 0.02
+Epoch: 4 cost time: 1.2052817344665527
+Epoch: 4, Steps: 30 | Train Loss: 0.5514304 Vali Loss: 0.2950230 Test Loss: 0.3223358
+Validation loss decreased (0.315848 --> 0.295023).  Saving model ...
+Updating learning rate to 0.018000000000000002
+Epoch: 5 cost time: 1.2010176181793213
+Epoch: 5, Steps: 30 | Train Loss: 0.5381309 Vali Loss: 0.2903040 Test Loss: 0.3186319
+Validation loss decreased (0.295023 --> 0.290304).  Saving model ...
+Updating learning rate to 0.016200000000000003
+Epoch: 6 cost time: 1.0040888786315918
+Epoch: 6, Steps: 30 | Train Loss: 0.5344567 Vali Loss: 0.2932983 Test Loss: 0.3174517
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.014580000000000003
+Epoch: 7 cost time: 1.035719871520996
+Epoch: 7, Steps: 30 | Train Loss: 0.5306147 Vali Loss: 0.2832996 Test Loss: 0.3194033
+Validation loss decreased (0.290304 --> 0.283300).  Saving model ...
+Updating learning rate to 0.013122
+Epoch: 8 cost time: 1.109734058380127
+Epoch: 8, Steps: 30 | Train Loss: 0.5290661 Vali Loss: 0.2926701 Test Loss: 0.3122215
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.011809800000000002
+Epoch: 9 cost time: 1.0920000076293945
+Epoch: 9, Steps: 30 | Train Loss: 0.5306298 Vali Loss: 0.2865652 Test Loss: 0.3158770
+EarlyStopping counter: 2 out of 5
+Updating learning rate to 0.01062882
+Epoch: 10 cost time: 1.035865068435669
+Epoch: 10, Steps: 30 | Train Loss: 0.5293711 Vali Loss: 0.2865744 Test Loss: 0.3169498
+EarlyStopping counter: 3 out of 5
+Updating learning rate to 0.009565938000000001
+Epoch: 11 cost time: 1.2252047061920166
+Epoch: 11, Steps: 30 | Train Loss: 0.5277031 Vali Loss: 0.2894282 Test Loss: 0.3149768
+EarlyStopping counter: 4 out of 5
+Updating learning rate to 0.008609344200000002
+Epoch: 12 cost time: 1.2597520351409912
+Epoch: 12, Steps: 30 | Train Loss: 0.5274690 Vali Loss: 0.2941427 Test Loss: 0.3081031
+EarlyStopping counter: 5 out of 5
+Early stopping
+>>>>>>>testing : long_term_forecast_SPARSE_ETTh2_720_192_none_SparseTSF_ETTh2_sl720_pl192_dm128_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_Sparse_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test 2689
+mse:0.3194032311439514, mae:0.36487698554992676

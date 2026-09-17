@@ -1,0 +1,82 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=64, c_out=7, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=64, d_layers=1, d_model=32, data='ETTm2', data_path='ETTm2.csv', dec_in=7, decomp_method='moving_avg', des='Carbon', devices='0,1', distil=True, down_sampling_layers=3, down_sampling_method='avg', down_sampling_window=2, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions_timemixer.csv', emissions_output_dir='C:\\Users\\bbbal\\OneDrive\\Masaüstü\\timemixer\\TimeMixer', enc_in=7, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=0, learning_rate=5e-05, loss='MSE', lradj='type1', mask_rate=0.125, model='SparseTSF', model_id='CARBON_SparseTSF_ETTm2_96_96', model_type='linear', moving_avg=25, n_heads=4, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=999, pct_start=0.2, period_len=4, pred_len=96, root_path='C:\\Users\\bbbal\\OneDrive\\Masaüstü\\timemixer\\dataset\\ETT-small', seasonal_patterns='Monthly', seq_len=96, target='OT', task_name='long_term_forecast', top_k=3, track_emissions=1, train_epochs=5, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+[codecarbon WARNING @ 00:09:32] Multiple instances of codecarbon are allowed to run at the same time.
+>>>>>>>start training : long_term_forecast_CARBON_SparseTSF_ETTm2_96_96_none_SparseTSF_ETTm2_sl96_pl96_dm32_nh4_el2_dl1_df64_fc1_ebtimeF_dtTrue_Carbon_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 34369
+val 11425
+test 11425
+	iters: 100, epoch: 1 | loss: 0.3323992
+	speed: 0.0356s/iter; left time: 92.0692s
+	iters: 200, epoch: 1 | loss: 0.4492726
+	speed: 0.0059s/iter; left time: 14.6459s
+	iters: 300, epoch: 1 | loss: 0.2368587
+	speed: 0.0057s/iter; left time: 13.5197s
+	iters: 400, epoch: 1 | loss: 0.3065142
+	speed: 0.0059s/iter; left time: 13.4648s
+	iters: 500, epoch: 1 | loss: 0.2661135
+	speed: 0.0054s/iter; left time: 11.8609s
+Epoch: 1 cost time: 6.058878421783447
+Epoch: 1, Steps: 537 | Train Loss: 0.3699243 Vali Loss: 0.2137110 Test Loss: 0.2951091
+Validation loss decreased (inf --> 0.213711).  Saving model ...
+Updating learning rate to 5e-05
+	iters: 100, epoch: 2 | loss: 0.2977010
+	speed: 0.0189s/iter; left time: 38.8282s
+	iters: 200, epoch: 2 | loss: 0.2997034
+	speed: 0.0062s/iter; left time: 12.1288s
+	iters: 300, epoch: 2 | loss: 0.3229122
+	speed: 0.0055s/iter; left time: 10.1321s
+	iters: 400, epoch: 2 | loss: 0.4240522
+	speed: 0.0059s/iter; left time: 10.3731s
+	iters: 500, epoch: 2 | loss: 0.3392521
+	speed: 0.0054s/iter; left time: 8.9771s
+Epoch: 2 cost time: 3.1807503700256348
+Epoch: 2, Steps: 537 | Train Loss: 0.3439985 Vali Loss: 0.1857477 Test Loss: 0.2577857
+Validation loss decreased (0.213711 --> 0.185748).  Saving model ...
+Updating learning rate to 2.5e-05
+	iters: 100, epoch: 3 | loss: 0.3005672
+	speed: 0.0186s/iter; left time: 28.1229s
+	iters: 200, epoch: 3 | loss: 0.3419452
+	speed: 0.0059s/iter; left time: 8.3105s
+	iters: 300, epoch: 3 | loss: 0.2846867
+	speed: 0.0056s/iter; left time: 7.3750s
+	iters: 400, epoch: 3 | loss: 0.2550868
+	speed: 0.0061s/iter; left time: 7.3480s
+	iters: 500, epoch: 3 | loss: 0.2686766
+	speed: 0.0058s/iter; left time: 6.4965s
+Epoch: 3 cost time: 3.1477773189544678
+Epoch: 3, Steps: 537 | Train Loss: 0.3187673 Vali Loss: 0.1775939 Test Loss: 0.2468281
+Validation loss decreased (0.185748 --> 0.177594).  Saving model ...
+Updating learning rate to 1.25e-05
+	iters: 100, epoch: 4 | loss: 0.2576110
+	speed: 0.0184s/iter; left time: 17.9833s
+	iters: 200, epoch: 4 | loss: 0.3981013
+	speed: 0.0059s/iter; left time: 5.1433s
+	iters: 300, epoch: 4 | loss: 0.2632827
+	speed: 0.0057s/iter; left time: 4.4260s
+	iters: 400, epoch: 4 | loss: 0.3576708
+	speed: 0.0068s/iter; left time: 4.6092s
+	iters: 500, epoch: 4 | loss: 0.2456699
+	speed: 0.0068s/iter; left time: 3.9094s
+Epoch: 4 cost time: 3.301140785217285
+Epoch: 4, Steps: 537 | Train Loss: 0.3100697 Vali Loss: 0.1740830 Test Loss: 0.2421388
+Validation loss decreased (0.177594 --> 0.174083).  Saving model ...
+Updating learning rate to 6.25e-06
+	iters: 100, epoch: 5 | loss: 0.3075176
+	speed: 0.0197s/iter; left time: 8.6289s
+	iters: 200, epoch: 5 | loss: 0.3235890
+	speed: 0.0062s/iter; left time: 2.0817s
+	iters: 300, epoch: 5 | loss: 0.3366668
+	speed: 0.0061s/iter; left time: 1.4425s
+	iters: 400, epoch: 5 | loss: 0.2192741
+	speed: 0.0064s/iter; left time: 0.8871s
+	iters: 500, epoch: 5 | loss: 0.3365394
+	speed: 0.0057s/iter; left time: 0.2158s
+Epoch: 5 cost time: 3.280215263366699
+Epoch: 5, Steps: 537 | Train Loss: 0.3061132 Vali Loss: 0.1724168 Test Loss: 0.2398873
+Validation loss decreased (0.174083 --> 0.172417).  Saving model ...
+Updating learning rate to 3.125e-06
+>>>>>>>testing : long_term_forecast_CARBON_SparseTSF_ETTm2_96_96_none_SparseTSF_ETTm2_sl96_pl96_dm32_nh4_el2_dl1_df64_fc1_ebtimeF_dtTrue_Carbon_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test 11425
+mse:0.23988746106624603, mae:0.3181275427341461
+emissions_kg:0.0001512954562348441

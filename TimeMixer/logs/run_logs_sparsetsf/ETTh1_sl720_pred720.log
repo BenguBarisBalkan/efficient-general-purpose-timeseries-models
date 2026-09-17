@@ -1,0 +1,54 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=256, c_out=7, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=128, data='ETTh1', data_path='ETTh1.csv', dec_in=7, decomp_method='moving_avg', des='Sparse', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=7, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=0, learning_rate=0.02, loss='MSE', lradj='type3', mask_rate=0.125, model='SparseTSF', model_id='SPARSE_ETTh1_720_720', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=5, pct_start=0.2, period_len=24, pred_len=720, root_path='C:\\Users\\bbbal\\OneDrive\\Masaüstü\\timemixer\\dataset\\ETT-small', seasonal_patterns='Monthly', seq_len=720, target='OT', task_name='long_term_forecast', top_k=5, track_emissions=0, train_epochs=30, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+>>>>>>>start training : long_term_forecast_SPARSE_ETTh1_720_720_none_SparseTSF_ETTh1_sl720_pl720_dm128_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_Sparse_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 7201
+val 2161
+test 2161
+Epoch: 1 cost time: 3.5111124515533447
+Epoch: 1, Steps: 28 | Train Loss: 0.8381710 Vali Loss: 1.7925806 Test Loss: 0.6334069
+Validation loss decreased (inf --> 1.792581).  Saving model ...
+Updating learning rate to 0.02
+Epoch: 2 cost time: 1.4700772762298584
+Epoch: 2, Steps: 28 | Train Loss: 0.8903964 Vali Loss: 1.9779250 Test Loss: 0.5881750
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.02
+Epoch: 3 cost time: 1.2722556591033936
+Epoch: 3, Steps: 28 | Train Loss: 0.6402697 Vali Loss: 1.5421250 Test Loss: 0.4459077
+Validation loss decreased (1.792581 --> 1.542125).  Saving model ...
+Updating learning rate to 0.02
+Epoch: 4 cost time: 1.4138827323913574
+Epoch: 4, Steps: 28 | Train Loss: 0.5789302 Vali Loss: 1.4740775 Test Loss: 0.4328568
+Validation loss decreased (1.542125 --> 1.474077).  Saving model ...
+Updating learning rate to 0.018000000000000002
+Epoch: 5 cost time: 1.423816442489624
+Epoch: 5, Steps: 28 | Train Loss: 0.5616689 Vali Loss: 1.4896369 Test Loss: 0.4230637
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.016200000000000003
+Epoch: 6 cost time: 1.314305305480957
+Epoch: 6, Steps: 28 | Train Loss: 0.5564851 Vali Loss: 1.4491500 Test Loss: 0.4197211
+Validation loss decreased (1.474077 --> 1.449150).  Saving model ...
+Updating learning rate to 0.014580000000000003
+Epoch: 7 cost time: 1.1924004554748535
+Epoch: 7, Steps: 28 | Train Loss: 0.5543486 Vali Loss: 1.4535553 Test Loss: 0.4156864
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.013122
+Epoch: 8 cost time: 1.2249774932861328
+Epoch: 8, Steps: 28 | Train Loss: 0.5543585 Vali Loss: 1.4656513 Test Loss: 0.4172281
+EarlyStopping counter: 2 out of 5
+Updating learning rate to 0.011809800000000002
+Epoch: 9 cost time: 1.162276029586792
+Epoch: 9, Steps: 28 | Train Loss: 0.5535425 Vali Loss: 1.4530564 Test Loss: 0.4178946
+EarlyStopping counter: 3 out of 5
+Updating learning rate to 0.01062882
+Epoch: 10 cost time: 1.2393136024475098
+Epoch: 10, Steps: 28 | Train Loss: 0.5537048 Vali Loss: 1.4544167 Test Loss: 0.4148871
+EarlyStopping counter: 4 out of 5
+Updating learning rate to 0.009565938000000001
+Epoch: 11 cost time: 1.23716402053833
+Epoch: 11, Steps: 28 | Train Loss: 0.5532275 Vali Loss: 1.4614199 Test Loss: 0.4177134
+EarlyStopping counter: 5 out of 5
+Early stopping
+>>>>>>>testing : long_term_forecast_SPARSE_ETTh1_720_720_none_SparseTSF_ETTh1_sl720_pl720_dm128_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_Sparse_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test 2161
+mse:0.41972097754478455, mae:0.4407828748226166

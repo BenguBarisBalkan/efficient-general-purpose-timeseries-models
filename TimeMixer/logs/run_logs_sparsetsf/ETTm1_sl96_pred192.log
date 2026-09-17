@@ -1,0 +1,64 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=256, c_out=7, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=128, data='ETTm1', data_path='ETTm1.csv', dec_in=7, decomp_method='moving_avg', des='Sparse', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=7, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=0, learning_rate=0.02, loss='MSE', lradj='type3', mask_rate=0.125, model='SparseTSF', model_id='SPARSE_ETTm1_96_192', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=5, pct_start=0.2, period_len=4, pred_len=192, root_path='C:\\Users\\bbbal\\OneDrive\\Masaüstü\\timemixer\\dataset\\ETT-small', seasonal_patterns='Monthly', seq_len=96, target='OT', task_name='long_term_forecast', top_k=5, track_emissions=0, train_epochs=30, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+>>>>>>>start training : long_term_forecast_SPARSE_ETTm1_96_192_none_SparseTSF_ETTm1_sl96_pl192_dm128_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_Sparse_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 34273
+val 11329
+test 11329
+	iters: 100, epoch: 1 | loss: 0.4834502
+	speed: 0.0323s/iter; left time: 125.6048s
+Epoch: 1 cost time: 3.614001512527466
+Epoch: 1, Steps: 133 | Train Loss: 0.5028857 Vali Loss: 0.6399859 Test Loss: 0.5086051
+Validation loss decreased (inf --> 0.639986).  Saving model ...
+Updating learning rate to 0.02
+	iters: 100, epoch: 2 | loss: 0.3622484
+	speed: 0.0233s/iter; left time: 87.6309s
+Epoch: 2 cost time: 1.5762903690338135
+Epoch: 2, Steps: 133 | Train Loss: 0.3868078 Vali Loss: 0.5419084 Test Loss: 0.3987018
+Validation loss decreased (0.639986 --> 0.541908).  Saving model ...
+Updating learning rate to 0.02
+	iters: 100, epoch: 3 | loss: 0.3915838
+	speed: 0.0257s/iter; left time: 93.3154s
+Epoch: 3 cost time: 1.711134672164917
+Epoch: 3, Steps: 133 | Train Loss: 0.3738480 Vali Loss: 0.5444595 Test Loss: 0.3977410
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.02
+	iters: 100, epoch: 4 | loss: 0.3405859
+	speed: 0.0256s/iter; left time: 89.4104s
+Epoch: 4 cost time: 1.7267522811889648
+Epoch: 4, Steps: 133 | Train Loss: 0.3728095 Vali Loss: 0.5413427 Test Loss: 0.3943565
+Validation loss decreased (0.541908 --> 0.541343).  Saving model ...
+Updating learning rate to 0.018000000000000002
+	iters: 100, epoch: 5 | loss: 0.4080749
+	speed: 0.0261s/iter; left time: 87.7329s
+Epoch: 5 cost time: 1.7994816303253174
+Epoch: 5, Steps: 133 | Train Loss: 0.3728776 Vali Loss: 0.5467696 Test Loss: 0.3996911
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.016200000000000003
+	iters: 100, epoch: 6 | loss: 0.3441885
+	speed: 0.0254s/iter; left time: 81.7796s
+Epoch: 6 cost time: 1.7032246589660645
+Epoch: 6, Steps: 133 | Train Loss: 0.3725255 Vali Loss: 0.5441490 Test Loss: 0.3967846
+EarlyStopping counter: 2 out of 5
+Updating learning rate to 0.014580000000000003
+	iters: 100, epoch: 7 | loss: 0.4184948
+	speed: 0.0250s/iter; left time: 77.3827s
+Epoch: 7 cost time: 1.6953163146972656
+Epoch: 7, Steps: 133 | Train Loss: 0.3724772 Vali Loss: 0.5455402 Test Loss: 0.3992964
+EarlyStopping counter: 3 out of 5
+Updating learning rate to 0.013122
+	iters: 100, epoch: 8 | loss: 0.3774681
+	speed: 0.0268s/iter; left time: 79.1838s
+Epoch: 8 cost time: 1.7335731983184814
+Epoch: 8, Steps: 133 | Train Loss: 0.3724296 Vali Loss: 0.5419046 Test Loss: 0.3961645
+EarlyStopping counter: 4 out of 5
+Updating learning rate to 0.011809800000000002
+	iters: 100, epoch: 9 | loss: 0.3991824
+	speed: 0.0252s/iter; left time: 71.3740s
+Epoch: 9 cost time: 1.7385811805725098
+Epoch: 9, Steps: 133 | Train Loss: 0.3722193 Vali Loss: 0.5453737 Test Loss: 0.3986796
+EarlyStopping counter: 5 out of 5
+Early stopping
+>>>>>>>testing : long_term_forecast_SPARSE_ETTm1_96_192_none_SparseTSF_ETTm1_sl96_pl192_dm128_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_Sparse_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test 11329
+mse:0.39435648918151855, mae:0.39291974902153015

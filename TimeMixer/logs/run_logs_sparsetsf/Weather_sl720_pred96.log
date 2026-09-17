@@ -1,0 +1,64 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=256, c_out=21, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=128, data='custom', data_path='weather.csv', dec_in=21, decomp_method='moving_avg', des='Sparse', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=21, factor=3, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=0, learning_rate=0.02, loss='MSE', lradj='type3', mask_rate=0.125, model='SparseTSF', model_id='SPARSE_Weather_720_96', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=5, pct_start=0.2, period_len=4, pred_len=96, root_path='C:\\Users\\bbbal\\OneDrive\\Masaüstü\\timemixer\\dataset\\weather', seasonal_patterns='Monthly', seq_len=720, target='OT', task_name='long_term_forecast', top_k=5, track_emissions=0, train_epochs=30, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+>>>>>>>start training : long_term_forecast_SPARSE_Weather_720_96_none_SparseTSF_custom_sl720_pl96_dm128_nh8_el2_dl1_df32_fc3_ebtimeF_dtTrue_Sparse_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 36072
+val 5175
+test 10444
+	iters: 100, epoch: 1 | loss: 0.5210714
+	speed: 0.1064s/iter; left time: 436.4338s
+Epoch: 1 cost time: 14.226407766342163
+Epoch: 1, Steps: 140 | Train Loss: 0.5597787 Vali Loss: 0.4498906 Test Loss: 0.1903258
+Validation loss decreased (inf --> 0.449891).  Saving model ...
+Updating learning rate to 0.02
+	iters: 100, epoch: 2 | loss: 0.4311179
+	speed: 0.1540s/iter; left time: 610.0107s
+Epoch: 2 cost time: 12.907474756240845
+Epoch: 2, Steps: 140 | Train Loss: 0.4542905 Vali Loss: 0.4137400 Test Loss: 0.1771897
+Validation loss decreased (0.449891 --> 0.413740).  Saving model ...
+Updating learning rate to 0.02
+	iters: 100, epoch: 3 | loss: 0.4981598
+	speed: 0.1745s/iter; left time: 666.9384s
+Epoch: 3 cost time: 14.56222152709961
+Epoch: 3, Steps: 140 | Train Loss: 0.4416401 Vali Loss: 0.4195836 Test Loss: 0.1736693
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.02
+	iters: 100, epoch: 4 | loss: 0.4204620
+	speed: 0.1693s/iter; left time: 623.0581s
+Epoch: 4 cost time: 12.230524778366089
+Epoch: 4, Steps: 140 | Train Loss: 0.4408711 Vali Loss: 0.4104853 Test Loss: 0.1727557
+Validation loss decreased (0.413740 --> 0.410485).  Saving model ...
+Updating learning rate to 0.018000000000000002
+	iters: 100, epoch: 5 | loss: 0.4414175
+	speed: 0.1487s/iter; left time: 526.6624s
+Epoch: 5 cost time: 12.802216291427612
+Epoch: 5, Steps: 140 | Train Loss: 0.4396171 Vali Loss: 0.4141846 Test Loss: 0.1719310
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.016200000000000003
+	iters: 100, epoch: 6 | loss: 0.4675947
+	speed: 0.1619s/iter; left time: 550.5033s
+Epoch: 6 cost time: 12.955702066421509
+Epoch: 6, Steps: 140 | Train Loss: 0.4386941 Vali Loss: 0.4200841 Test Loss: 0.1769889
+EarlyStopping counter: 2 out of 5
+Updating learning rate to 0.014580000000000003
+	iters: 100, epoch: 7 | loss: 0.3716186
+	speed: 0.1368s/iter; left time: 446.0918s
+Epoch: 7 cost time: 11.468261241912842
+Epoch: 7, Steps: 140 | Train Loss: 0.4382974 Vali Loss: 0.4165494 Test Loss: 0.1753320
+EarlyStopping counter: 3 out of 5
+Updating learning rate to 0.013122
+	iters: 100, epoch: 8 | loss: 0.3721339
+	speed: 0.1381s/iter; left time: 431.0130s
+Epoch: 8 cost time: 11.635449647903442
+Epoch: 8, Steps: 140 | Train Loss: 0.4380074 Vali Loss: 0.4174030 Test Loss: 0.1740527
+EarlyStopping counter: 4 out of 5
+Updating learning rate to 0.011809800000000002
+	iters: 100, epoch: 9 | loss: 0.3577839
+	speed: 0.1364s/iter; left time: 406.7276s
+Epoch: 9 cost time: 11.431680917739868
+Epoch: 9, Steps: 140 | Train Loss: 0.4384415 Vali Loss: 0.4181247 Test Loss: 0.1721859
+EarlyStopping counter: 5 out of 5
+Early stopping
+>>>>>>>testing : long_term_forecast_SPARSE_Weather_720_96_none_SparseTSF_custom_sl720_pl96_dm128_nh8_el2_dl1_df32_fc3_ebtimeF_dtTrue_Sparse_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test 10444
+mse:0.1727558672428131, mae:0.22741641104221344

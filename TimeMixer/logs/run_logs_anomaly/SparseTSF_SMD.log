@@ -1,0 +1,28 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.5, batch_size=128, c_out=38, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=16, data='SMD', data_path='ETTh1.csv', dec_in=38, decomp_method='moving_avg', des='Anom', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=38, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=48, learning_rate=0.0001, loss='MSE', lradj='TST', mask_rate=0.125, model='SparseTSF', model_id='ANOM_SMD', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=15, pct_start=0.2, percent=100, period_len=25, pred_len=0, root_path='C:\\Users\\bbbal\\OneDrive\\Masaüstü\\timemixer\\dataset\\SMD', seasonal_patterns='Monthly', seq_len=100, target='OT', task_name='anomaly_detection', top_k=5, track_emissions=0, train_epochs=3, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+>>>>>>>start training : anomaly_detection_ANOM_SMD_none_SparseTSF_SMD_sl100_pl0_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_Anom_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 7084
+val 1416
+test 7084
+Epoch: 1 cost time: 3.2802727222442627
+Epoch: 1, Steps: 56 | Train Loss: 0.3974208 Vali Loss: 0.2582149 Test Loss: 1.1327027
+Validation loss decreased (inf --> 1.132703).  Saving model ...
+Updating learning rate to 9.270514983950874e-05
+Epoch: 2 cost time: 0.4712822437286377
+Epoch: 2, Steps: 56 | Train Loss: 0.3925142 Vali Loss: 0.2456868 Test Loss: 1.1198876
+Validation loss decreased (1.132703 --> 1.119888).  Saving model ...
+Updating learning rate to 3.5934018872467444e-05
+Epoch: 3 cost time: 0.4974250793457031
+Epoch: 3, Steps: 56 | Train Loss: 0.3899632 Vali Loss: 0.2522455 Test Loss: 1.1177900
+Validation loss decreased (1.119888 --> 1.117790).  Saving model ...
+Updating learning rate to 1.4059025157112998e-08
+>>>>>>>testing : anomaly_detection_ANOM_SMD_none_SparseTSF_SMD_sl100_pl0_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_Anom_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test 7084
+train 7084
+Threshold : 8.834076495170581
+pred:    (708400,)
+gt:      (708400,)
+pred:  (708400,)
+gt:    (708400,)
+Accuracy : 0.9847, Precision : 0.8725, Recall : 0.7390, F-score : 0.8002 

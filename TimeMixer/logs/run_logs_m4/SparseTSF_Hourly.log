@@ -1,0 +1,56 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=16, c_out=1, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=16, data='m4', data_path='ETTh1.csv', dec_in=1, decomp_method='moving_avg', des='M4', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=1, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=48, learning_rate=0.01, loss='SMAPE', lradj='TST', mask_rate=0.125, model='SparseTSF', model_id='M4_SparseTSF_Hourly', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=5, pct_start=0.2, period_len=24, pred_len=96, root_path='C:\\Users\\bbbal\\OneDrive\\Masaüstü\\timemixer\\dataset\\m4', seasonal_patterns='Hourly', seq_len=96, target='OT', task_name='short_term_forecast', top_k=5, track_emissions=0, train_epochs=10, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+>>>>>>>start training : short_term_forecast_M4_SparseTSF_Hourly_none_SparseTSF_m4_sl96_pl96_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_M4_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 414
+val 414
+Epoch: 1 cost time: 3.942356824874878
+Epoch: 1, Steps: 26 | Train Loss: 35.0326146 Vali Loss: 34.6862814 Test Loss: 34.6862814
+Validation loss decreased (inf --> 34.686281).  Saving model ...
+Updating learning rate to 0.005347816281069616
+Epoch: 2 cost time: 0.1267707347869873
+Epoch: 2, Steps: 26 | Train Loss: 30.2124212 Vali Loss: 26.6416927 Test Loss: 26.6416927
+Validation loss decreased (34.686281 --> 26.641693).  Saving model ...
+Updating learning rate to 0.009999429700368698
+Epoch: 3 cost time: 0.18152451515197754
+Epoch: 3, Steps: 26 | Train Loss: 19.7867906 Vali Loss: 16.7736645 Test Loss: 16.7736645
+Validation loss decreased (26.641693 --> 16.773665).  Saving model ...
+Updating learning rate to 0.00958997362033026
+Epoch: 4 cost time: 0.18267583847045898
+Epoch: 4, Steps: 26 | Train Loss: 16.0918196 Vali Loss: 16.8263368 Test Loss: 16.8263368
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.008481738709629719
+Epoch: 5 cost time: 0.1504504680633545
+Epoch: 5, Steps: 26 | Train Loss: 16.1939954 Vali Loss: 15.2115879 Test Loss: 15.2115879
+Validation loss decreased (16.773665 --> 15.211588).  Saving model ...
+Updating learning rate to 0.006843443687246751
+Epoch: 6 cost time: 0.13690948486328125
+Epoch: 6, Steps: 26 | Train Loss: 15.2422363 Vali Loss: 15.1877860 Test Loss: 15.1877860
+Validation loss decreased (15.211588 --> 15.187786).  Saving model ...
+Updating learning rate to 0.004924504119157802
+Epoch: 7 cost time: 0.13906502723693848
+Epoch: 7, Steps: 26 | Train Loss: 14.5899190 Vali Loss: 14.9875567 Test Loss: 14.9875567
+Validation loss decreased (15.187786 --> 14.987557).  Saving model ...
+Updating learning rate to 0.003017061159373915
+Epoch: 8 cost time: 0.12976646423339844
+Epoch: 8, Steps: 26 | Train Loss: 14.4994704 Vali Loss: 14.7413042 Test Loss: 14.7413042
+Validation loss decreased (14.987557 --> 14.741304).  Saving model ...
+Updating learning rate to 0.0014115057075086946
+Epoch: 9 cost time: 0.15069866180419922
+Epoch: 9, Steps: 26 | Train Loss: 13.9611350 Vali Loss: 14.6913224 Test Loss: 14.6913224
+Validation loss decreased (14.741304 --> 14.691322).  Saving model ...
+Updating learning rate to 0.0003522690267122103
+Epoch: 10 cost time: 0.19841480255126953
+Epoch: 10, Steps: 26 | Train Loss: 14.8639858 Vali Loss: 14.6745638 Test Loss: 14.6745638
+Validation loss decreased (14.691322 --> 14.674564).  Saving model ...
+Updating learning rate to 6.102996313026349e-07
+>>>>>>>testing : short_term_forecast_M4_SparseTSF_Hourly_none_SparseTSF_m4_sl96_pl96_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_M4_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+train 414
+test 414
+0
+test shape: (414, 48, 1)
+SparseTSF
+smape: {'Yearly': 15.652, 'Quarterly': 11.919, 'Monthly': 13.996, 'Others': 5.143, 'Average': 13.436}
+mape: {'Yearly': 17.783, 'Quarterly': 13.5, 'Monthly': 16.678, 'Others': 6.647, 'Average': 15.668}
+mase: {'Yearly': 3.277, 'Quarterly': 1.479, 'Monthly': 1.096, 'Others': 3.802, 'Average': 1.825}
+owa: {'Yearly': 0.891, 'Quarterly': 1.081, 'Monthly': 1.0, 'Others': 1.141, 'Average': 0.972}
