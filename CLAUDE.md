@@ -20,8 +20,12 @@ TimeMixer is in `TimeMixer/UPSTREAM_FORK.md`.
 - Interpreter is the in-repo venv: **`TimeMixer/venv/Scripts/python.exe`** (Python 3.8.10,
   `torch==1.7.1+cu110`, CUDA enabled). Always use it, not system Python.
 - **`run.py` must be run with the current directory = `TimeMixer/`** — it writes to relative
-  `./checkpoints/<setting>/` and `./test_results/<setting>/`. The benchmark runners enforce this by
-  passing `cwd=REPO_ROOT` to the subprocess.
+  `./checkpoints/<setting>/`, `./test_results/<setting>/`, `./results/<setting>/` (imputation and
+  classification only) and `./logs/result_*.txt`. The benchmark runners enforce this by passing
+  `cwd=REPO_ROOT` to the subprocess.
+- A **fresh clone cannot run anything**: `venv/` and `dataset/` are both gitignored. Rebuild the venv
+  from `TimeMixer/requirements.txt` (Python 3.8) and fetch the data — ETT/Weather/ECL/M4/PEMS from
+  upstream, PSM/SMD/UEA via `benchmarks/tools/fetch_task_datasets.py`.
 
 Run the benchmarks (from `TimeMixer/`; all runners are **idempotent** — a config whose log already
 holds a valid MSE/MAE is skipped, so re-launching after an interruption is safe):
@@ -64,8 +68,40 @@ venv/Scripts/python.exe run.py --task_name long_term_forecast --is_training 1 \
   --learning_rate 0.01 --train_epochs 10 --batch_size 128 --num_workers 0
 ```
 
-There is no lint/test suite. To sanity-check runner edits without training, byte-compile them:
-`venv/Scripts/python.exe -m py_compile benchmarks/*.py`.
+There is no lint/test suite. The working substitute, in increasing strength — run all four after
+touching paths, imports or the exp loop:
+
+```bash
+venv/Scripts/python.exe -m py_compile benchmarks/*.py benchmarks/tools/*.py models/*.py exp/*.py run.py
+venv/Scripts/python.exe -c "from models import TimeMixer, TimeMixerPP, SparseTSF"
+venv/Scripts/python.exe benchmarks/run_all_long_term_benchmarks.py --update-from-logs-only
+venv/Scripts/python.exe benchmarks/tools/build_task_summary.py
+```
+
+Byte-compiling is **not** enough for import changes — a wrong module path only fails at runtime,
+which is why the registry-import line is separate. For model-wiring changes, also do a real 1-epoch
+run (`--train_epochs 1`, a throwaway `--model_id`) and then delete its `checkpoints/`, `results/`
+and `test_results/` dirs.
+
+## Repository, git & publishing
+
+The workspace root is the git repo (branch `main`), pushed to the **public** GitHub repo
+`BenguBarisBalkan/efficient-general-purpose-timeseries-models`. Consequences worth holding onto:
+
+- **One root `.gitignore` is the single source of truth.** Upstream's nested `TimeMixer/.gitignore`
+  was folded into it and deleted — do not reintroduce a nested one.
+- **Ignored** (large and reproducible): `TimeMixer/venv/`, `dataset/`, `TimeMixer/results/`,
+  `checkpoints/`, `test_results/`, `m4_results/`, `logs/result_*.txt`. Tracked is ~404 files / 8 MB.
+- **`TimeMixer/logs/run_logs*/` IS tracked on purpose** — those logs are the evidence behind every
+  table *and* the input to the idempotency/skip decision. Do not add them to `.gitignore` to "clean
+  up" the repo.
+- **Fork provenance** is in `TimeMixer/UPSTREAM_FORK.md` + `upstream-fork.patch` (base commit
+  `e246105` of github.com/kwuking/TimeMixer, 10 modified files). The original clone's `.git` was
+  moved to `Masaüstü/timemixer-upstream-git-backup/` — outside any repo, not deleted.
+- `.gitattributes` pins `* text=auto`; without it every file on this Windows box shows as rewritten.
+- There is **no top-level LICENSE** for the project's own contributions yet (all rights reserved by
+  default). The vendored code carries its own: `TimeMixer/LICENSE` and
+  `implementations/sparsetsf/LICENSE-SparseTSF` (Apache-2.0).
 
 ## Architecture — the big picture
 
@@ -167,5 +203,15 @@ If you relocate any of these, the `REPO_ROOT`-relative path constants at the top
   Electricity, and Traffic are excluded from the carbon sweep as too heavy. Energy: GPU power is real
   (NVML) but CPU/RAM are TDP estimates (no RAPL on Windows) — treat relative ratios as sound and
   absolute kg CO₂ as an estimate.
+- **The repo is public, and fresh run logs contain local absolute paths.** `run.py` echoes the
+  argparse `Namespace`, so every new log embeds `C:\Users\<you>\...\timemixer\...`.
+  Tracked logs were scrubbed to `<workspace>` once; **re-scrub before committing new ones.** The
+  trap: the paths appear in *two* forms — raw in tracebacks, and with **every backslash doubled**
+  in the `Namespace` `repr()`. A pattern matching only single backslashes silently finds ~2% of
+  them (5 files instead of 267). Scrub path strings only — never a line carrying a metric.
+- **`.gitignore` does not support same-line comments.** `foo/    # 7 GB` is parsed as a pattern
+  *including* the comment, so it matches nothing and the directory is silently committed. Every
+  note in that file must sit on its own line. This bit once already (`m4_results/` leaked into
+  staging).
 - **`--track_emissions` is opt-in** (default off) so ordinary accuracy runs carry no CodeCarbon
   overhead or dependency. `run.py` imports `codecarbon` lazily only when the flag is set.
