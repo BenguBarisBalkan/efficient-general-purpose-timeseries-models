@@ -59,6 +59,7 @@ venv/Scripts/python.exe benchmarks/run_period_sensitivity.py              # peri
 venv/Scripts/python.exe benchmarks/run_sparsetsf_plus_imputation.py       # unit ablation, imputation
 venv/Scripts/python.exe benchmarks/run_sparsetsf_plus_classification.py   # unit ablation, 10 UEA sets
 venv/Scripts/python.exe benchmarks/tools/assert_sparsetsf_plus_equiv.py   # THE GATE (see below)
+venv/Scripts/python.exe benchmarks/tools/scrub_log_paths.py --apply       # BEFORE committing new logs
 ```
 
 ```bash
@@ -233,10 +234,12 @@ If you relocate any of these, the `REPO_ROOT`-relative path constants at the top
   absolute kg CO₂ as an estimate.
 - **The repo is public, and fresh run logs contain local absolute paths.** `run.py` echoes the
   argparse `Namespace`, so every new log embeds `C:\Users\<you>\...\timemixer\...`.
-  Tracked logs were scrubbed to `<workspace>` once; **re-scrub before committing new ones.** The
-  trap: the paths appear in *two* forms — raw in tracebacks, and with **every backslash doubled**
-  in the `Namespace` `repr()`. A pattern matching only single backslashes silently finds ~2% of
-  them (5 files instead of 267). Scrub path strings only — never a line carrying a metric.
+  Tracked logs were scrubbed to `<workspace>` once; **re-scrub before committing new ones** with
+  `benchmarks/tools/scrub_log_paths.py --apply` (dry run without the flag). The trap it handles: the
+  paths appear in *two* forms — raw in tracebacks, and with **every backslash doubled** in the
+  `Namespace` `repr()`. A pattern matching only single backslashes silently finds ~2% of them (5
+  files instead of 267). The tool derives the path at runtime rather than hardcoding it (a hardcoded
+  path in a committed file would leak it), and refuses to write any file whose metrics would change.
 - **`.gitignore` does not support same-line comments.** `foo/    # 7 GB` is parsed as a pattern
   *including* the comment, so it matches nothing and the directory is silently committed. Every
   note in that file must sit on its own line. This bit once already (`m4_results/` leaked into
