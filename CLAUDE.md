@@ -62,6 +62,12 @@ venv/Scripts/python.exe benchmarks/tools/assert_sparsetsf_plus_equiv.py   # THE 
 venv/Scripts/python.exe benchmarks/tools/scrub_log_paths.py --apply       # BEFORE committing new logs
 ```
 
+The imputation runner reads the published SparseTSF logs as its `base` rows when no SparseTSFPlus
+base run exists (valid because base is bitwise SparseTSF), so plain SparseTSF stays a candidate in
+the validation selection and a dataset can be assigned "no units". It never writes there. Runs longer
+than about two hours should be split (`--datasets`, `--masks`): background jobs in this environment
+are stopped at a time limit, and the runners resume cleanly only because they are idempotent.
+
 ```bash
 # Rebuild the v1 results table from existing logs WITHOUT training (fast smoke test of paths):
 venv/Scripts/python.exe benchmarks/run_all_long_term_benchmarks.py --update-from-logs-only
