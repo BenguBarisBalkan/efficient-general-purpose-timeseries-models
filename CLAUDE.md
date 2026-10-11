@@ -16,6 +16,62 @@ The workspace root **is the git repository** (branch `main`) — there is no nes
 `TimeMixer/` any more, and one root `.gitignore` governs everything. Fork provenance vs upstream
 TimeMixer is in `TimeMixer/UPSTREAM_FORK.md`.
 
+## Thesis context — applies to every step
+
+This repository is the experimental work of a thesis on **general-purpose time-series models**:
+one architecture that handles many task families, as TimeMixer++ does (its paper calls it a
+"general time series pattern machine"). Such models are trained per task and dataset. They are
+**not** pretrained foundation models (TimesFM, Chronos, Moirai, MOMENT), although the zero-shot
+task probes the same property. Write "general-purpose model", not "foundation model".
+
+The thesis question is **how efficient these models are, and whether one can be built that is
+both efficient and capable**. SparseTSFPlus is that attempt: start from the most efficient model
+(SparseTSF, ~1k parameters) and add only what measurably earns its parameters.
+
+**The goal is one model, not a unit per task.** The target is one fixed backbone configuration
+plus thin task interfaces, run unchanged across all eight task families. Choosing units per
+dataset or per task is an ablation that shows what each unit does, never the headline result. A
+unit that helps one task but hurts another needs a safe default (for example a gate that can
+learn to switch it off) before it joins the fixed configuration.
+
+Check every step against these three requirements before running it and again before reporting:
+
+1. **Explainable.** Before running, write down the idea and where it comes from (the paper
+   section, or the model and file). Also record the mechanism, the prediction, and what result
+   would refute it. Report ideas and evidence rather than code. The audience is the thesis
+   supervisor, so a unit's reasoning matters more than its implementation.
+2. **Comparable.**
+   - Follow the TimeMixer++ paper's task protocol (datasets, horizons, metrics) unless that is
+     impossible here; state every deviation and why.
+   - Copy hyperparameters from the runner that produced the baseline cell, and check the control
+     row reproduces the published number before reading any other row.
+   - Report accuracy together with cost: trainable parameters, runtime, and energy where the
+     matched carbon protocol was used. Never mix accuracy-protocol and carbon-protocol numbers.
+   - Label every number as local (this machine, this protocol) or published (paper value, other
+     hardware and tuning). Never put them in one comparison without saying which is which.
+   - Select on validation, never on test. Imputation, anomaly and classification early-stop on
+     test, so call their results a sensitivity analysis.
+   - Every run so far uses one seed (`run.py` fixes 2021). Do not call a gain of a few percent a
+     finding until it holds across seeds.
+3. **Recorded.** Runners write the results into `reports/`; never type numbers in by hand. After
+   each completed step, add an entry to the progress log (next section).
+
+### Progress reporting — every two weeks
+
+The supervisor reviews progress every two weeks, and `TimeMixer/reports/progress_log.md` is the
+record those meetings are built from. After every completed step (an experiment batch, a new
+unit, a report revision), add a dated entry, newest first:
+
+- **Planned:** what and why
+- **Done:** runs, datasets, settings
+- **Found:** numbers, and the baseline each is compared with
+- **Reports changed:** which files
+- **Next:** the next step and any open questions
+
+Write entries for the supervisor: ideas and evidence, not implementation. Record negative results,
+since a rejected unit is a finding. Leave out process mistakes and their fixes unless they changed
+a result. When asked for the biweekly summary, build it from the entries since the last meeting.
+
 ## Environment & commands
 
 - Interpreter is the in-repo venv: **`TimeMixer/venv/Scripts/python.exe`** (Python 3.8.10,
