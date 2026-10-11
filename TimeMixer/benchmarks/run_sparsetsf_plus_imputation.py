@@ -70,6 +70,10 @@ class DatasetConfig:
 DATASETS: List[DatasetConfig] = [
     DatasetConfig("ETTh1", "ETTh1", "ETTh1.csv", DATA_ROOT / "ETT-small", 7, 24),
     DatasetConfig("ETTm1", "ETTm1", "ETTm1.csv", DATA_ROOT / "ETT-small", 7, 4),
+    DatasetConfig("ETTh2", "ETTh2", "ETTh2.csv", DATA_ROOT / "ETT-small", 7, 24),
+    DatasetConfig("ETTm2", "ETTm2", "ETTm2.csv", DATA_ROOT / "ETT-small", 7, 4),
+    DatasetConfig("Weather", "custom", "weather.csv", DATA_ROOT / "weather", 21, 4),
+    DatasetConfig("Electricity", "custom", "electricity.csv", DATA_ROOT / "electricity", 321, 24),
 ]
 
 
@@ -108,6 +112,23 @@ PUBLISHED: Dict[Tuple[str, float], Tuple[float, float]] = {
     ("ETTm1", 0.25): (0.062403, 0.042218),
     ("ETTm1", 0.375): (0.078078, 0.048693),
     ("ETTm1", 0.5): (0.096544, 0.058143),
+    ("ETTh2", 0.125): (0.058744, 0.058530),
+    ("ETTh2", 0.25): (0.066180, 0.063586),
+    ("ETTh2", 0.375): (0.073772, 0.068440),
+    ("ETTh2", 0.5): (0.082488, 0.074926),
+    ("ETTm2", 0.125): (0.026657, 0.024137),
+    ("ETTm2", 0.25): (0.030221, 0.025992),
+    ("ETTm2", 0.375): (0.034499, 0.028633),
+    ("ETTm2", 0.5): (0.039384, 0.032387),
+    ("Weather", 0.125): (0.029147, 0.027130),
+    ("Weather", 0.25): (0.032362, 0.030070),
+    ("Weather", 0.375): (0.035990, 0.032663),
+    ("Weather", 0.5): (0.040054, 0.036323),
+    # TimeMixer was never run on Electricity imputation (too heavy for the 4 GB GPU).
+    ("Electricity", 0.125): (0.099290, None),
+    ("Electricity", 0.25): (0.116498, None),
+    ("Electricity", 0.375): (0.138658, None),
+    ("Electricity", 0.5): (0.167128, None),
 }
 
 NUM = r"([0-9]+(?:\.[0-9]+)?(?:[eE][+\-]?[0-9]+)?)"
@@ -125,6 +146,27 @@ def _last(pat, text):
 
 def log_path_for(ds: DatasetConfig, mask_rate: float, variant: Variant) -> Path:
     return LOGS_DIR / "{}_mask{}_{}.log".format(ds.name, mask_rate, variant.name)
+
+
+PUBLISHED_LOGS_DIR = REPO_ROOT / "logs" / "run_logs_imputation"
+
+
+def report_path_for(ds: DatasetConfig, mask_rate: float, variant: Variant) -> Path:
+    """Where to READ a variant's result from (never used for writing).
+
+    `base` is all units off, which the equivalence gate proves is bitwise identical to
+    SparseTSF, and end-to-end runs reproduce the published SparseTSF cells exactly (ETTh1
+    mask 0.5: 0.214076; ETTh2 mask 0.125: 0.058744 with identical validation loss). So where
+    no SparseTSFPlus base run exists, the published SparseTSF log IS the base run. Reading it
+    keeps plain SparseTSF in the candidate set, so validation can choose "no units" on a
+    dataset where the units hurt, instead of being forced to pick one.
+    """
+    own = log_path_for(ds, mask_rate, variant)
+    if variant.name == "base" and not own.exists():
+        published = PUBLISHED_LOGS_DIR / "SparseTSF_{}_mask{}.log".format(ds.name, mask_rate)
+        if published.exists():
+            return published
+    return own
 
 
 def parse_log(path: Path):
@@ -229,8 +271,11 @@ def update_md() -> None:
             ref = PUBLISHED.get((ds.name, mask_rate))
             rows = []
             for v in VARIANTS:
-                r = parse_log(log_path_for(ds, mask_rate, v))
-                rows.append((v, r))
+                r = parse_log(report_path_for(ds, mask_rate, v))
+                if r["status"] != "PENDING":   # only variants actually run on this dataset
+                    rows.append((v, r))
+            if not rows:
+                continue
             done = [(v, r) for v, r in rows if r["vali"] is not None]
             best = min(done, key=lambda t: t[1]["vali"])[0].name if done else None
             for v, r in rows:
@@ -238,7 +283,8 @@ def update_md() -> None:
                 d_sp = d_tm = "-"
                 if r["mse"] is not None and ref:
                     d_sp = "{:+.2f}%".format(100.0 * (r["mse"] - ref[0]) / ref[0])
-                    d_tm = "{:+.2f}%".format(100.0 * (r["mse"] - ref[1]) / ref[1])
+                    if ref[1] is not None:
+                        d_tm = "{:+.2f}%".format(100.0 * (r["mse"] - ref[1]) / ref[1])
                 lines.append(
                     "| {} | {}{} | {} | {} | {} | {} | {} | {} | {} | {} |".format(
                         ds.name, v.name, mark,
@@ -247,11 +293,12 @@ def update_md() -> None:
                         d_sp, d_tm, _fmt(r["runtime"], 0), r["status"]))
             if ref:
                 lines.append(
-                    "| _{} published_ | _SparseTSF_ | _581 / 41_ | _—_ | _{:.6f}_ | _—_ | _—_ | _—_ | _—_ | _reference_ |".format(
+                    "| _{} published_ | _SparseTSF_ | _—_ | _—_ | _{:.6f}_ | _—_ | _—_ | _—_ | _—_ | _reference_ |".format(
                         ds.name, ref[0]))
-                lines.append(
-                    "| _{} published_ | _TimeMixer_ | _~75k_ | _—_ | _{:.6f}_ | _—_ | _—_ | _—_ | _—_ | _reference_ |".format(
-                        ds.name, ref[1]))
+                if ref[1] is not None:
+                    lines.append(
+                        "| _{} published_ | _TimeMixer_ | _~75k_ | _—_ | _{:.6f}_ | _—_ | _—_ | _—_ | _—_ | _reference_ |".format(
+                            ds.name, ref[1]))
         lines.append("")
 
     lines.append("Variant legend:")
@@ -292,6 +339,10 @@ def main() -> None:
                     help="run every mask rate, not just the screening rate")
     ap.add_argument("--variants", type=str, default="",
                     help="comma-separated subset of variant names (default: all)")
+    ap.add_argument("--datasets", type=str, default="",
+                    help="comma-separated subset of dataset names (default: all)")
+    ap.add_argument("--masks", type=str, default="",
+                    help="comma-separated subset of mask rates, e.g. 0.125,0.25 (default: all)")
     args = ap.parse_args()
 
     if args.update_from_logs_only:
@@ -301,8 +352,11 @@ def main() -> None:
     wanted = [v for v in VARIANTS
               if not args.variants or v.name in args.variants.split(",")]
     masks = FULL_MASKS if args.full else SCREEN_MASKS
+    if args.masks:
+        masks = [float(m) for m in args.masks.split(",")]
+    datasets = [d for d in DATASETS if not args.datasets or d.name in args.datasets.split(",")]
 
-    jobs = [(ds, r, v) for ds in DATASETS for r in masks for v in wanted]
+    jobs = [(ds, r, v) for ds in datasets for r in masks for v in wanted]
     total = len(jobs)
     for i, (ds, mask_rate, v) in enumerate(jobs, 1):
         if parse_log(log_path_for(ds, mask_rate, v))["status"] == "OK":
