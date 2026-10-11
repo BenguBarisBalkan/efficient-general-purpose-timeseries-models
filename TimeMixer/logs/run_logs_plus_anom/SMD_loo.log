@@ -1,0 +1,30 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.5, batch_size=128, c_out=38, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=16, data='SMD', data_path='ETTh1.csv', dec_in=38, decomp_method='moving_avg', des='AnomP', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=38, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=48, learning_rate=0.0001, loss='MSE', lradj='TST', mask_rate=0.125, model='SparseTSFPlus', model_id='ANOMP_SMD_loo', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=15, pct_start=0.2, percent=100, period_len=25, pred_len=0, root_path='<workspace>\\dataset\\SMD', seasonal_patterns='Monthly', seq_len=100, stsf_cls_head='flat', stsf_cls_segments=8, stsf_decomp='off', stsf_decomp_kernel=25, stsf_diag_mask=1, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_kernel=3, stsf_phase_mix='off', stsf_phase_rank=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='anomaly_detection', top_k=5, track_emissions=0, train_epochs=3, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+trainable_params:41
+units:diag_mask=1
+>>>>>>>start training : anomaly_detection_ANOMP_SMD_loo_none_SparseTSFPlus_SMD_sl100_pl0_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_AnomP_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 7084
+val 1416
+test 7084
+Epoch: 1 cost time: 2.6567394733428955
+Epoch: 1, Steps: 56 | Train Loss: 0.3729057 Vali Loss: 0.2589340 Test Loss: 1.1748646
+Validation loss decreased (inf --> 1.174865).  Saving model ...
+Updating learning rate to 9.270514983950874e-05
+Epoch: 2 cost time: 0.4011528491973877
+Epoch: 2, Steps: 56 | Train Loss: 0.3693654 Vali Loss: 0.2473325 Test Loss: 1.1662861
+Validation loss decreased (1.174865 --> 1.166286).  Saving model ...
+Updating learning rate to 3.5934018872467444e-05
+Epoch: 3 cost time: 0.39706921577453613
+Epoch: 3, Steps: 56 | Train Loss: 0.3673933 Vali Loss: 0.2497684 Test Loss: 1.1648832
+Validation loss decreased (1.166286 --> 1.164883).  Saving model ...
+Updating learning rate to 1.4059025157112998e-08
+>>>>>>>testing : anomaly_detection_ANOMP_SMD_loo_none_SparseTSFPlus_SMD_sl100_pl0_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_AnomP_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test 7084
+train 7084
+Threshold : 8.063842682838356
+pred:    (708400,)
+gt:      (708400,)
+pred:  (708400,)
+gt:    (708400,)
+Accuracy : 0.9849, Precision : 0.8646, Recall : 0.7539, F-score : 0.8055 
