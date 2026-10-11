@@ -58,6 +58,9 @@ SparseTSFPlus ablations (which grafted units earn their parameters). All idempot
 venv/Scripts/python.exe benchmarks/run_period_sensitivity.py              # period_len diagnostics, no model code
 venv/Scripts/python.exe benchmarks/run_sparsetsf_plus_imputation.py       # unit ablation, imputation
 venv/Scripts/python.exe benchmarks/run_sparsetsf_plus_classification.py   # unit ablation, 10 UEA sets
+venv/Scripts/python.exe benchmarks/run_sparsetsf_plus_forecast.py         # forecasting units: screen at H=96
+venv/Scripts/python.exe benchmarks/run_sparsetsf_plus_forecast.py --full-best   # validation winner at every horizon
+venv/Scripts/python.exe benchmarks/run_sparsetsf_plus_forecast.py --group pems  # PEMS03/04/07/08
 venv/Scripts/python.exe benchmarks/tools/assert_sparsetsf_plus_equiv.py   # THE GATE (see below)
 venv/Scripts/python.exe benchmarks/tools/scrub_log_paths.py --apply       # BEFORE committing new logs
 ```
