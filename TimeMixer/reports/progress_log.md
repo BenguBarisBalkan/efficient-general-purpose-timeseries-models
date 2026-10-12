@@ -9,6 +9,50 @@ Numbers are **local** (this machine, this protocol) unless marked **published**.
 
 ---
 
+## 2026-10-12 — Same-machine baselines on every task (first half)
+
+**Planned.** Close the comparability gaps from 2026-10-11 that do not depend on freezing a
+SparseTSFPlus configuration. On six of the eight tasks SparseTSF was compared only with published
+TimeMixer figures (other hardware, the authors' tuning), so TimeMixer is now run locally on each.
+SparseTSF also gets the three long-term datasets it was missing.
+
+**Done.** 48 runs so far, one at a time so the reported runtimes stay clean:
+- TimeMixer locally on M4 (6 subsets) and PEMS (4 datasets) with its upstream script settings.
+- TimeMixer locally on zero-shot (24 transfers) with the source dataset's long-term configuration.
+- TimeMixer locally on anomaly detection (PSM, SMD). TimeMixer publishes no anomaly settings, so it
+  uses its own ETTh1 architecture with the task's standard training protocol, the same rule as the
+  earlier local TimeMixer imputation runs.
+- SparseTSF on Solar-Energy, Electricity and Traffic at seq_len 96 (12 runs), with its upstream
+  settings.
+- An opt-in setting that computes test metrics batch by batch, because Electricity and Traffic at
+  long horizons exceed 16 GB of RAM. It agrees with the default path to 6–7 significant digits.
+- Parameter counts for every model, task and dataset that has run, rebuilt from each run's own log.
+
+**Found.**
+- **Local TimeMixer reproduces its published numbers:** M4 OWA 0.841 against 0.840, PEMS MAE 17.51
+  against 17.41, zero-shot mean MSE 0.448 against 0.467. The earlier comparisons against published
+  TimeMixer figures therefore hold on this machine.
+- **Zero-shot is now a same-machine win:** SparseTSF beats local TimeMixer on all six transfer
+  pairs (mean MSE 0.393 against 0.448). This is the strongest generalisation result in the study.
+- **Anomaly:** TimeMixer F1 90.45 against SparseTSF 87.64 over PSM and SMD. Most of the gap is SMD
+  recall (81.6 against 73.9), the identity-map problem studied in the SparseTSFPlus ablation.
+- **M4:** SparseTSF is 15.6% behind on OWA (0.972 against 0.841), with 13–33 parameters against
+  10,525–100,069.
+- **PEMS:** SparseTSF's MAE is 95% higher (34.13 against 17.51). TimeMixer has 0.87–1.24 M
+  parameters against SparseTSF's 21, yet trains in only about twice the time (1,404 s against
+  666 s). A parameter ratio does not translate into a runtime or energy ratio.
+- **Solar, Electricity, Traffic:** at seq_len 96 SparseTSF trails TimeMixer at every horizon, which
+  fits its having only four 24-hour periods of context.
+
+**Reports changed.** `results_comparison_{m4,pems,zeroshot,anomaly,sparsetsf}.md` and the new
+`results_param_counts.md`.
+
+**Next.** The queue continues with TimeMixer imputation on Electricity, TimeMixer classification,
+and few-shot (TimeMixer, plus SparseTSF's missing Electricity-720 cell). After that, the gated
+refinement and a single frozen SparseTSFPlus configuration.
+
+---
+
 ## 2026-10-11 — Unit ablations finished on every target task; log started
 
 **Planned.** Measure every unit grafted onto SparseTSF so far, on the tasks it was built for, and
