@@ -1,5 +1,5 @@
 """
-Multivariate short-term forecasting benchmark on PEMS (SparseTSF).
+Multivariate short-term forecasting benchmark on PEMS (SparseTSF and TimeMixer).
 
 Matches the paper's PEMS setup (TimeMixer++ ICLR'25, Table 3): PEMS03/04/07/08, input 96 -> predict
 12, metrics **MAE / MAPE / RMSE** averaged across the four datasets.
@@ -27,16 +27,25 @@ DATA_ROOT = REPO_ROOT.parent / "dataset"
 LOGS_DIR = REPO_ROOT / "logs" / "run_logs_pems"
 MD_PATH = REPO_ROOT / "reports" / "results_comparison_pems.md"
 
-MODELS = ["SparseTSF"]          # local runs — SparseTSF only
+MODELS = ["SparseTSF", "TimeMixer"]   # both run locally, each with its own published settings
 
 SEQ_LEN = 96
 PRED_LEN = 12
 PERIOD_LEN = 12   # must divide seq_len(96) AND pred_len(12); 12 x 5min = 1 hour
-LEARNING_RATE = 0.01
-TRAIN_EPOCHS = 10
-PATIENCE = 5
-BATCH_SIZE = 16
 DES = "PEMS"
+
+# Per-model training config. TimeMixer's is copied verbatim from upstream
+# scripts/short_term_forecast/PEMS/TimeMixer.sh (channel mixing on, as in the paper; the script
+# sets batch_size=16 but passes a literal 32 on every command line, and 32 is what ran).
+MODEL_CFG = {
+    "SparseTSF": dict(learning_rate="0.01", train_epochs="10", patience="5", batch_size="16",
+                      extra=["--period_len", str(PERIOD_LEN), "--model_type", "linear"]),
+    "TimeMixer": dict(learning_rate="0.003", train_epochs="10", patience="10", batch_size="32",
+                      extra=["--e_layers", "5", "--d_layers", "1", "--factor", "3",
+                             "--channel_independence", "0", "--d_model", "128", "--d_ff", "256",
+                             "--down_sampling_layers", "1", "--down_sampling_window", "2",
+                             "--down_sampling_method", "avg"]),
+}
 
 # Published reference (TimeMixer++ paper, Table 3 — averaged over the 4 PEMS datasets).
 PAPER_REF = {
@@ -91,6 +100,7 @@ def parse_log(path: Path) -> Tuple[Optional[float], Optional[float], Optional[fl
 def run_one(model: str, ds: DatasetConfig) -> None:
     LOGS_DIR.mkdir(parents=True, exist_ok=True)
     log_path = log_path_for(model, ds)
+    cfg = MODEL_CFG[model]
     cmd = [
         sys.executable, "-u", str(REPO_ROOT / "run.py"),
         "--task_name", "long_term_forecast",
@@ -107,17 +117,15 @@ def run_one(model: str, ds: DatasetConfig) -> None:
         "--enc_in", str(ds.enc_in),
         "--dec_in", str(ds.enc_in),
         "--c_out", str(ds.enc_in),
-        "--period_len", str(PERIOD_LEN),
-        "--model_type", "linear",
         "--use_norm", "0",              # follows the upstream PEMS scripts
-        "--learning_rate", str(LEARNING_RATE),
-        "--train_epochs", str(TRAIN_EPOCHS),
-        "--patience", str(PATIENCE),
-        "--batch_size", str(BATCH_SIZE),
+        "--learning_rate", cfg["learning_rate"],
+        "--train_epochs", cfg["train_epochs"],
+        "--patience", cfg["patience"],
+        "--batch_size", cfg["batch_size"],
         "--num_workers", "0",
         "--des", DES,
         "--itr", "1",
-    ]
+    ] + cfg["extra"]
     print(f"\n[RUN] {model} {ds.name} (enc_in={ds.enc_in})", flush=True)
     start = time.perf_counter()
     with log_path.open("w", encoding="utf-8") as f:
@@ -154,9 +162,9 @@ def update_md() -> None:
         a = sums[model]
         n = a[3]
         if n:
-            avg.append(f"| **{model} (ours)** | {a[0]/n:.2f} | {a[1]/n:.2f} | {a[2]/n:.2f} | ")
+            avg.append(f"| **{model} (local)** | {a[0]/n:.2f} | {a[1]/n:.2f} | {a[2]/n:.2f} | ")
         else:
-            avg.append(f"| **{model} (ours)** | - | - | - |")
+            avg.append(f"| **{model} (local)** | - | - | - |")
     for name, r in PAPER_REF.items():
         avg.append(f"| _{name}_ | _{r['MAE']:.2f}_ | _{r['MAPE']:.2f}_ | _{r['RMSE']:.2f}_ |")
 
