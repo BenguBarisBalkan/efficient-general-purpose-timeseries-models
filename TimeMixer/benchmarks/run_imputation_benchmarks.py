@@ -28,9 +28,9 @@ LOGS_DIR = REPO_ROOT / "logs" / "run_logs_imputation"
 MD_PATH = REPO_ROOT / "reports" / "results_comparison_imputation.md"
 
 # MODELS = what the report displays (TimeMixer cells from the earlier full sweep are kept).
-# RUN_MODELS = what this runner will actually train now — SparseTSF only (current scope).
+# RUN_MODELS = what this runner will train (idempotent: finished cells are skipped).
 MODELS = ["SparseTSF", "TimeMixer"]
-RUN_MODELS = ["SparseTSF"]
+RUN_MODELS = ["SparseTSF", "TimeMixer"]   # TimeMixer: only its Electricity cells are still missing
 MASK_RATES = [0.125, 0.25, 0.375, 0.5]
 SEQ_LEN = 96
 TRAIN_EPOCHS = 10

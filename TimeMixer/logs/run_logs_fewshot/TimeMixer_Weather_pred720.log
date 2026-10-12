@@ -1,0 +1,63 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=32, c_out=21, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=16, data='custom', data_path='weather.csv', dec_in=21, decomp_method='moving_avg', des='FewShot', devices='0,1', distil=True, down_sampling_layers=3, down_sampling_method='avg', down_sampling_window=2, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=21, factor=3, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=0, learning_rate=0.01, loss='MSE', lradj='TST', mask_rate=0.125, model='TimeMixer', model_id='FEWSHOT_TM_Weather_96_720', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=10, pct_start=0.2, percent=10, period_len=24, pred_len=720, root_path='<workspace>\\dataset\\weather', seasonal_patterns='Monthly', seq_len=96, stream_metrics=0, stsf_cls_head='flat', stsf_cls_segments=8, stsf_decomp='off', stsf_decomp_kernel=25, stsf_diag_mask=0, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_kernel=3, stsf_phase_mix='off', stsf_phase_rank=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='long_term_forecast', top_k=5, track_emissions=0, train_epochs=20, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+>>>>>>>start training : long_term_forecast_FEWSHOT_TM_Weather_96_720_none_TimeMixer_custom_sl96_pl720_dm16_nh8_el2_dl1_df32_fc3_ebtimeF_dtTrue_FewShot_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 2960
+val 4551
+test 9820
+Epoch: 1 cost time: 10.87128734588623
+Epoch: 1, Steps: 92 | Train Loss: 0.3681954 Vali Loss: 0.7878709 Test Loss: 0.3653212
+Validation loss decreased (inf --> 0.787871).  Saving model ...
+Updating learning rate to 0.0018131587857919337
+Epoch: 2 cost time: 7.353706121444702
+Epoch: 2, Steps: 92 | Train Loss: 0.3306085 Vali Loss: 0.8009129 Test Loss: 0.3733854
+EarlyStopping counter: 1 out of 10
+Updating learning rate to 0.0052205444123923465
+Epoch: 3 cost time: 7.370699167251587
+Epoch: 3, Steps: 92 | Train Loss: 0.3156034 Vali Loss: 0.7535155 Test Loss: 0.3612284
+Validation loss decreased (0.787871 --> 0.753515).  Saving model ...
+Updating learning rate to 0.008615833156963102
+Epoch: 4 cost time: 7.374449014663696
+Epoch: 4, Steps: 92 | Train Loss: 0.3074528 Vali Loss: 0.7562744 Test Loss: 0.3604361
+EarlyStopping counter: 1 out of 10
+Updating learning rate to 0.009999988612661465
+Epoch: 5 cost time: 7.520329713821411
+Epoch: 5, Steps: 92 | Train Loss: 0.3015140 Vali Loss: 0.7683672 Test Loss: 0.3587287
+EarlyStopping counter: 2 out of 10
+Updating learning rate to 0.009901833785556511
+Epoch: 6 cost time: 7.349893093109131
+Epoch: 6, Steps: 92 | Train Loss: 0.2931773 Vali Loss: 0.7622619 Test Loss: 0.3615143
+EarlyStopping counter: 3 out of 10
+Updating learning rate to 0.00961530500364146
+Epoch: 7 cost time: 7.403184652328491
+Epoch: 7, Steps: 92 | Train Loss: 0.2874434 Vali Loss: 0.7584973 Test Loss: 0.3522545
+EarlyStopping counter: 4 out of 10
+Updating learning rate to 0.009151413407318117
+Epoch: 8 cost time: 7.435312271118164
+Epoch: 8, Steps: 92 | Train Loss: 0.2802056 Vali Loss: 0.7636292 Test Loss: 0.3570521
+EarlyStopping counter: 5 out of 10
+Updating learning rate to 0.008527986090479785
+Epoch: 9 cost time: 7.2261199951171875
+Epoch: 9, Steps: 92 | Train Loss: 0.2708822 Vali Loss: 0.7911276 Test Loss: 0.3649997
+EarlyStopping counter: 6 out of 10
+Updating learning rate to 0.00776898101529049
+Epoch: 10 cost time: 7.30043625831604
+Epoch: 10, Steps: 92 | Train Loss: 0.2612780 Vali Loss: 0.7845747 Test Loss: 0.3685466
+EarlyStopping counter: 7 out of 10
+Updating learning rate to 0.006903566321134809
+Epoch: 11 cost time: 7.3232526779174805
+Epoch: 11, Steps: 92 | Train Loss: 0.2555956 Vali Loss: 0.8571763 Test Loss: 0.3844895
+EarlyStopping counter: 8 out of 10
+Updating learning rate to 0.005964999409378994
+Epoch: 12 cost time: 7.21970272064209
+Epoch: 12, Steps: 92 | Train Loss: 0.2435465 Vali Loss: 0.8956987 Test Loss: 0.3951162
+EarlyStopping counter: 9 out of 10
+Updating learning rate to 0.004989348880087432
+Epoch: 13 cost time: 7.624584197998047
+Epoch: 13, Steps: 92 | Train Loss: 0.2339346 Vali Loss: 0.9055705 Test Loss: 0.4081474
+EarlyStopping counter: 10 out of 10
+Early stopping
+>>>>>>>testing : long_term_forecast_FEWSHOT_TM_Weather_96_720_none_TimeMixer_custom_sl96_pl720_dm16_nh8_el2_dl1_df32_fc3_ebtimeF_dtTrue_FewShot_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test 9820
+mse:0.3612286448478699, mae:0.3524174094200134
+RMSE:0.6010230183601379, MAPE:0.6760191917419434, MSPE:33324138.0

@@ -59,39 +59,41 @@ venv/Scripts/python.exe benchmarks/run_imputation_benchmarks.py
 | Weather | SparseTSF | 0.5 | 0.040054 | 0.067667 | 137.6 | OK |
 | Weather | TimeMixer | 0.5 | 0.036323 | 0.056629 | 779.2 | OK |
 | Electricity | SparseTSF | 0.125 | 0.099290 | 0.223833 | 185.2 | OK |
-| Electricity | TimeMixer | 0.125 | - | - | - | PENDING |
+| Electricity | TimeMixer | 0.125 | 0.061424 | 0.166809 | 1605.9 | OK |
 | Electricity | SparseTSF | 0.25 | 0.116498 | 0.245634 | 186.1 | OK |
-| Electricity | TimeMixer | 0.25 | - | - | - | PENDING |
+| Electricity | TimeMixer | 0.25 | 0.072609 | 0.182621 | 1564.5 | OK |
 | Electricity | SparseTSF | 0.375 | 0.138658 | 0.269219 | 192.2 | OK |
-| Electricity | TimeMixer | 0.375 | - | - | - | PENDING |
+| Electricity | TimeMixer | 0.375 | 0.085223 | 0.199711 | 1570.3 | OK |
 | Electricity | SparseTSF | 0.5 | 0.167128 | 0.296695 | 199.4 | OK |
-| Electricity | TimeMixer | 0.5 | - | - | - | PENDING |
+| Electricity | TimeMixer | 0.5 | 0.101999 | 0.218701 | 1623.4 | OK |
 <!-- AUTO_IMPUTATION_RESULTS_END -->
 
 ## Coverage note
 
-SparseTSF now covers all **6** datasets from the paper's imputation benchmark (ETT×4, Weather,
-**Electricity**) = 24 configs. The TimeMixer column covers the original 5 (20 configs) and was **not
-re-run for Electricity** — the project scope moved to SparseTSF-only runs, so those cells read
-`PENDING` rather than being filled with a value that was never measured.
+Both models now cover all **6** datasets from the paper's imputation benchmark (ETT×4, Weather,
+**Electricity**) = 24 configs each, run on the same machine under the same protocol. TimeMixer's four
+Electricity cells were run last (2026-10-12); before that its column covered five datasets.
 
-Electricity (SparseTSF): MSE 0.0993 / 0.1165 / 0.1387 / 0.1671 across mask rates
-0.125→0.5 (mean **0.1304**) — the hardest of the six, as expected for 321 channels at `seq_len=96`.
+Electricity: SparseTSF MSE 0.0993 / 0.1165 / 0.1387 / 0.1671 across mask rates 0.125→0.5 (mean
+**0.1304**); TimeMixer 0.0614 / 0.0726 / 0.0852 / 0.1020 (mean **0.0803**). It is the hardest of the
+six for both models, as expected for 321 channels at `seq_len=96`.
 
 **Protocol deviation from the paper:** the TimeMixer++ paper imputes at `seq_len=1024`; this table
 uses **96**. SparseTSF needs `period_len` to divide `seq_len`, and 1024 admits only powers of two,
 which cannot align to the 24-hour cycle of the hourly datasets — the paper's length would force
 SparseTSF off its own inductive bias.
 
-## Findings (the 5-dataset SparseTSF-vs-TimeMixer comparison, 40 configs)
+## Findings (the 6-dataset SparseTSF-vs-TimeMixer comparison, 48 configs)
 
-- **Accuracy — TimeMixer wins every cell.** Mean masked-MSE across the 20 (dataset × mask_rate)
-  configs: **0.0586 (TimeMixer)** vs **0.0744 (SparseTSF)** — SparseTSF ~27% higher on average. The
-  gap is smallest on **ETTh2 and Weather** (near-tied at low mask — e.g. ETTh2 mask0.125: 0.0587 vs
-  0.0585) and widest on ETTh1/ETTm1, and it grows with `mask_rate` (more hidden ⇒ harder for the
+- **Accuracy — TimeMixer wins every cell (24 of 24).** Mean masked MSE across the 24
+  (dataset × mask_rate) configs: **0.0622 (TimeMixer)** vs **0.0838 (SparseTSF)**, SparseTSF ~35%
+  higher on average (27% over the original five datasets). The gap is smallest on **ETTh2 and
+  Weather** (near-tied at low mask, e.g. ETTh2 mask 0.125: 0.0587 vs 0.0585) and widest on
+  Electricity, ETTh1 and ETTm1, and it grows with `mask_rate` (more hidden ⇒ harder for the
   cross-period reconstruction head).
-- **Cost — SparseTSF is ~5.7× faster** in total training wall-clock (~32 min vs ~3.1 h here): ~6–7×
-  per config on ETTh, ~5–6× on ETTm/Weather — with an imputation head of only tens of parameters.
+- **Cost — SparseTSF is ~6.5× faster** in total training time (2,696 s against 17,433 s summed over
+  epochs; ~32 min against ~3.1 h on the original five datasets), with an imputation head of only
+  tens of parameters against TimeMixer's ~58,000–60,000.
 - **Takeaway** — mirrors the forecasting story: SparseTSF trades a modest accuracy drop for a large
   efficiency win. Its cross-period reconstruction head is a cheap, solid imputer, most competitive at
   low mask rates and on the smoother ETTh2/Weather series.
