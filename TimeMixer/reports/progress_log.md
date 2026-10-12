@@ -9,6 +9,44 @@ Numbers are **local** (this machine, this protocol) unless marked **published**.
 
 ---
 
+## 2026-10-12 — Same-machine baselines on every task (second half)
+
+**Planned.** Finish the queue from the first half: TimeMixer's missing imputation cells
+(Electricity), TimeMixer classification, and few-shot for TimeMixer, plus SparseTSF's
+Electricity-720 few-shot cell that previously ran out of RAM.
+
+**Done.** 39 more runs, one at a time: TimeMixer imputation on Electricity (4 mask rates), TimeMixer
+classification on the 10 UEA datasets, TimeMixer few-shot on 6 datasets × 4 horizons, and SparseTSF
+few-shot on Electricity at horizon 720 (batch-by-batch metrics). TimeMixer is now run locally on
+all eight tasks. Classification needed channel mixing on, because TimeMixer's classification code
+has no per-channel path.
+
+**Found.**
+- **Imputation, all six datasets:** TimeMixer wins all 24 cells (mean masked MSE 0.0622 against
+  SparseTSF's 0.0838) and trains about 6.5× slower. This changes a SparseTSFPlus claim: it matches
+  TimeMixer on five of six datasets, but on Electricity it stays 31% behind (0.105 against 0.080).
+  Over all six it is 6.5% behind, still closing 81% of SparseTSF's gap.
+- **Classification:** an untuned TimeMixer averages 62.37% against SparseTSF's 60.90%. Both are
+  far below TimeMixer++'s published 75.9%. TimeMixer wins Heartbeat (75.6 against 54.6) and
+  SelfRegulationSCP1; SparseTSF wins JapaneseVowels and PEMS-SF. Part of the published gap is
+  likely per-dataset tuning, but an untuned TimeMixer cannot settle that.
+- **Few-shot:** SparseTSF leads on ETT (0.441 against 0.513), TimeMixer on Weather (0.254 against
+  0.271) and Electricity (0.209 against 0.224), though SparseTSF wins Electricity at horizon 720.
+  The local TimeMixer ETT figure is 13% worse than its published 0.453, the one task where the
+  local run falls short of the paper. The shared batch size of 32 likely does not suit its
+  full-data learning rate.
+
+**Reports changed.** `results_comparison_{imputation,classification,fewshot}.md`, the cross-task
+summary in `results_sparsetsf_all_tasks.md`, the SparseTSFPlus report (Section 1 now shows local
+TimeMixer on every task; the imputation headline is corrected to five of six datasets),
+`results_sparsetsf_plus_ablation.md`, `results_param_counts.md`, and the thesis document.
+
+**Next.** All comparability runs that do not depend on SparseTSFPlus are done. What remains needs
+a frozen SparseTSFPlus configuration first: the gated refinement, then one configuration across all
+eight tasks, the matched energy sweep, and seed repeats.
+
+---
+
 ## 2026-10-12 — Same-machine baselines on every task (first half)
 
 **Planned.** Close the comparability gaps from 2026-10-11 that do not depend on freezing a

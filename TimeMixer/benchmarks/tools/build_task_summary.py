@@ -3,7 +3,11 @@ Regenerate the headline table in reports/results_sparsetsf_all_tasks.md from the
 
 Reads each results_comparison_<task>.md, pulls the summary figure(s) already computed there, and
 writes a single cross-task overview between the AUTO_SUMMARY markers. Pure aggregation — it does not
-recompute anything, so it can be re-run any time after a sweep finishes.
+recompute anything except the imputation means, which it averages from that report's per-cell rows.
+It can be re-run any time after a sweep finishes.
+
+A model's cell stays "-" until its task average is complete in the source report, so a partly
+finished sweep is never summarised as if it were whole.
 
     venv/Scripts/python.exe benchmarks/tools/build_task_summary.py
 """
@@ -16,7 +20,6 @@ TARGET = RESULTS / "results_sparsetsf_all_tasks.md"
 START, END = "<!-- AUTO_SUMMARY_START -->", "<!-- AUTO_SUMMARY_END -->"
 
 NUM = r"-?[0-9]+(?:\.[0-9]+)?"
-OURS = r"SparseTSF \(ours\)\*\* \| (" + NUM + r")"
 
 
 def read(name):
@@ -29,41 +32,74 @@ def grab(pattern, text):
     return m.group(1) if m else "-"
 
 
+def bold_avg(model_label, text):
+    """`| **<label>** | <avg> | ...` rows written by the PEMS, anomaly and classification runners."""
+    return grab(r"\| \*\*" + re.escape(model_label) + r"[^*]*\*\* \| (" + NUM + r")", text)
+
+
+def imputation_means(text):
+    """Mean masked MSE per model over the OK cells, and the number of datasets it covers."""
+    cells = re.findall(r"^\| (\S+) \| (\w+) \| [0-9.]+ \| (" + NUM + r") \| " + NUM
+                       + r" \| [^|]* \| OK \|$", text, flags=re.M)
+    out = {}
+    for model in ("SparseTSF", "TimeMixer"):
+        vals = [float(m) for ds, mod, m in cells if mod == model]
+        dsets = {ds for ds, mod, _ in cells if mod == model}
+        out[model] = "%.4f (%d ds)" % (sum(vals) / len(vals), len(dsets)) if vals else "-"
+    return out
+
+
+def zeroshot_avg(text, column):
+    """Mean of one model's per-pair averages, only when all six pairs are filled."""
+    rows = re.findall(r"^\| (ETT\w+->ETT\w+) \| ([^|]+) \| ([^|]+) \| _", text, flags=re.M)
+    vals = []
+    for _, sp, tm in rows:
+        m = re.match(r"\s*(" + NUM + r") /", (sp, tm)[column])
+        if m:
+            vals.append(float(m.group(1)))
+    return "%.3f" % (sum(vals) / len(vals)) if len(vals) == 6 else "-"
+
+
 def main():
     rows = [
-        "| Task | Datasets | Metric | SparseTSF (ours) | Reference (paper) |",
-        "|---|---|---|---:|---:|",
+        "| Task | Datasets | Metric | SparseTSF (local) | TimeMixer (local) | Reference (paper) |",
+        "|---|---|---|---:|---:|---:|",
     ]
 
-    m4 = grab(r"SparseTSF \(ours\) \| " + NUM + r" \| " + NUM + r" \| (" + NUM + r")",
-              read("results_comparison_m4.md"))
+    m4 = read("results_comparison_m4.md")
+    owa = r" \(local\) \| " + NUM + r" \| " + NUM + r" \| (" + NUM + r")"
     rows.append("| Univariate short-term | M4 (6 subsets) | OWA (lower=better) | "
-                + m4 + " | _TimeMixer 0.840_ |")
+                + grab(r"SparseTSF" + owa, m4) + " | " + grab(r"TimeMixer" + owa, m4)
+                + " | _TimeMixer 0.840_ |")
 
-    pems = grab(OURS, read("results_comparison_pems.md"))
+    pems = read("results_comparison_pems.md")
     rows.append("| Multivariate short-term | PEMS03/04/07/08 | MAE (lower) | "
-                + pems + " | _TimeMixer 17.41_ |")
+                + bold_avg("SparseTSF (local)", pems) + " | " + bold_avg("TimeMixer (local)", pems)
+                + " | _TimeMixer 17.41_ |")
 
+    imp = imputation_means(read("results_comparison_imputation.md"))
     rows.append("| Imputation | ETT x4, Weather, ECL | masked MSE (lower) | "
-                "0.0838 (6 ds) | _TimeMixer 0.0586 (5 ds)_ |")
+                + imp["SparseTSF"] + " | " + imp["TimeMixer"] + " | — |")
 
-    fs = grab(r"\| ETT \(Avg\) \| (" + NUM + r")", read("results_comparison_fewshot.md"))
+    fs = read("results_comparison_fewshot.md")
+    fs_row = r"\| ETT \(Avg\) \| "
     rows.append("| Few-shot (10% train) | ETT (Avg) | MSE (lower) | "
-                + fs + " | _TimeMixer 0.453_ |")
+                + grab(fs_row + r"(" + NUM + r") /", fs) + " | "
+                + grab(fs_row + r"[^|]+\| (" + NUM + r") /", fs) + " | _TimeMixer 0.453_ |")
 
-    zs_txt = read("results_comparison_zeroshot.md")
-    zs = re.findall(r"\| ETT\w+->ETT\w+ \| (" + NUM + r") / " + NUM + r" \|", zs_txt)
-    zs_avg = "%.3f" % (sum(map(float, zs)) / len(zs)) if zs else "-"
+    zs = read("results_comparison_zeroshot.md")
     rows.append("| Zero-shot (transfer) | 6 ETT pairs | MSE (lower) | "
-                + zs_avg + " | _TimeMixer 0.467 (avg)_ |")
+                + zeroshot_avg(zs, 0) + " | " + zeroshot_avg(zs, 1) + " | _TimeMixer 0.467 (avg)_ |")
 
-    an = grab(OURS, read("results_comparison_anomaly.md"))
+    an = read("results_comparison_anomaly.md")
     rows.append("| Anomaly detection | PSM, SMD (of 5) | F1 (higher) | "
-                + an + " | _TimeMixer++ 87.47 (5 ds)_ |")
+                + bold_avg("SparseTSF (local)", an) + " | " + bold_avg("TimeMixer (local", an)
+                + " | _TimeMixer++ 87.47 (5 ds)_ |")
 
-    cl = grab(OURS, read("results_comparison_classification.md"))
+    cl = read("results_comparison_classification.md")
     rows.append("| Classification | 10 UEA | accuracy (higher) | "
-                + cl + " | _TimeMixer++ 75.9_ |")
+                + bold_avg("SparseTSF (local)", cl) + " | " + bold_avg("TimeMixer (local", cl)
+                + " | _TimeMixer++ 75.9_ |")
 
     body = "\n".join(rows) + "\n"
     text = TARGET.read_text(encoding="utf-8")
