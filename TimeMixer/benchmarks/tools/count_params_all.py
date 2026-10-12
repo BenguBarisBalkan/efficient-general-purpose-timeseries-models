@@ -56,7 +56,9 @@ def load_args(path):
 
 
 def real_path(p):
-    return p.replace("<workspace>", str(WORKSPACE))
+    """The dataset folder, rebuilt from its last component: logs record the path either scrubbed
+    to `<workspace>` or in the console's code page, which can mangle non-ASCII folder names."""
+    return str(WORKSPACE / "dataset" / re.split(r"[\\/]+", p.rstrip("\\/"))[-1])
 
 
 _UEA_CACHE = {}

@@ -124,11 +124,11 @@ PUBLISHED: Dict[Tuple[str, float], Tuple[float, float]] = {
     ("Weather", 0.25): (0.032362, 0.030070),
     ("Weather", 0.375): (0.035990, 0.032663),
     ("Weather", 0.5): (0.040054, 0.036323),
-    # TimeMixer was never run on Electricity imputation (too heavy for the 4 GB GPU).
-    ("Electricity", 0.125): (0.099290, None),
-    ("Electricity", 0.25): (0.116498, None),
-    ("Electricity", 0.375): (0.138658, None),
-    ("Electricity", 0.5): (0.167128, None),
+    # TimeMixer's Electricity cells were measured later (2026-10-12), same protocol.
+    ("Electricity", 0.125): (0.099290, 0.061424),
+    ("Electricity", 0.25): (0.116498, 0.072609),
+    ("Electricity", 0.375): (0.138658, 0.085223),
+    ("Electricity", 0.5): (0.167128, 0.101999),
 }
 
 NUM = r"([0-9]+(?:\.[0-9]+)?(?:[eE][+\-]?[0-9]+)?)"
@@ -293,11 +293,11 @@ def update_md() -> None:
                         d_sp, d_tm, _fmt(r["runtime"], 0), r["status"]))
             if ref:
                 lines.append(
-                    "| _{} published_ | _SparseTSF_ | _—_ | _—_ | _{:.6f}_ | _—_ | _—_ | _—_ | _—_ | _reference_ |".format(
+                    "| _{} local sweep_ | _SparseTSF_ | _—_ | _—_ | _{:.6f}_ | _—_ | _—_ | _—_ | _—_ | _reference_ |".format(
                         ds.name, ref[0]))
                 if ref[1] is not None:
                     lines.append(
-                        "| _{} published_ | _TimeMixer_ | _~75k_ | _—_ | _{:.6f}_ | _—_ | _—_ | _—_ | _—_ | _reference_ |".format(
+                        "| _{} local sweep_ | _TimeMixer_ | _~58–60k_ | _—_ | _{:.6f}_ | _—_ | _—_ | _—_ | _—_ | _reference_ |".format(
                             ds.name, ref[1]))
         lines.append("")
 

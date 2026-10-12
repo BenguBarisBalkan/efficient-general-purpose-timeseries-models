@@ -1,10 +1,13 @@
 """
-Few-shot forecasting benchmark (SparseTSF): train on 10% of the training timesteps.
+Few-shot forecasting benchmark (SparseTSF and TimeMixer): train on 10% of the training timesteps.
 
 Matches the paper's few-shot setup (TimeMixer++ ICLR'25, Table 5): ETT x4 + Weather + Electricity,
 seq_len=96, pred_len {96,192,336,720}, MSE/MAE — but each model sees only the first 10% of its
 training split (`run.py --percent 10`). Validation and test splits are untouched, so numbers stay
 comparable to the full-data forecasting tables.
+
+TimeMixer uses its own long-term configuration per dataset (tm_config.py) and the same few-shot
+protocol as SparseTSF: batch size 32 (see below) and 10% of the training split.
 
 Idempotent: a config whose log already has a valid MSE/MAE is skipped.
 
@@ -19,12 +22,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+import tm_config
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DATA_ROOT = REPO_ROOT.parent / "dataset"
 LOGS_DIR = REPO_ROOT / "logs" / "run_logs_fewshot"
 MD_PATH = REPO_ROOT / "reports" / "results_comparison_fewshot.md"
 
-MODEL = "SparseTSF"
+MODELS = ["SparseTSF", "TimeMixer"]   # both run locally
 PERCENT = 10
 SEQ_LEN = 96
 PRED_LENS = [96, 192, 336, 720]
@@ -36,11 +41,10 @@ LEARNING_RATE = 0.02
 BATCH_SIZE = 32
 TRAIN_EPOCHS = 30
 
-# Electricity @ pred_len 720 is excluded: it is not the model but the EVALUATION that blows up —
-# test() materialises 4541 x 720 x 321 float32 (~4.2 GB) for preds and trues, needing ~12.6 GB on a
-# 16 GB machine. Attempting it thrashes the box for many minutes and still fails. Documented in the
-# report; fixing it properly needs streaming metrics.
-SKIP = {("Electricity", 720)}
+# Electricity @ pred_len 720: not the model but the EVALUATION blows up — test() materialises
+# 4541 x 720 x 321 float32 (~4.2 GB) for preds and trues, ~12.6 GB on a 16 GB machine. These configs
+# use --stream_metrics 1, which accumulates the same metrics batch by batch.
+STREAM = {("Electricity", 720)}
 PATIENCE = 5
 LRADJ = "type3"
 DES = "FewShot"
@@ -83,8 +87,8 @@ def _last(pat: re.Pattern, text: str) -> Optional[float]:
     return float(m[-1]) if m else None
 
 
-def log_path_for(ds: DatasetConfig, pred_len: int) -> Path:
-    return LOGS_DIR / f"{MODEL}_{ds.name}_pred{pred_len}.log"
+def log_path_for(ds: DatasetConfig, pred_len: int, model: str = "SparseTSF") -> Path:
+    return LOGS_DIR / f"{model}_{ds.name}_pred{pred_len}.log"
 
 
 def parse_log(path: Path) -> Tuple[Optional[float], Optional[float], Optional[float], str]:
@@ -98,15 +102,38 @@ def parse_log(path: Path) -> Tuple[Optional[float], Optional[float], Optional[fl
     return mse, mae, (sum(epochs) if epochs else None), "OK"
 
 
-def run_one(ds: DatasetConfig, pred_len: int) -> None:
+def _model_args(model: str, ds: DatasetConfig) -> List[str]:
+    if model == "SparseTSF":
+        return [
+            "--period_len", str(ds.period_len),
+            "--model_type", "linear",
+            "--percent", str(PERCENT),          # <-- the few-shot setting
+            "--learning_rate", str(LEARNING_RATE),
+            "--lradj", LRADJ,
+            "--train_epochs", str(TRAIN_EPOCHS),
+            "--patience", str(PATIENCE),
+            "--batch_size", str(BATCH_SIZE),
+        ]
+    t = tm_config.training(ds.name)
+    return tm_config.arch(ds.name) + [
+        "--percent", str(PERCENT),
+        "--learning_rate", t["learning_rate"],
+        "--train_epochs", t["train_epochs"],
+        "--patience", t["patience"],
+        "--batch_size", str(BATCH_SIZE),        # the few-shot protocol, as for SparseTSF
+    ]
+
+
+def run_one(ds: DatasetConfig, pred_len: int, model: str) -> None:
     LOGS_DIR.mkdir(parents=True, exist_ok=True)
-    log_path = log_path_for(ds, pred_len)
+    log_path = log_path_for(ds, pred_len, model)
+    prefix = "FEWSHOT" if model == "SparseTSF" else "FEWSHOT_TM"
     cmd = [
         sys.executable, "-u", str(REPO_ROOT / "run.py"),
         "--task_name", "long_term_forecast",
         "--is_training", "1",
-        "--model_id", f"FEWSHOT_{ds.name}_{SEQ_LEN}_{pred_len}",
-        "--model", MODEL,
+        "--model_id", f"{prefix}_{ds.name}_{SEQ_LEN}_{pred_len}",
+        "--model", model,
         "--data", ds.data,
         "--root_path", str(ds.root_path),
         "--data_path", ds.data_path,
@@ -117,19 +144,12 @@ def run_one(ds: DatasetConfig, pred_len: int) -> None:
         "--enc_in", str(ds.enc_in),
         "--dec_in", str(ds.enc_in),
         "--c_out", str(ds.enc_in),
-        "--period_len", str(ds.period_len),
-        "--model_type", "linear",
-        "--percent", str(PERCENT),          # <-- the few-shot setting
-        "--learning_rate", str(LEARNING_RATE),
-        "--lradj", LRADJ,
-        "--train_epochs", str(TRAIN_EPOCHS),
-        "--patience", str(PATIENCE),
-        "--batch_size", str(BATCH_SIZE),
+    ] + _model_args(model, ds) + [
         "--num_workers", "0",
         "--des", DES,
         "--itr", "1",
-    ]
-    print(f"\n[RUN] {ds.name} pred_len={pred_len} (percent={PERCENT})", flush=True)
+    ] + (["--stream_metrics", "1"] if (ds.name, pred_len) in STREAM else [])
+    print(f"\n[RUN] {model} {ds.name} pred_len={pred_len} (percent={PERCENT})", flush=True)
     start = time.perf_counter()
     with log_path.open("w", encoding="utf-8") as f:
         subprocess.run(cmd, cwd=str(REPO_ROOT), stdout=f, stderr=subprocess.STDOUT, text=True)
@@ -145,33 +165,35 @@ def _fmt(v: Optional[float], spec: str = ".6f") -> str:
 
 
 def update_md() -> None:
-    rows = ["| Dataset | pred_len | MSE | MAE | Runtime (s) | Status |",
-            "|---|---:|---:|---:|---:|---|"]
-    per_ds: Dict[str, List[List[float]]] = {}
+    rows = ["| Dataset | pred_len | Model | MSE | MAE | Runtime (s) | Status |",
+            "|---|---:|---|---:|---:|---:|---|"]
+    per_ds: Dict[Tuple[str, str], List[List[float]]] = {}
     for ds in DATASETS:
         for pred_len in PRED_LENS:
-            mse, mae, rt, status = parse_log(log_path_for(ds, pred_len))
-            rows.append(f"| {ds.name} | {pred_len} | {_fmt(mse)} | {_fmt(mae)} | "
-                        f"{_fmt(rt, '.1f')} | {status} |")
-            if status == "OK":
-                per_ds.setdefault(ds.name, []).append([mse, mae])
+            for model in MODELS:
+                mse, mae, rt, status = parse_log(log_path_for(ds, pred_len, model))
+                rows.append(f"| {ds.name} | {pred_len} | {model} | {_fmt(mse)} | {_fmt(mae)} | "
+                            f"{_fmt(rt, '.1f')} | {status} |")
+                if status == "OK":
+                    per_ds.setdefault((model, ds.name), []).append([mse, mae])
 
-    def avg(names: List[str]) -> Tuple[Optional[float], Optional[float]]:
-        vals = [v for n in names for v in per_ds.get(n, [])]
-        if not vals:
-            return None, None
-        return (sum(v[0] for v in vals) / len(vals), sum(v[1] for v in vals) / len(vals))
+    def avg(model: str, names: List[str]) -> str:
+        """Mean over the group, shown only once every cell of the group is measured."""
+        vals = [v for n in names for v in per_ds.get((model, n), [])]
+        if len(vals) < len(names) * len(PRED_LENS):
+            return "-"
+        return (f"{sum(v[0] for v in vals) / len(vals):.3f} / "
+                f"{sum(v[1] for v in vals) / len(vals):.3f}")
 
-    summary = ["", "**Averages (vs. published reference)**", "",
-               "| Group | SparseTSF MSE (ours) | SparseTSF MAE (ours) | TimeMixer (paper) | TimeMixer++ (paper) |",
+    summary = ["", "**Averages over pred_len (MSE / MAE)**", "",
+               "| Group | SparseTSF (local) | TimeMixer (local) | TimeMixer (paper) | TimeMixer++ (paper) |",
                "|---|---:|---:|---:|---:|"]
     groups = {"ETT (Avg)": ["ETTh1", "ETTh2", "ETTm1", "ETTm2"],
               "Weather": ["Weather"], "Electricity": ["Electricity"]}
     for label, names in groups.items():
-        m, a = avg(names)
         ref = PAPER_REF[label]
         tm, pp = ref["TimeMixer (paper)"], ref["TimeMixer++ (paper)"]
-        summary.append(f"| {label} | {_fmt(m, '.3f')} | {_fmt(a, '.3f')} | "
+        summary.append(f"| {label} | {avg('SparseTSF', names)} | {avg('TimeMixer', names)} | "
                        f"_{tm[0]:.3f} / {tm[1]:.3f}_ | _{pp[0]:.3f} / {pp[1]:.3f}_ |")
 
     body = "\n".join(rows + summary) + "\n"
@@ -184,22 +206,19 @@ def update_md() -> None:
 
 def main() -> None:
     sys.stdout.reconfigure(line_buffering=True)
-    total = len(DATASETS) * len(PRED_LENS)
-    done = 0
-    for ds in DATASETS:
-        for pred_len in PRED_LENS:
-            done += 1
-            if (ds.name, pred_len) in SKIP:
-                print(f"[SKIP {done}/{total}] {ds.name} pred={pred_len} — excluded (see SKIP note)",
-                      flush=True)
-                continue
-            mse, _, _, status = parse_log(log_path_for(ds, pred_len))
-            if status == "OK":
-                print(f"[SKIP {done}/{total}] {ds.name} pred={pred_len} (done, MSE={mse:.6f})", flush=True)
-                continue
-            print(f"\n>>> [{done}/{total}] {ds.name} pred_len={pred_len} <<<", flush=True)
-            run_one(ds, pred_len)
-            update_md()
+    # Electricity last: it is by far the slowest, so the cheap cells finish first.
+    order = ([d for d in DATASETS if d.name != "Electricity"]
+             + [d for d in DATASETS if d.name == "Electricity"])
+    jobs = [(m, d, p) for m in MODELS for d in order for p in PRED_LENS]
+    for i, (model, ds, pred_len) in enumerate(jobs, 1):
+        mse, _, _, status = parse_log(log_path_for(ds, pred_len, model))
+        if status == "OK":
+            print(f"[SKIP {i}/{len(jobs)}] {model} {ds.name} pred={pred_len} (done, MSE={mse:.6f})",
+                  flush=True)
+            continue
+        print(f"\n>>> [{i}/{len(jobs)}] {model} {ds.name} pred_len={pred_len} <<<", flush=True)
+        run_one(ds, pred_len, model)
+        update_md()
     update_md()
     print("\n[DONE] Few-shot benchmark complete.", flush=True)
 

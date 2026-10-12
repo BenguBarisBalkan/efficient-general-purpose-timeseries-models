@@ -1,15 +1,21 @@
 # SparseTSF across the TimeMixer++ task suite — consolidated
 
-One page linking every per-task benchmark run locally for **SparseTSF** (ICML'24, ~1k parameters),
-against the 8 task categories the TimeMixer++ paper (ICLR'25) evaluates.
+One page linking every per-task benchmark run locally for **SparseTSF** (ICML'24, ~1k parameters)
+and **TimeMixer** (ICLR'24), against the 8 task categories the TimeMixer++ paper (ICLR'25) evaluates.
 
 ## Scope and how to read this
 
-- **Only SparseTSF was run locally.** Every TimeMixer / TimeMixer++ figure quoted in these tables is
-  the **published** value from the TimeMixer++ paper, shown in *italics*. Those were produced with
-  the authors' own tuning, on their hardware, and (for imputation) a different input length — so
-  they are **reference points, not like-for-like comparisons**. Do not present them as a controlled
-  head-to-head.
+- **SparseTSF and TimeMixer are both run locally on every task**, same machine and same protocol.
+  TimeMixer uses its upstream script settings where they exist (long-term, M4, PEMS) and its own
+  long-term architecture elsewhere (`benchmarks/tm_config.py`). On anomaly detection and
+  classification TimeMixer publishes no settings at all, so those rows are untuned local references.
+- Where both a local and a published TimeMixer figure exist, they agree closely (M4 OWA 0.841 vs
+  0.840, PEMS MAE 17.51 vs 17.41, zero-shot MSE 0.448 vs 0.467). The exception is few-shot ETT
+  (0.513 vs 0.453), where the shared few-shot protocol (batch 32) does not suit TimeMixer's
+  full-data learning rate.
+- **TimeMixer++** figures are the *published* values from its paper, in *italics*: produced with the
+  authors' tuning on their hardware, so they are reference points, not a controlled head-to-head.
+  TimeMixer++ is not re-run per task because it is stable only at `lr=5e-5`, which undertrains it.
 - Hardware: RTX 3050 Ti Laptop (4 GB). Batch sizes are reduced from published values where needed.
 - Every runner is idempotent and regenerates its table between `<!-- AUTO_* -->` markers.
 
@@ -17,11 +23,11 @@ against the 8 task categories the TimeMixer++ paper (ICLR'25) evaluates.
 
 | # | Task | Report | Metric | Status |
 |---|---|---|---|---|
-| 1 | Long-term forecasting | [results_comparison_sparsetsf.md](results_comparison_sparsetsf.md) | MSE/MAE | ✅ 5 datasets × 2 lookbacks |
+| 1 | Long-term forecasting | [results_comparison_sparsetsf.md](results_comparison_sparsetsf.md) | MSE/MAE | ✅ 8 datasets (5 also at sl=720) |
 | 2 | Univariate short-term (M4) | [results_comparison_m4.md](results_comparison_m4.md) | SMAPE/MASE/OWA | ✅ 6 subsets |
 | 3 | Multivariate short-term (PEMS) | [results_comparison_pems.md](results_comparison_pems.md) | MAE/MAPE/RMSE | ✅ 4 datasets |
 | 4 | Imputation | [results_comparison_imputation.md](results_comparison_imputation.md) | masked MSE/MAE | ✅ 6 datasets × 4 mask rates |
-| 5 | Few-shot (10% train) | [results_comparison_fewshot.md](results_comparison_fewshot.md) | MSE/MAE | ⚠️ 23 of 24 (ECL@720 exceeds RAM) |
+| 5 | Few-shot (10% train) | [results_comparison_fewshot.md](results_comparison_fewshot.md) | MSE/MAE | ✅ 6 datasets × 4 horizons |
 | 6 | Zero-shot (transfer) | [results_comparison_zeroshot.md](results_comparison_zeroshot.md) | MSE/MAE | ✅ 6 pairs × 4 horizons |
 | 7 | Anomaly detection | [results_comparison_anomaly.md](results_comparison_anomaly.md) | point-adjusted F1 | ⚠️ PSM + SMD (MSL/SMAP/SWaT unobtainable) |
 | 8 | Classification | [results_comparison_classification.md](results_comparison_classification.md) | accuracy | ✅ 10 UEA datasets |
@@ -53,37 +59,44 @@ Energy/carbon for the 3 models lives separately in
 
 ## Headline findings
 
+All comparisons below are against the **local** TimeMixer unless marked published.
+
 **1. SparseTSF's small capacity is a generalization *advantage*, not just an efficiency trade.**
-It edges out the published TimeMixer on **few-shot** ETT (0.441 vs 0.453 — a modest ~3%, and across
-protocols, so treat it as "comparable", not a decisive win) and **beats published TimeMixer on all 6
-zero-shot transfer pairs** (avg 0.393 vs 0.467, a much clearer margin), even edging TimeMixer++ on 3
-of 6. With ~1k parameters there is very little to overfit to the source dataset — exactly the regime
-where data is scarce or the target distribution shifts. Zero-shot is the strongest claim here.
+It **beats TimeMixer on all 6 zero-shot transfer pairs** (mean MSE 0.393 vs 0.448), the strongest
+claim here and now a same-machine result. On few-shot ETT it is ahead too (0.441 vs 0.513; vs the
+published 0.453 the margin is a modest ~3%), while TimeMixer leads on few-shot Weather (0.254 vs
+0.271). With ~1k parameters there is very little to overfit to the source dataset, which is the
+regime where data is scarce or the target distribution shifts.
 
 **2. It loses where the task is not forecasting-shaped, or where channels interact.**
-- **PEMS** (MAE 34.13 vs 17.41): traffic networks carry their signal in *cross-channel* correlations,
-  and SparseTSF is deliberately channel-independent.
-- **Classification** (60.9% vs 75.9%): strong where a periodic signature is enough
-  (SpokenArabicDigits 94.0, PEMS-SF 84.4, SCP1 82.3) and collapses where it is not
-  (Handwriting 8.6% over 26 classes). Note the head was written for this study, so this is a floor.
-- **M4** (OWA 0.972): beats the Naive2 baseline, but M4's short, heterogeneous series give its
-  cross-period mechanism little to exploit.
+- **PEMS** (MAE 34.13 vs 17.51): traffic networks carry their signal in *cross-channel* correlations,
+  and SparseTSF is deliberately channel-independent. TimeMixer here mixes channels and has
+  0.87–1.24 M parameters against 21, yet trains in only about twice the time.
+- **M4** (OWA 0.972 vs 0.841): it beats the Naive2 baseline, but M4's short, heterogeneous series
+  give its cross-period mechanism little to exploit.
+- **Long-term at seq_len 96 on Solar, Electricity and Traffic:** behind at every horizon, with only
+  four periods of context in the window.
 
-**3. Anomaly detection is a genuine strength.** PSM F1 95.3 and SMD F1 80.0 with a reconstruction
-head of a few dozen parameters. (Average over 2 of 5 datasets — not comparable to the paper's
-5-dataset average.)
+**3. Classification is weak for both locally run models.** SparseTSF averages 60.90% and an untuned
+TimeMixer 62.37%, both far below TimeMixer++'s published 75.9%. SparseTSF is strong where a periodic
+signature is enough (SpokenArabicDigits 94.0, PEMS-SF 84.4) and collapses where it is not
+(Handwriting 8.6% over 26 classes, as does TimeMixer at 6.4%).
 
-**4. Imputation is a clean efficiency trade** — ~27% higher masked MSE than TimeMixer on the shared
-5 datasets, at roughly **5.7× less training time**.
+**4. Anomaly detection is competitive but behind.** F1 87.64 against TimeMixer's 90.45 over PSM and
+SMD, with 41 parameters against ~62,600. The gap is mostly SMD recall (73.9 vs 81.6). (2 of 5
+datasets, so not comparable to the paper's 5-dataset averages.)
+
+**5. Imputation is a clean efficiency trade:** TimeMixer wins all 24 cells and SparseTSF's masked MSE
+is ~35% higher over the six datasets, at about **6.5× less training time**.
 
 <!-- AUTO_SUMMARY_START -->
-| Task | Datasets | Metric | SparseTSF (ours) | Reference (paper) |
-|---|---|---|---:|---:|
-| Univariate short-term | M4 (6 subsets) | OWA (lower=better) | 0.972 | _TimeMixer 0.840_ |
-| Multivariate short-term | PEMS03/04/07/08 | MAE (lower) | 34.13 | _TimeMixer 17.41_ |
-| Imputation | ETT x4, Weather, ECL | masked MSE (lower) | 0.0838 (6 ds) | _TimeMixer 0.0586 (5 ds)_ |
-| Few-shot (10% train) | ETT (Avg) | MSE (lower) | 0.441 | _TimeMixer 0.453_ |
-| Zero-shot (transfer) | 6 ETT pairs | MSE (lower) | 0.393 | _TimeMixer 0.467 (avg)_ |
-| Anomaly detection | PSM, SMD (of 5) | F1 (higher) | 87.64 | _TimeMixer++ 87.47 (5 ds)_ |
-| Classification | 10 UEA | accuracy (higher) | 60.90 | _TimeMixer++ 75.9_ |
+| Task | Datasets | Metric | SparseTSF (local) | TimeMixer (local) | Reference (paper) |
+|---|---|---|---:|---:|---:|
+| Univariate short-term | M4 (6 subsets) | OWA (lower=better) | 0.972 | 0.841 | _TimeMixer 0.840_ |
+| Multivariate short-term | PEMS03/04/07/08 | MAE (lower) | 34.13 | 17.51 | _TimeMixer 17.41_ |
+| Imputation | ETT x4, Weather, ECL | masked MSE (lower) | 0.0838 (6 ds) | 0.0622 (6 ds) | — |
+| Few-shot (10% train) | ETT (Avg) | MSE (lower) | 0.441 | 0.513 | _TimeMixer 0.453_ |
+| Zero-shot (transfer) | 6 ETT pairs | MSE (lower) | 0.393 | 0.448 | _TimeMixer 0.467 (avg)_ |
+| Anomaly detection | PSM, SMD (of 5) | F1 (higher) | 87.64 | 90.45 | _TimeMixer++ 87.47 (5 ds)_ |
+| Classification | 10 UEA | accuracy (higher) | 60.90 | 62.37 | _TimeMixer++ 75.9_ |
 <!-- AUTO_SUMMARY_END -->

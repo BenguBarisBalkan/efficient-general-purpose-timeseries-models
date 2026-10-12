@@ -1,0 +1,109 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=16, c_out=7, channel_independence=0, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=16, data='UEA', data_path='ETTh1.csv', dec_in=7, decomp_method='moving_avg', des='Cls', devices='0,1', distil=True, down_sampling_layers=3, down_sampling_method='avg', down_sampling_window=2, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=1, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=48, learning_rate=0.001, loss='MSE', lradj='TST', mask_rate=0.125, model='TimeMixer', model_id='CLS_TM_PEMS-SF', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=10, pct_start=0.2, percent=100, period_len=24, pred_len=0, root_path='<workspace>\\dataset\\PEMS-SF', seasonal_patterns='Monthly', seq_len=96, stream_metrics=0, stsf_cls_head='flat', stsf_cls_segments=8, stsf_decomp='off', stsf_decomp_kernel=25, stsf_diag_mask=0, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_kernel=3, stsf_phase_mix='off', stsf_phase_rank=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='classification', top_k=5, track_emissions=0, train_epochs=30, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+267
+TRAIN 267
+173
+TEST 173
+>>>>>>>start training : classification_CLS_TM_PEMS-SF_none_TimeMixer_UEA_sl96_pl0_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_Cls_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+267
+TRAIN 267
+173
+TEST 173
+173
+TEST 173
+Epoch: 1 cost time: 4.9062230587005615
+Epoch: 1, Steps: 17 | Train Loss: 1.950 Vali Loss: 1.944 Vali Acc: 0.104 Test Loss: 1.944 Test Acc: 0.104
+Validation loss decreased (inf --> -0.104046).  Saving model ...
+Epoch: 2 cost time: 1.142293930053711
+Epoch: 2, Steps: 17 | Train Loss: 1.937 Vali Loss: 1.935 Vali Acc: 0.098 Test Loss: 1.936 Test Acc: 0.098
+EarlyStopping counter: 1 out of 10
+Epoch: 3 cost time: 1.0789923667907715
+Epoch: 3, Steps: 17 | Train Loss: 1.920 Vali Loss: 1.920 Vali Acc: 0.116 Test Loss: 1.920 Test Acc: 0.116
+Validation loss decreased (-0.104046 --> -0.115607).  Saving model ...
+Epoch: 4 cost time: 1.0174860954284668
+Epoch: 4, Steps: 17 | Train Loss: 1.897 Vali Loss: 1.892 Vali Acc: 0.208 Test Loss: 1.893 Test Acc: 0.208
+Validation loss decreased (-0.115607 --> -0.208092).  Saving model ...
+Epoch: 5 cost time: 1.0447733402252197
+Epoch: 5, Steps: 17 | Train Loss: 1.859 Vali Loss: 1.847 Vali Acc: 0.266 Test Loss: 1.847 Test Acc: 0.266
+Validation loss decreased (-0.208092 --> -0.265896).  Saving model ...
+Epoch: 6 cost time: 1.0227727890014648
+Epoch: 6, Steps: 17 | Train Loss: 1.808 Vali Loss: 1.778 Vali Acc: 0.254 Test Loss: 1.778 Test Acc: 0.254
+EarlyStopping counter: 1 out of 10
+Epoch: 7 cost time: 1.1021192073822021
+Epoch: 7, Steps: 17 | Train Loss: 1.728 Vali Loss: 1.687 Vali Acc: 0.295 Test Loss: 1.686 Test Acc: 0.295
+Validation loss decreased (-0.265896 --> -0.294798).  Saving model ...
+Epoch: 8 cost time: 1.067270278930664
+Epoch: 8, Steps: 17 | Train Loss: 1.619 Vali Loss: 1.558 Vali Acc: 0.445 Test Loss: 1.557 Test Acc: 0.445
+Validation loss decreased (-0.294798 --> -0.445087).  Saving model ...
+Epoch: 9 cost time: 1.0238909721374512
+Epoch: 9, Steps: 17 | Train Loss: 1.490 Vali Loss: 1.408 Vali Acc: 0.428 Test Loss: 1.409 Test Acc: 0.428
+EarlyStopping counter: 1 out of 10
+Epoch: 10 cost time: 1.0399940013885498
+Epoch: 10, Steps: 17 | Train Loss: 1.347 Vali Loss: 1.275 Vali Acc: 0.526 Test Loss: 1.274 Test Acc: 0.526
+Validation loss decreased (-0.445087 --> -0.526012).  Saving model ...
+Epoch: 11 cost time: 1.156743049621582
+Epoch: 11, Steps: 17 | Train Loss: 1.234 Vali Loss: 1.184 Vali Acc: 0.584 Test Loss: 1.186 Test Acc: 0.584
+Validation loss decreased (-0.526012 --> -0.583815).  Saving model ...
+Epoch: 12 cost time: 1.0958304405212402
+Epoch: 12, Steps: 17 | Train Loss: 1.159 Vali Loss: 1.120 Vali Acc: 0.584 Test Loss: 1.119 Test Acc: 0.584
+Validation loss decreased (-0.583815 --> -0.583815).  Saving model ...
+Epoch: 13 cost time: 1.066648244857788
+Epoch: 13, Steps: 17 | Train Loss: 1.093 Vali Loss: 1.067 Vali Acc: 0.665 Test Loss: 1.072 Test Acc: 0.665
+Validation loss decreased (-0.583815 --> -0.664740).  Saving model ...
+Epoch: 14 cost time: 1.0798277854919434
+Epoch: 14, Steps: 17 | Train Loss: 1.035 Vali Loss: 1.004 Vali Acc: 0.659 Test Loss: 1.005 Test Acc: 0.659
+EarlyStopping counter: 1 out of 10
+Epoch: 15 cost time: 1.1328365802764893
+Epoch: 15, Steps: 17 | Train Loss: 0.983 Vali Loss: 0.958 Vali Acc: 0.671 Test Loss: 0.958 Test Acc: 0.671
+Validation loss decreased (-0.664740 --> -0.670520).  Saving model ...
+Epoch: 16 cost time: 1.0546472072601318
+Epoch: 16, Steps: 17 | Train Loss: 0.926 Vali Loss: 0.917 Vali Acc: 0.665 Test Loss: 0.911 Test Acc: 0.665
+EarlyStopping counter: 1 out of 10
+Epoch: 17 cost time: 1.0557942390441895
+Epoch: 17, Steps: 17 | Train Loss: 0.884 Vali Loss: 0.873 Vali Acc: 0.711 Test Loss: 0.874 Test Acc: 0.711
+Validation loss decreased (-0.670520 --> -0.710983).  Saving model ...
+Epoch: 18 cost time: 1.0603117942810059
+Epoch: 18, Steps: 17 | Train Loss: 0.837 Vali Loss: 0.857 Vali Acc: 0.717 Test Loss: 0.853 Test Acc: 0.717
+Validation loss decreased (-0.710983 --> -0.716763).  Saving model ...
+Epoch: 19 cost time: 1.0731124877929688
+Epoch: 19, Steps: 17 | Train Loss: 0.818 Vali Loss: 0.826 Vali Acc: 0.699 Test Loss: 0.830 Test Acc: 0.699
+EarlyStopping counter: 1 out of 10
+Epoch: 20 cost time: 1.1467247009277344
+Epoch: 20, Steps: 17 | Train Loss: 0.783 Vali Loss: 0.790 Vali Acc: 0.751 Test Loss: 0.790 Test Acc: 0.751
+Validation loss decreased (-0.716763 --> -0.751445).  Saving model ...
+Epoch: 21 cost time: 1.0044324398040771
+Epoch: 21, Steps: 17 | Train Loss: 0.763 Vali Loss: 0.771 Vali Acc: 0.728 Test Loss: 0.779 Test Acc: 0.728
+EarlyStopping counter: 1 out of 10
+Epoch: 22 cost time: 1.060370922088623
+Epoch: 22, Steps: 17 | Train Loss: 0.732 Vali Loss: 0.772 Vali Acc: 0.688 Test Loss: 0.774 Test Acc: 0.688
+EarlyStopping counter: 2 out of 10
+Epoch: 23 cost time: 1.1004347801208496
+Epoch: 23, Steps: 17 | Train Loss: 0.707 Vali Loss: 0.748 Vali Acc: 0.746 Test Loss: 0.747 Test Acc: 0.746
+EarlyStopping counter: 3 out of 10
+Epoch: 24 cost time: 1.0235061645507812
+Epoch: 24, Steps: 17 | Train Loss: 0.703 Vali Loss: 0.740 Vali Acc: 0.746 Test Loss: 0.733 Test Acc: 0.746
+EarlyStopping counter: 4 out of 10
+Epoch: 25 cost time: 1.0440785884857178
+Epoch: 25, Steps: 17 | Train Loss: 0.652 Vali Loss: 0.731 Vali Acc: 0.740 Test Loss: 0.722 Test Acc: 0.740
+EarlyStopping counter: 5 out of 10
+Epoch: 26 cost time: 1.0791351795196533
+Epoch: 26, Steps: 17 | Train Loss: 0.668 Vali Loss: 0.707 Vali Acc: 0.740 Test Loss: 0.722 Test Acc: 0.740
+EarlyStopping counter: 6 out of 10
+Epoch: 27 cost time: 1.0136604309082031
+Epoch: 27, Steps: 17 | Train Loss: 0.637 Vali Loss: 0.694 Vali Acc: 0.786 Test Loss: 0.696 Test Acc: 0.786
+Validation loss decreased (-0.751445 --> -0.786127).  Saving model ...
+Epoch: 28 cost time: 1.0007963180541992
+Epoch: 28, Steps: 17 | Train Loss: 0.633 Vali Loss: 0.690 Vali Acc: 0.746 Test Loss: 0.693 Test Acc: 0.746
+EarlyStopping counter: 1 out of 10
+Epoch: 29 cost time: 1.0334820747375488
+Epoch: 29, Steps: 17 | Train Loss: 0.614 Vali Loss: 0.688 Vali Acc: 0.757 Test Loss: 0.684 Test Acc: 0.757
+EarlyStopping counter: 2 out of 10
+Epoch: 30 cost time: 1.0416762828826904
+Epoch: 30, Steps: 17 | Train Loss: 0.591 Vali Loss: 0.671 Vali Acc: 0.763 Test Loss: 0.670 Test Acc: 0.763
+EarlyStopping counter: 3 out of 10
+>>>>>>>testing : classification_CLS_TM_PEMS-SF_none_TimeMixer_UEA_sl96_pl0_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_Cls_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+173
+TEST 173
+test shape: torch.Size([173, 7]) torch.Size([173, 1])
+accuracy:0.7861271676300579

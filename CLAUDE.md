@@ -112,6 +112,7 @@ venv/Scripts/python.exe benchmarks/run_zeroshot_benchmarks.py         # zero-sho
 venv/Scripts/python.exe benchmarks/run_anomaly_benchmarks.py          # anomaly (point-adjusted F1)
 venv/Scripts/python.exe benchmarks/run_classification_benchmarks.py   # classification (accuracy)
 venv/Scripts/python.exe benchmarks/tools/count_params_all.py          # params, every model/task/dataset run
+venv/Scripts/python.exe benchmarks/tools/build_task_summary.py        # cross-task table in results_sparsetsf_all_tasks.md
 ```
 
 SparseTSFPlus ablations (which grafted units earn their parameters). All idempotent:
@@ -301,6 +302,9 @@ If you relocate any of these, the `REPO_ROOT`-relative path constants at the top
   float64; checked against the default path on ETTh1 and PEMS08, it agrees to 6–7 significant
   digits (the default sums in float32). Runners pass it only for the configs that need it, so every
   existing number was produced without it.
+- **TimeMixer's classification path needs `--channel_independence 0`.** `TimeMixer.classification`
+  embeds all channels jointly and has no per-channel reshape, so the long-term value of 1 crashes
+  in the embedding conv. `tm_config.arch(..., channel_independence=0)` handles it for that runner.
 - **`exp_long_term_forecasting.test()` prints `RMSE:`/`MAPE:` in UPPERCASE on purpose.** Every runner
   regexes lowercase `mse:`/`mae:` and takes the LAST match — a lowercase `rmse:` contains `mse:` as a
   substring and would silently corrupt every existing results table. Keep new metric labels uppercase.

@@ -4,8 +4,9 @@ Consolidated write-up for the fourth model in this study: **SparseTSFPlus**, Spa
 with cheap, individually-toggleable *units* borrowed from TimeMixer and TimeMixer++.
 
 **Headline.** On imputation, SparseTSFPlus cuts SparseTSF's error by 20.9% across all six
-datasets and **matches TimeMixer on the five where TimeMixer was run** (mean 0.0584 against
-0.0586), with 41 to 597 parameters against ~75,500. On PEMS multivariate short-term it removes 25%
+datasets, closing 81% of its gap to TimeMixer (mean 0.0663 against 0.0622). It **matches
+TimeMixer on five of the six** (0.0584 against 0.0586) and stays 31% behind on Electricity, with
+41 to 597 parameters against TimeMixer's ~58,000–60,000. On PEMS multivariate short-term it removes 25%
 of the MAE on all four datasets for ~70 extra parameters. Forecasting gains are small (about 1%),
 and on classification no variant improved the average — both reported as findings rather than
 omitted. One caveat runs through all of it: the best configuration differs by dataset, and on ETTh2
@@ -23,56 +24,59 @@ Supporting tables: [period sensitivity](results_period_sensitivity.md) ·
 ## 1. Starting point: SparseTSF across the full 8-task suite
 
 The TimeMixer++ paper evaluates eight task categories. SparseTSF was extended to all of them in
-the previous phase of this study, giving the baseline picture below. This table is what the choice
-of target tasks was made from.
+the previous phase of this study, giving the baseline picture below. The choice of target tasks was
+made from the published TimeMixer figures; TimeMixer was later run locally on every task
+(2026-10-12), and those same-machine figures are what the table now shows. They confirm the published
+picture, with one exception: on anomaly detection the local TimeMixer leads.
 
-| # | Task | Metric | SparseTSF | TimeMixer | TimeMixer++ | Gap (SparseTSF vs best) | Baselines |
-|---|---|---|---:|---:|---:|---:|---|
-| 1 | Long-term forecasting (sl=96, 5 datasets × 4 horizons) | mean MSE ↓ | 0.354 | 0.348 | **0.324** † | **+9.1%** | **TimeMixer local**; TimeMixer++ published † |
-| 2 | Univariate short-term (M4, 6 subsets) | OWA ↓ | 0.972 | 0.840 | **0.821** | **+18.4%** | published |
-| 3 | Multivariate short-term (PEMS03/04/07/08) | MAE ↓ | 34.13 | 17.41 | **15.91** | **+114.5%** | published |
-| 4 | Imputation (6 datasets × 4 mask rates) | masked MSE ↓ | 0.0838 § | **0.0586** § | — | **+43.0%** | **local (TimeMixer)** |
-| 5 | Few-shot, 10% train (ETT avg) | MSE ↓ | 0.441 | 0.453 | **0.396** | **+11.4%** | published |
-| 6 | Zero-shot transfer (6 ETT pairs) | mean MSE ↓ | 0.393 | 0.467 | **0.386** | **+1.9%** | published |
-| 7 | Anomaly detection (PSM, SMD) | F1 ↑ | **87.64** | — | 87.47 | comparable ‡ | published |
-| 8 | Classification (10 UEA) | accuracy ↑ | 60.90 | — | **75.9** | **−15.0 pts** | published |
+| # | Task | Metric | SparseTSF | TimeMixer (local) | TimeMixer++ (published) | Gap (SparseTSF vs best comparable) |
+|---|---|---|---:|---:|---:|---:|
+| 1 | Long-term forecasting (sl=96, 5 datasets × 4 horizons) | mean MSE ↓ | 0.354 | 0.348 | **0.324** † | **+9.1%** |
+| 2 | Univariate short-term (M4, 6 subsets) | OWA ↓ | 0.972 | 0.841 | **0.821** | **+18.4%** |
+| 3 | Multivariate short-term (PEMS03/04/07/08) | MAE ↓ | 34.13 | 17.51 | **15.91** | **+114.5%** |
+| 4 | Imputation (6 datasets × 4 mask rates) | masked MSE ↓ | 0.0838 | **0.0622** | — | **+34.7%** |
+| 5 | Few-shot, 10% train (ETT avg) | MSE ↓ | 0.441 | 0.513 § | **0.396** | **+11.4%** |
+| 6 | Zero-shot transfer (6 ETT pairs) | mean MSE ↓ | 0.393 | 0.448 | **0.386** | **+1.9%** |
+| 7 | Anomaly detection (PSM, SMD) | F1 ↑ | 87.64 | **90.45** ¶ | 87.47 ‡ | **−2.8 pts** |
+| 8 | Classification (10 UEA) | accuracy ↑ | 60.90 | 62.37 ¶ | **75.9** | **−15.0 pts** |
 
 † **TimeMixer++ was also run locally for forecasting (mean 0.449), but it is undertrained by
 design:** it requires `lr=5e-5` for NaN stability, so its local accuracy understates the
 architecture. Its published figure (0.324) is therefore used as the fairer reference here. Its
 local *energy* numbers are fair. Against the locally run TimeMixer the forecasting gap is +1.8%.
 
-‡ Not comparable: SparseTSF covers 2 of 5 anomaly datasets (MSL/SMAP/SWaT are unobtainable), so
-the F1 averages are over different dataset sets.
+‡ Not comparable: the published TimeMixer++ average covers all 5 anomaly datasets, and only PSM
+and SMD are obtainable here. The gap is therefore taken against the local TimeMixer on the same two.
 
-§ The two imputation means are over **different dataset counts** — SparseTSF over 6, TimeMixer over
-5 (Electricity was not run for TimeMixer). The per-dataset comparison used in §5 is like-for-like
-on ETTh1 and ETTm1, and TimeMixer wins all 20 of those cells, so the direction of the gap is not in
-doubt; only the exact headline percentage is affected.
+§ The one task where the local TimeMixer falls clearly short of its published figure (0.453). The
+shared few-shot protocol trains at batch 32, which likely does not suit TimeMixer's full-data
+learning rate.
 
-**Which baselines are local.** Long-term forecasting has local sweeps for **both** TimeMixer
-(30 of 32 configurations; Traffic 336/720 are beyond this laptop) and TimeMixer++ (21 of 32:
-ETT ×4, Weather, Solar 96); imputation has a local TimeMixer sweep (20 runs); and the energy study
-ran all three models under a matched protocol (40 TimeMixer/TimeMixer++ runs) — **111 completed
-local TimeMixer/TimeMixer++ runs in total**, all on the same RTX 3050 Ti (4 GB). The other six
-per-task benchmarks (M4, PEMS, few-shot, zero-shot, anomaly, classification) were run locally for
-SparseTSF only, against *published* TimeMixer/TimeMixer++ figures produced with the authors'
-tuning on their hardware. Those six are reference points, not controlled head-to-heads.
+¶ TimeMixer publishes no anomaly or classification settings, so these are untuned local runs with
+its own small long-term architecture.
+
+**Which baselines are local.** TimeMixer is now run locally on all eight tasks. Its settings come
+from its upstream scripts where they exist and from its own long-term configuration elsewhere.
+Where a published TimeMixer figure exists, the local one matches it closely: M4 OWA 0.841 vs 0.840,
+PEMS MAE 17.51 vs 17.41, zero-shot 0.448 vs 0.467. TimeMixer++ is run locally only for long-term
+forecasting (21 of 32 configurations) and the energy study, because it is stable only at a learning
+rate that undertrains it. Its accuracy reference is the published one. All runs are on the same
+RTX 3050 Ti (4 GB).
 
 ### What this table says
 
 SparseTSF is **not** uniformly behind. On long-term forecasting it is within 1.8% of the locally
 run TimeMixer and wins 7 of 20 configurations, sweeping the hourly ETTh datasets; at its native
 `seq_len=720` its mean MSE of 0.312 beats both baselines' 96-step figures. On zero-shot transfer it
-is 15.8% better than TimeMixer and within 1.9% of TimeMixer++, winning 3 of 6 pairs, and it is
-competitive few-shot. The deficits are concentrated and structural.
+beats the local TimeMixer on all six pairs (0.393 vs 0.448) and is within 1.9% of the published
+TimeMixer++, and it is competitive few-shot. The deficits are concentrated and structural.
 
 ---
 
 ## 2. Why PEMS, classification and imputation
 
 Ranked by gap, the candidates were PEMS (+114.5%), classification (−15.0 points), imputation
-(+43.0%), M4 (+18.4%) and few-shot (+11.4%). The three chosen were selected on three criteria:
+(+34.7%), M4 (+18.4%) and few-shot (+11.4%). The three chosen were selected on three criteria:
 **size of the gap**, **whether the cause was diagnosable**, and **whether a result there would be
 defensible**.
 
@@ -86,8 +90,8 @@ combination per phase. The second cause is addressable without touching channel 
 made PEMS worth attacking even with parity off the table.
 
 **Imputation — chosen because it has a local baseline and a mechanically diagnosable cause.**
-At +43.0% it is the largest gap among tasks with a *same-machine* TimeMixer sweep, and TimeMixer
-wins all 20 cells there, so the deficit is not noise. More importantly the gap **grows
+At +34.7% it was the largest gap among tasks with a *same-machine* TimeMixer sweep when the targets
+were chosen, and TimeMixer wins all 24 cells there, so the deficit is not noise. More importantly the gap **grows
 monotonically with mask rate** (+17% at mask 0.125 rising to +46% at mask 0.5 on ETTh1), which
 points directly at the mechanism: SparseTSF's reconstruction is one bias-free linear over periods
 at a fixed phase, fed by a convolution whose receptive field is half literal zeros at mask 0.5 —
@@ -287,7 +291,7 @@ is a property of SparseTSF worth stating: **any scale-equivariant normalisation 
 
 ## 5. How the results changed
 
-### Imputation — parity with TimeMixer across five datasets
+### Imputation — parity with TimeMixer on five of six datasets
 
 Mean masked MSE over four mask rates. For each dataset the configuration is chosen on
 **validation** loss, and plain SparseTSF is one of the candidates, so validation can choose "no
@@ -300,13 +304,18 @@ units". Both baselines were run on this machine under this protocol.
 | ETTh2 | none — plain SparseTSF | 41 | 0.070296 | 0.070296 | 0.0% | 0.066370 | +5.9% |
 | ETTm2 | refinement | 581 | 0.032690 | **0.027865** | −14.8% | 0.027787 | +0.3% |
 | Weather | refinement | 581 | 0.034388 | **0.031335** | −8.9% | 0.031546 | **−0.7%** |
-| Electricity | refinement, mask-aware | 41 | 0.130393 | **0.105336** | −19.2% | not run | — |
-| **Mean, the 5 with TimeMixer** | | | 0.074432 | **0.058438** | **−21.5%** | 0.058558 | **−0.2%** |
-| **Mean, all 6** | | | 0.083759 | **0.066254** | **−20.9%** | | |
+| Electricity | refinement, mask-aware | 41 | 0.130393 | **0.105336** | −19.2% | 0.080314 | +31.2% |
+| **Mean, all 6** | | | 0.083759 | **0.066254** | **−20.9%** | 0.062184 | **+6.5%** |
+| Mean, the 5 other than Electricity | | | 0.074432 | **0.058438** | **−21.5%** | 0.058558 | **−0.2%** |
 
-On the five datasets where both models were run, the gap to TimeMixer goes from **+27.1% to
-−0.2%**. Validation picked the configuration with the lowest test error on 5 of 6 datasets; on ETTm2
-it picked refinement over all units, which cost 0.5%.
+Over all six datasets the gap to TimeMixer goes from **+34.7% to +6.5%**, closing 81% of it. On the
+five other than Electricity it goes from +27.1% to −0.2%. Validation picked the configuration with
+the lowest test error on 5 of 6 datasets; on ETTm2 it picked refinement over all units, which cost
+0.5%.
+
+**Electricity is where TimeMixer stays clearly ahead.** TimeMixer's Electricity cells were measured
+last, after this ablation. Refinement with mask-aware aggregation cuts SparseTSF's error there by
+19.2%, but TimeMixer is 31.2% better still. So the parity holds on five of six datasets, not all six.
 
 **ETTh2 is where the units fail.** Every unit variant is worse than plain SparseTSF there — up to 70%
 worse at low mask rates — and even the training loss settles at about twice SparseTSF's, so the
@@ -315,8 +324,9 @@ SparseTSF reproduced the published result exactly (0.058744, identical validatio
 setup is not at fault. Validation correctly rejects every unit on ETTh2.
 
 **The parity depends on choosing per dataset.** With one fixed configuration everywhere, the best is
-refinement plus mask-aware aggregation: 14.5% better than SparseTSF over six datasets, but 10.8%
-behind TimeMixer over five, with ETTh2 the main cost. A refinement step that can switch itself off
+refinement plus mask-aware aggregation: 14.5% better than SparseTSF over six datasets, but 15.2%
+behind TimeMixer over six (10.8% over the five other than Electricity), with ETTh2 the main cost
+among those five. A refinement step that can switch itself off
 where it hurts would close most of that difference, and is the clearest next step toward one
 configuration for every dataset.
 
@@ -360,8 +370,8 @@ All four PEMS datasets, `seq_len=96 → pred_len=12`, MAE:
 
 The improvement is consistent: 24% to 28% on every dataset. The 4-dataset mean falls **34.13 →
 25.50 (−25.3%)**, with MAPE 20.81% → 15.22% and RMSE 52.10 → 40.67, for about 70 extra parameters.
-That closes **52%** of the distance to TimeMixer's published 17.41 (the gap goes from +96% to
-+46%). The residual is the cross-channel component that was deliberately out of scope. The dense
+That closes **52%** of the distance to the locally run TimeMixer's 17.51 (published 17.41; the gap
+goes from +95% to +46%). The residual is the cross-channel component that was deliberately out of scope. The dense
 model is marginally better on validation on all four datasets, by about 0.5%; phase mixing is the
 efficient choice, not the strictly best one.
 
@@ -476,7 +486,8 @@ Ordered by value for the goal of one model that serves every task.
 
 1. **Make refinement safe by default.** It is the strongest unit and is chosen on five of six
    imputation datasets, but on ETTh2 it does real harm, and that one dataset is what separates
-   per-dataset parity from a single fixed configuration (−0.2% against +10.8% versus TimeMixer).
+   per-dataset parity from a single fixed configuration (−0.2% against +10.8% versus TimeMixer on
+   the five datasets other than Electricity).
    A second pass behind a learned gate initialised to pass-through would let training switch it off
    where it hurts. Success means recovering ETTh2 while keeping the gains elsewhere.
 
@@ -486,7 +497,7 @@ Ordered by value for the goal of one model that serves every task.
    of the per-dataset gains a single configuration gives up.
 
 3. **Fold these results into the top-level narrative.** `results_final_report.md` and the root
-   `README.md` still describe a three-model study. Imputation parity with TimeMixer across five
+   `README.md` still describe a three-model study. Imputation parity with TimeMixer on five of six
    datasets, at 41 to 597 parameters, changes the headline claim.
 
 4. **Re-run the energy sweep for the new model.** Any energy claim requires the matched fixed-epoch

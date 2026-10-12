@@ -59,17 +59,17 @@ venv/Scripts/python.exe benchmarks/tools/count_params_all.py
 
 ## Classification
 
-| Dataset | SparseTSF |
-|---|---:|
-| EthanolConcentration | 21,017 |
-| FaceDetection | 17,859 |
-| Handwriting | 11,883 |
-| Heartbeat | 49,413 |
-| JapaneseVowels | 3,142 |
-| PEMS-SF | 970,712 |
-| SelfRegulationSCP1 | 10,755 |
-| SelfRegulationSCP2 | 16,131 |
-| SpokenArabicDigits | 12,101 |
-| UWaveGestureLibrary | 7,569 |
+| Dataset | SparseTSF | TimeMixer |
+|---|---:|---:|
+| EthanolConcentration | 21,017 | 18,227,514 |
+| FaceDetection | 17,859 | 37,608 |
+| Handwriting | 11,883 | 205,896 |
+| Heartbeat | 49,413 | 991,156 |
+| JapaneseVowels | 3,142 | 14,349 |
+| PEMS-SF | 970,712 | 198,463 |
+| SelfRegulationSCP1 | 10,755 | 4,784,466 |
+| SelfRegulationSCP2 | 16,131 | 7,891,978 |
+| SpokenArabicDigits | 12,101 | 71,478 |
+| UWaveGestureLibrary | 7,569 | 631,604 |
 
 Logs that record no argument list, so they are not in the ranges above: `run_logs/Electricity_pred96.log`, `run_logs/Traffic_pred720.log`.
