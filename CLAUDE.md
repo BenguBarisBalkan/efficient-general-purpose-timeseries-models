@@ -111,6 +111,7 @@ venv/Scripts/python.exe benchmarks/run_fewshot_benchmarks.py          # few-shot
 venv/Scripts/python.exe benchmarks/run_zeroshot_benchmarks.py         # zero-shot transfer
 venv/Scripts/python.exe benchmarks/run_anomaly_benchmarks.py          # anomaly (point-adjusted F1)
 venv/Scripts/python.exe benchmarks/run_classification_benchmarks.py   # classification (accuracy)
+venv/Scripts/python.exe benchmarks/tools/count_params_all.py          # params, every model/task/dataset run
 ```
 
 SparseTSFPlus ablations (which grafted units earn their parameters). All idempotent:
