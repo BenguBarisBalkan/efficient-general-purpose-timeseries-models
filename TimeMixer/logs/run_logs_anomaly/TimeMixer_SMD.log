@@ -1,0 +1,28 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.5, batch_size=128, c_out=38, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=16, data='SMD', data_path='ETTh1.csv', dec_in=38, decomp_method='moving_avg', des='Anom', devices='0,1', distil=True, down_sampling_layers=3, down_sampling_method='avg', down_sampling_window=2, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=38, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=48, learning_rate=0.0001, loss='MSE', lradj='TST', mask_rate=0.125, model='TimeMixer', model_id='ANOM_TM_SMD', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=15, pct_start=0.2, percent=100, period_len=24, pred_len=0, root_path='<workspace>\\dataset\\SMD', seasonal_patterns='Monthly', seq_len=100, stream_metrics=0, stsf_cls_head='flat', stsf_cls_segments=8, stsf_decomp='off', stsf_decomp_kernel=25, stsf_diag_mask=0, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_kernel=3, stsf_phase_mix='off', stsf_phase_rank=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='anomaly_detection', top_k=5, track_emissions=0, train_epochs=3, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+>>>>>>>start training : anomaly_detection_ANOM_TM_SMD_none_TimeMixer_SMD_sl100_pl0_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_Anom_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 7084
+val 1416
+test 7084
+Epoch: 1 cost time: 11.418892860412598
+Epoch: 1, Steps: 56 | Train Loss: 0.3410339 Vali Loss: 0.1575583 Test Loss: 0.7922451
+Validation loss decreased (inf --> 0.792245).  Saving model ...
+Updating learning rate to 9.270514983950874e-05
+Epoch: 2 cost time: 7.701719284057617
+Epoch: 2, Steps: 56 | Train Loss: 0.2601372 Vali Loss: 0.1235535 Test Loss: 0.6324376
+Validation loss decreased (0.792245 --> 0.632438).  Saving model ...
+Updating learning rate to 3.5934018872467444e-05
+Epoch: 3 cost time: 7.724403142929077
+Epoch: 3, Steps: 56 | Train Loss: 0.2339530 Vali Loss: 0.1218701 Test Loss: 0.6070260
+Validation loss decreased (0.632438 --> 0.607026).  Saving model ...
+Updating learning rate to 1.4059025157112998e-08
+>>>>>>>testing : anomaly_detection_ANOM_TM_SMD_none_TimeMixer_SMD_sl100_pl0_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_Anom_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test 7084
+train 7084
+Threshold : 3.234463803768102
+pred:    (708400,)
+gt:      (708400,)
+pred:  (708400,)
+gt:    (708400,)
+Accuracy : 0.9873, Precision : 0.8692, Recall : 0.8162, F-score : 0.8418 

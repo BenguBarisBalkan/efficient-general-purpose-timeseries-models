@@ -94,8 +94,13 @@ venv/Scripts/python.exe benchmarks/run_sparsetsf_benchmarks.py # SparseTSF accur
 venv/Scripts/python.exe benchmarks/run_carbon_benchmarks.py    # 3-model CodeCarbon sweep
 ```
 
-Per-task SparseTSF benchmarks (the 8 task categories the TimeMixer++ paper evaluates). Each writes
-`reports/results_comparison_<task>.md` and `logs/run_logs_<task>/`, and is idempotent:
+Per-task benchmarks (the 8 task categories the TimeMixer++ paper evaluates). Each trains SparseTSF
+**and TimeMixer** locally, writes `reports/results_comparison_<task>.md` and `logs/run_logs_<task>/`,
+and is idempotent. TimeMixer uses its upstream script settings where they exist (long-term, M4,
+PEMS); elsewhere it uses its own long-term architecture from `benchmarks/tm_config.py`, the single
+source of truth that reads them from `run_all_long_term_benchmarks.py`. TimeMixer++ is not re-run
+per task (it is only stable at `lr=5e-5`, which undertrains it), so its published figures remain
+the reference there.
 
 ```bash
 venv/Scripts/python.exe benchmarks/tools/fetch_task_datasets.py       # PSM, 10x UEA, SMD

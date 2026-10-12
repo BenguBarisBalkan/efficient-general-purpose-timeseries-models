@@ -26,7 +26,7 @@ MD_PATH = REPO_ROOT / "reports" / "results_comparison_m4.md"
 
 sys.path.insert(0, str(REPO_ROOT))             # so we can import utils.m4_summary
 
-MODELS = ["SparseTSF"]          # local runs — SparseTSF only (compute focus)
+MODELS = ["SparseTSF", "TimeMixer"]   # both run locally, each with its own published settings
 SUBSETS = ["Yearly", "Quarterly", "Monthly", "Weekly", "Daily", "Hourly"]
 
 # Published reference numbers (not re-run locally) for context — TimeMixer++ paper, Table 2 (M4 avg).
@@ -39,16 +39,19 @@ PAPER_REF = {
 # chosen near each frequency's natural cycle.  (h, sl): Y(6,12) Q(8,16) M(18,36) W(13,26) D(14,28) H(48,96)
 SPARSE_PERIOD = {"Yearly": 2, "Quarterly": 4, "Monthly": 6, "Weekly": 13, "Daily": 7, "Hourly": 24}
 
-# Shared / per-model training config (each model's own reasonable hypers; documented in the report).
-COMMON = dict(train_epochs="10", patience="5", batch_size="16", num_workers="0", loss="SMAPE")
+# Per-model training config. TimeMixer's is copied verbatim from upstream
+# scripts/short_term_forecast/M4/TimeMixer.sh (identical for all six subsets), so the local row is
+# comparable to the published one. It needs >=2 scales: down_sampling_layers=0 crashes its season mixing.
+COMMON = dict(num_workers="0", loss="SMAPE")
 MODEL_CFG = {
-    "SparseTSF": dict(learning_rate="0.01", extra=["--model_type", "linear"]),
-    # NOTE: if TimeMixer is ever added back to MODELS, it needs >=2 scales
-    # (--down_sampling_layers 1 --down_sampling_window 2); 0 crashes its season mixing.
-    "TimeMixer": dict(learning_rate="0.001",
-                      extra=["--d_model", "16", "--d_ff", "32", "--e_layers", "2",
+    "SparseTSF": dict(learning_rate="0.01", train_epochs="10", patience="5", batch_size="16",
+                      period=True, extra=["--model_type", "linear"]),
+    "TimeMixer": dict(learning_rate="0.01", train_epochs="50", patience="20", batch_size="128",
+                      period=False,
+                      extra=["--e_layers", "4", "--d_layers", "1", "--factor", "3",
+                             "--d_model", "32", "--d_ff", "32",
                              "--down_sampling_layers", "1", "--down_sampling_window", "2",
-                             "--down_sampling_method", "avg", "--channel_independence", "1"]),
+                             "--down_sampling_method", "avg"]),
 }
 
 
@@ -73,17 +76,17 @@ def run_one(model: str, subset: str) -> None:
         "--seasonal_patterns", subset,
         "--features", "M",
         "--enc_in", "1", "--dec_in", "1", "--c_out", "1",
-        "--period_len", str(SPARSE_PERIOD[subset]),   # SparseTSF only; ignored by TimeMixer
+    ] + (["--period_len", str(SPARSE_PERIOD[subset])] if cfg["period"] else []) + [
         "--learning_rate", cfg["learning_rate"],
-        "--train_epochs", COMMON["train_epochs"],
-        "--patience", COMMON["patience"],
-        "--batch_size", COMMON["batch_size"],
+        "--train_epochs", cfg["train_epochs"],
+        "--patience", cfg["patience"],
+        "--batch_size", cfg["batch_size"],
         "--num_workers", COMMON["num_workers"],
         "--loss", COMMON["loss"],
         "--des", "M4",
     ] + cfg["extra"]
 
-    print(f"\n[RUN] {model} {subset} (period_len={SPARSE_PERIOD[subset]})", flush=True)
+    print(f"\n[RUN] {model} {subset}", flush=True)
     start = time.perf_counter()
     with log_path.open("w", encoding="utf-8") as f:
         subprocess.run(cmd, cwd=str(REPO_ROOT), stdout=f, stderr=subprocess.STDOUT, text=True)
@@ -117,9 +120,9 @@ def update_md(metrics_by_model: Dict[str, Optional[dict]]) -> None:
     for model in MODELS:
         m = metrics_by_model.get(model)
         if m is None:
-            rows.append(f"| {model} (ours) | - | - | - |")
+            rows.append(f"| {model} (local) | - | - | - |")
         else:
-            rows.append(f"| {model} (ours) | {_fmt(m['SMAPE'].get('Average'))} | "
+            rows.append(f"| {model} (local) | {_fmt(m['SMAPE'].get('Average'))} | "
                         f"{_fmt(m['MASE'].get('Average'))} | {_fmt(m['OWA'].get('Average'))} |")
     # published reference rows (cited, not re-run here)
     for name, r in PAPER_REF.items():

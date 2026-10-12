@@ -1,5 +1,5 @@
 """
-Zero-shot (cross-dataset transfer) forecasting benchmark — SparseTSF.
+Zero-shot (cross-dataset transfer) forecasting benchmark — SparseTSF and TimeMixer.
 
 Matches the paper's setup (TimeMixer++ ICLR'25, Table 6): train on dataset A, evaluate on an unseen
 dataset B with no further training, over the 6 ETT transfer pairs, seq_len=96,
@@ -14,6 +14,7 @@ B's setting directory, then run B with `--is_training 0`. The model never sees B
 Architecture note: SparseTSF's linear layer is (seq_len/period_len -> pred_len/period_len), so the
 SOURCE dataset's `period_len` must also be used for the target, otherwise the checkpoint shapes
 would not match. All pred_lens here are divisible by both 24 and 4, so this is always valid.
+TimeMixer likewise uses the SOURCE dataset's long-term configuration (tm_config.py) on both sides.
 
 Idempotent: a pair whose log already holds a valid MSE/MAE is skipped.
 
@@ -28,15 +29,18 @@ import time
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+import tm_config
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DATA_ROOT = REPO_ROOT.parent / "dataset"
 LOGS_DIR = REPO_ROOT / "logs" / "run_logs_zeroshot"
 CKPT_DIR = REPO_ROOT / "checkpoints"
 MD_PATH = REPO_ROOT / "reports" / "results_comparison_zeroshot.md"
 
-MODEL = "SparseTSF"
+MODELS = ["SparseTSF", "TimeMixer"]   # both run locally
 SEQ_LEN = 96
 PRED_LENS = [96, 192, 336, 720]
+# SparseTSF's published training setup
 LEARNING_RATE = 0.02
 BATCH_SIZE = 256
 TRAIN_EPOCHS = 30
@@ -75,14 +79,23 @@ def _last(pat: re.Pattern, text: str) -> Optional[float]:
     return float(m[-1]) if m else None
 
 
-def build_setting(model_id: str, data: str, pred_len: int) -> str:
-    """Reproduce run.py's `setting` string (defaults: dm16 nh8 el2 dl1 df32 fc1 ebtimeF dtTrue)."""
-    return (f"long_term_forecast_{model_id}_none_{MODEL}_{data}"
-            f"_sl{SEQ_LEN}_pl{pred_len}_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_{DES}_0")
+def model_id_for(model: str, src: str, tgt: str, pred_len: int) -> str:
+    prefix = "ZS" if model == "SparseTSF" else "ZS_TM"
+    return f"{prefix}_{src}_to_{tgt}_{pred_len}"
 
 
-def log_path_for(src: str, tgt: str, pred_len: int) -> Path:
-    return LOGS_DIR / f"{src}_to_{tgt}_pred{pred_len}.log"
+def build_setting(model: str, src: str, model_id: str, data: str, pred_len: int) -> str:
+    """Reproduce run.py's `setting` string. SparseTSF uses run.py's defaults
+    (dm16 nh8 el2 dl1 df32 fc1); TimeMixer uses the source dataset's dimensions."""
+    dims = ("dm16_nh8_el2_dl1_df32_fc1" if model == "SparseTSF"
+            else tm_config.setting_dims(src))
+    return (f"long_term_forecast_{model_id}_none_{model}_{data}"
+            f"_sl{SEQ_LEN}_pl{pred_len}_{dims}_ebtimeF_dtTrue_{DES}_0")
+
+
+def log_path_for(src: str, tgt: str, pred_len: int, model: str = "SparseTSF") -> Path:
+    prefix = "" if model == "SparseTSF" else f"{model}_"
+    return LOGS_DIR / f"{prefix}{src}_to_{tgt}_pred{pred_len}.log"
 
 
 def parse_log(path: Path) -> Tuple[Optional[float], Optional[float], str]:
@@ -95,13 +108,34 @@ def parse_log(path: Path) -> Tuple[Optional[float], Optional[float], str]:
     return mse, mae, "OK"
 
 
-def _base_args(name: str, model_id: str, pred_len: int, period_len: int) -> List[str]:
+def _model_args(model: str, src: str) -> List[str]:
+    """Training/architecture flags, always those of the SOURCE dataset."""
+    if model == "SparseTSF":
+        return [
+            "--period_len", str(DS[src][4]),
+            "--model_type", "linear",
+            "--learning_rate", str(LEARNING_RATE),
+            "--lradj", LRADJ,
+            "--train_epochs", str(TRAIN_EPOCHS),
+            "--patience", str(PATIENCE),
+            "--batch_size", str(BATCH_SIZE),
+        ]
+    t = tm_config.training(src)
+    return tm_config.arch(src) + [
+        "--learning_rate", t["learning_rate"],
+        "--train_epochs", t["train_epochs"],
+        "--patience", t["patience"],
+        "--batch_size", t["batch_size"],
+    ]
+
+
+def _base_args(model: str, name: str, src: str, model_id: str, pred_len: int) -> List[str]:
     data, csv, root, enc_in, _ = DS[name]
     return [
         sys.executable, "-u", str(REPO_ROOT / "run.py"),
         "--task_name", "long_term_forecast",
         "--model_id", model_id,
-        "--model", MODEL,
+        "--model", model,
         "--data", data,
         "--root_path", str(root),
         "--data_path", csv,
@@ -110,33 +144,26 @@ def _base_args(name: str, model_id: str, pred_len: int, period_len: int) -> List
         "--label_len", "0",
         "--pred_len", str(pred_len),
         "--enc_in", str(enc_in), "--dec_in", str(enc_in), "--c_out", str(enc_in),
-        "--period_len", str(period_len),
-        "--model_type", "linear",
-        "--learning_rate", str(LEARNING_RATE),
-        "--lradj", LRADJ,
-        "--train_epochs", str(TRAIN_EPOCHS),
-        "--patience", str(PATIENCE),
-        "--batch_size", str(BATCH_SIZE),
+    ] + _model_args(model, src) + [
         "--num_workers", "0",
         "--des", DES,
         "--itr", "1",
     ]
 
 
-def run_pair(src: str, tgt: str, pred_len: int) -> None:
+def run_pair(model: str, src: str, tgt: str, pred_len: int) -> None:
     LOGS_DIR.mkdir(parents=True, exist_ok=True)
-    log_path = log_path_for(src, tgt, pred_len)
-    period_len = DS[src][4]                      # source's period_len (keeps shapes compatible)
-    model_id = f"ZS_{src}_to_{tgt}_{pred_len}"
+    log_path = log_path_for(src, tgt, pred_len, model)
+    model_id = model_id_for(model, src, tgt, pred_len)
 
-    src_setting = build_setting(model_id, DS[src][0], pred_len)
-    tgt_setting = build_setting(model_id, DS[tgt][0], pred_len)
+    src_setting = build_setting(model, src, model_id, DS[src][0], pred_len)
+    tgt_setting = build_setting(model, src, model_id, DS[tgt][0], pred_len)
 
     start = time.perf_counter()
     with log_path.open("w", encoding="utf-8") as f:
         # 1) train on the SOURCE dataset
         f.write(f"===== TRAIN on {src} =====\n"); f.flush()
-        subprocess.run(_base_args(src, model_id, pred_len, period_len) + ["--is_training", "1"],
+        subprocess.run(_base_args(model, src, src, model_id, pred_len) + ["--is_training", "1"],
                        cwd=str(REPO_ROOT), stdout=f, stderr=subprocess.STDOUT, text=True)
 
         # 2) copy the source checkpoint into the target's setting dir so the test run loads it
@@ -151,10 +178,11 @@ def run_pair(src: str, tgt: str, pred_len: int) -> None:
 
         # 3) evaluate on the TARGET dataset without any training
         f.write(f"===== TEST on {tgt} (zero-shot) =====\n"); f.flush()
-        subprocess.run(_base_args(tgt, model_id, pred_len, period_len) + ["--is_training", "0"],
+        subprocess.run(_base_args(model, tgt, src, model_id, pred_len) + ["--is_training", "0"],
                        cwd=str(REPO_ROOT), stdout=f, stderr=subprocess.STDOUT, text=True)
 
-    print(f"      {src}->{tgt} pred={pred_len} done in {time.perf_counter() - start:.1f}s", flush=True)
+    print(f"      {model} {src}->{tgt} pred={pred_len} done in {time.perf_counter() - start:.1f}s",
+          flush=True)
 
 
 RESULTS_START = "<!-- AUTO_ZEROSHOT_RESULTS_START -->"
@@ -166,30 +194,37 @@ def _fmt(v: Optional[float], spec: str = ".6f") -> str:
 
 
 def update_md() -> None:
-    rows = ["| Transfer | pred_len | MSE | MAE | Status |", "|---|---:|---:|---:|---|"]
-    per_pair: Dict[str, List[List[float]]] = {}
+    rows = ["| Transfer | pred_len | SparseTSF MSE | SparseTSF MAE | TimeMixer MSE | TimeMixer MAE |",
+            "|---|---:|---:|---:|---:|---:|"]
+    per_pair: Dict[Tuple[str, str], List[List[float]]] = {}
     for src, tgt in PAIRS:
         key = f"{src}->{tgt}"
         for pred_len in PRED_LENS:
-            mse, mae, status = parse_log(log_path_for(src, tgt, pred_len))
-            rows.append(f"| {key} | {pred_len} | {_fmt(mse)} | {_fmt(mae)} | {status} |")
-            if status == "OK":
-                per_pair.setdefault(key, []).append([mse, mae])
+            cells = []
+            for model in MODELS:
+                mse, mae, status = parse_log(log_path_for(src, tgt, pred_len, model))
+                cells += [_fmt(mse), _fmt(mae)] if status == "OK" else [status, "-"]
+                if status == "OK":
+                    per_pair.setdefault((model, key), []).append([mse, mae])
+            rows.append(f"| {key} | {pred_len} | " + " | ".join(cells) + " |")
 
-    summary = ["", "**Averaged over pred_len (vs. published reference)**", "",
-               "| Transfer | SparseTSF MSE / MAE (ours) | TimeMixer (paper) | TimeMixer++ (paper) |",
-               "|---|---:|---:|---:|"]
+    summary = ["", "**Averaged over pred_len (MSE / MAE)**", "",
+               "| Transfer | SparseTSF (local) | TimeMixer (local) | TimeMixer (paper) | TimeMixer++ (paper) |",
+               "|---|---:|---:|---:|---:|"]
     for src, tgt in PAIRS:
         key = f"{src}->{tgt}"
-        vals = per_pair.get(key, [])
-        if vals:
-            m = sum(v[0] for v in vals) / len(vals)
-            a = sum(v[1] for v in vals) / len(vals)
-            ours = f"{m:.3f} / {a:.3f}"
-        else:
-            ours = "-"
+        local = []
+        for model in MODELS:
+            vals = per_pair.get((model, key), [])
+            if len(vals) == len(PRED_LENS):
+                m = sum(v[0] for v in vals) / len(vals)
+                a = sum(v[1] for v in vals) / len(vals)
+                local.append(f"{m:.3f} / {a:.3f}")
+            else:
+                local.append("-")
         ref = PAPER_REF[key]
-        summary.append(f"| {key} | {ours} | _{ref['TimeMixer'][0]:.3f} / {ref['TimeMixer'][1]:.3f}_ "
+        summary.append(f"| {key} | {local[0]} | {local[1]} "
+                       f"| _{ref['TimeMixer'][0]:.3f} / {ref['TimeMixer'][1]:.3f}_ "
                        f"| _{ref['TimeMixer++'][0]:.3f} / {ref['TimeMixer++'][1]:.3f}_ |")
 
     body = "\n".join(rows + summary) + "\n"
@@ -202,18 +237,16 @@ def update_md() -> None:
 
 def main() -> None:
     sys.stdout.reconfigure(line_buffering=True)
-    total = len(PAIRS) * len(PRED_LENS)
-    done = 0
-    for src, tgt in PAIRS:
-        for pred_len in PRED_LENS:
-            done += 1
-            mse, _, status = parse_log(log_path_for(src, tgt, pred_len))
-            if status == "OK":
-                print(f"[SKIP {done}/{total}] {src}->{tgt} pred={pred_len} (done, MSE={mse:.6f})", flush=True)
-                continue
-            print(f"\n>>> [{done}/{total}] {src} -> {tgt} pred_len={pred_len} <<<", flush=True)
-            run_pair(src, tgt, pred_len)
-            update_md()
+    jobs = [(m, s, t, p) for m in MODELS for s, t in PAIRS for p in PRED_LENS]
+    for i, (model, src, tgt, pred_len) in enumerate(jobs, 1):
+        mse, _, status = parse_log(log_path_for(src, tgt, pred_len, model))
+        if status == "OK":
+            print(f"[SKIP {i}/{len(jobs)}] {model} {src}->{tgt} pred={pred_len} "
+                  f"(done, MSE={mse:.6f})", flush=True)
+            continue
+        print(f"\n>>> [{i}/{len(jobs)}] {model} {src} -> {tgt} pred_len={pred_len} <<<", flush=True)
+        run_pair(model, src, tgt, pred_len)
+        update_md()
     update_md()
     print("\n[DONE] Zero-shot benchmark complete.", flush=True)
 
