@@ -1,0 +1,47 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=128, c_out=862, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=128, data='custom', data_path='traffic.csv', dec_in=862, decomp_method='moving_avg', des='Sparse', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=862, factor=3, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=0, learning_rate=0.03, loss='MSE', lradj='type3', mask_rate=0.125, model='SparseTSF', model_id='SPARSE_Traffic_96_96', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=5, pct_start=0.2, percent=100, period_len=24, pred_len=96, root_path='<workspace>\\dataset\\traffic', seasonal_patterns='Monthly', seq_len=96, stream_metrics=1, stsf_cls_head='flat', stsf_cls_segments=8, stsf_decomp='off', stsf_decomp_kernel=25, stsf_diag_mask=0, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_kernel=3, stsf_phase_mix='off', stsf_phase_rank=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='long_term_forecast', top_k=5, track_emissions=0, train_epochs=30, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+>>>>>>>start training : long_term_forecast_SPARSE_Traffic_96_96_none_SparseTSF_custom_sl96_pl96_dm128_nh8_el2_dl1_df32_fc3_ebtimeF_dtTrue_Sparse_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 12089
+val 1661
+test 3413
+Epoch: 1 cost time: 28.072250843048096
+Epoch: 1, Steps: 94 | Train Loss: 1.3538202 Vali Loss: 1.4006233 Test Loss: 1.6443619
+Validation loss decreased (inf --> 1.400623).  Saving model ...
+Updating learning rate to 0.03
+Epoch: 2 cost time: 24.471890449523926
+Epoch: 2, Steps: 94 | Train Loss: 0.6322031 Vali Loss: 0.5952278 Test Loss: 0.7135631
+Validation loss decreased (1.400623 --> 0.595228).  Saving model ...
+Updating learning rate to 0.03
+Epoch: 3 cost time: 24.346233129501343
+Epoch: 3, Steps: 94 | Train Loss: 0.4288152 Vali Loss: 0.5640177 Test Loss: 0.6757956
+Validation loss decreased (0.595228 --> 0.564018).  Saving model ...
+Updating learning rate to 0.03
+Epoch: 4 cost time: 24.345757484436035
+Epoch: 4, Steps: 94 | Train Loss: 0.4242087 Vali Loss: 0.5608082 Test Loss: 0.6722812
+Validation loss decreased (0.564018 --> 0.560808).  Saving model ...
+Updating learning rate to 0.027
+Epoch: 5 cost time: 24.3091938495636
+Epoch: 5, Steps: 94 | Train Loss: 0.4236158 Vali Loss: 0.5612884 Test Loss: 0.6728529
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.024300000000000002
+Epoch: 6 cost time: 24.209349870681763
+Epoch: 6, Steps: 94 | Train Loss: 0.4233155 Vali Loss: 0.5613216 Test Loss: 0.6725274
+EarlyStopping counter: 2 out of 5
+Updating learning rate to 0.02187
+Epoch: 7 cost time: 24.39222741127014
+Epoch: 7, Steps: 94 | Train Loss: 0.4230917 Vali Loss: 0.5613216 Test Loss: 0.6730973
+EarlyStopping counter: 3 out of 5
+Updating learning rate to 0.019683
+Epoch: 8 cost time: 24.214412212371826
+Epoch: 8, Steps: 94 | Train Loss: 0.4233800 Vali Loss: 0.5621767 Test Loss: 0.6720401
+EarlyStopping counter: 4 out of 5
+Updating learning rate to 0.0177147
+Epoch: 9 cost time: 24.24921488761902
+Epoch: 9, Steps: 94 | Train Loss: 0.4231297 Vali Loss: 0.5641430 Test Loss: 0.6754275
+EarlyStopping counter: 5 out of 5
+Early stopping
+>>>>>>>testing : long_term_forecast_SPARSE_Traffic_96_96_none_SparseTSF_custom_sl96_pl96_dm128_nh8_el2_dl1_df32_fc3_ebtimeF_dtTrue_Sparse_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test 3413
+mse:0.6722812621764946, mae:0.4007630416915495
+RMSE:0.819927595691531, MAPE:0.5755135279746658, MSPE:2412500.8277681503

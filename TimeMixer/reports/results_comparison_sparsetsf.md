@@ -4,7 +4,7 @@
 - **Upstream**: https://github.com/lss-1138/SparseTSF (Apache-2.0)
 - **Vendored model**: `implementations/sparsetsf/model.py`; adapter for our exp loop: `models/SparseTSF.py`
 - **Hardware**: RTX 3050 Ti Laptop GPU (4 GB), Windows
-- **Runner**: `run_sparsetsf_benchmarks.py` -> logs in `.run_logs_sparsetsf/`
+- **Runner**: `run_sparsetsf_benchmarks.py` -> logs in `logs/run_logs_sparsetsf/`
 
 SparseTSF is the architectural opposite of TimeMixer++: **Cross-Period Sparse Forecasting** with
 **under 1,000 trainable parameters**. It subtracts the sequence mean, aggregates with a 1-D conv,
@@ -39,15 +39,25 @@ upstream), matching how `results_comparison.md` used TimeMixer's own config:
 
 **Per-dataset `period_len`** (upstream's choices; it must divide both `seq_len` and `pred_len`):
 
-| Dataset | Sampling | period_len | enc_in |
-|---|---|---:|---:|
-| ETTh1 / ETTh2 | hourly | 24 | 7 |
-| ETTm1 / ETTm2 | 15-min | 4 | 7 |
-| Weather | 10-min | 4 | 21 |
+| Dataset | Sampling | period_len | enc_in | batch / lr (if not 256 / 0.02) |
+|---|---|---:|---:|---|
+| ETTh1 / ETTh2 | hourly | 24 | 7 | |
+| ETTm1 / ETTm2 | 15-min | 4 | 7 | |
+| Weather | 10-min | 4 | 21 | |
+| Solar-Energy | 10-min | 4 | 137 | |
+| Electricity | hourly | 24 | 321 | 128 / 0.02 |
+| Traffic | hourly | 24 | 862 | 128 / 0.03 |
 
-**Two lookbacks are swept** so the comparison is honest in both directions:
+**Two lookbacks are swept** for the five light datasets so the comparison is honest in both directions:
 - `seq_len=96` — matches our TimeMixer / TimeMixer++ protocol, so the numbers are directly comparable
 - `seq_len=720` — SparseTSF's published setting; it needs several periods of context to work well
+
+Solar-Energy, Electricity and Traffic complete the paper's eight long-term datasets and are run at
+`seq_len=96` only, the comparable setting. Their batch size and learning rate come from the same
+upstream scripts. They use `--stream_metrics 1`, which computes the test metrics batch by batch
+because the full prediction tensors exceed 16 GB of RAM at long horizons (agrees with the default
+path to 6–7 significant digits). At `seq_len=96` with `period_len=24`, SparseTSF sees only four
+periods of context, and it trails TimeMixer on all three datasets.
 
 ---
 
@@ -78,6 +88,18 @@ upstream), matching how `results_comparison.md` used TimeMixer's own config:
 | Weather | 4 | 192 | 0.242842 | 0.273975 | 34.6 | OK |
 | Weather | 4 | 336 | 0.292309 | 0.308392 | 50.2 | OK |
 | Weather | 4 | 720 | 0.362776 | 0.354812 | 142.4 | OK |
+| Solar-Energy | 4 | 96 | 0.339372 | 0.353250 | 250.9 | OK |
+| Solar-Energy | 4 | 192 | 0.376593 | 0.372093 | 356.8 | OK |
+| Solar-Energy | 4 | 336 | 0.414651 | 0.384188 | 510.8 | OK |
+| Solar-Energy | 4 | 720 | 0.412734 | 0.375091 | 601.6 | OK |
+| Electricity | 24 | 96 | 0.209243 | 0.280343 | 156.7 | OK |
+| Electricity | 24 | 192 | 0.201800 | 0.279084 | 432.9 | OK |
+| Electricity | 24 | 336 | 0.217291 | 0.294762 | 232.5 | OK |
+| Electricity | 24 | 720 | 0.258959 | 0.328399 | 589.9 | OK |
+| Traffic | 24 | 96 | 0.672281 | 0.400763 | 222.6 | OK |
+| Traffic | 24 | 192 | 0.608278 | 0.363833 | 424.2 | OK |
+| Traffic | 24 | 336 | 0.609236 | 0.364759 | 337.7 | OK |
+| Traffic | 24 | 720 | 0.648657 | 0.386457 | 516.5 | OK |
 
 #### seq_len = 720 (SparseTSF's published setting)
 
@@ -145,6 +167,18 @@ ablation).
 | Weather | 192 | 0.209339 | 0.244207 | 0.242842 | TimeMixer |
 | Weather | 336 | 0.265349 | 0.294700 | 0.292309 | TimeMixer |
 | Weather | 720 | 0.342314 | 0.363639 | 0.362776 | TimeMixer |
+| Solar-Energy | 96 | 0.208248 | 0.268628 | 0.339372 | TimeMixer |
+| Solar-Energy | 192 | 0.238817 | - | 0.376593 | TimeMixer |
+| Solar-Energy | 336 | 0.232882 | - | 0.414651 | TimeMixer |
+| Solar-Energy | 720 | 0.247561 | - | 0.412734 | TimeMixer |
+| Electricity | 96 | 0.154200 | - | 0.209243 | TimeMixer |
+| Electricity | 192 | 0.167991 | - | 0.201800 | TimeMixer |
+| Electricity | 336 | 0.185280 | - | 0.217291 | TimeMixer |
+| Electricity | 720 | 0.224360 | - | 0.258959 | TimeMixer |
+| Traffic | 96 | 0.481342 | - | 0.672281 | TimeMixer |
+| Traffic | 192 | 0.485919 | - | 0.608278 | TimeMixer |
+| Traffic | 336 | - | - | 0.609236 | - |
+| Traffic | 720 | - | - | 0.648657 | - |
 <!-- AUTO_SPARSETSF_3WAY_END -->
 
 ---
