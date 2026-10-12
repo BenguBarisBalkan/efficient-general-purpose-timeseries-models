@@ -1,15 +1,18 @@
 """
-Accuracy benchmark for SparseTSF (ICML 2024) on the light datasets.
+Accuracy benchmark for SparseTSF (ICML 2024) on the eight long-term datasets.
 
 Uses SparseTSF's OWN published hyperparameters (lr=0.02, bs=256, 30 epochs, patience=5,
 lradj=type3, model_type=linear) — the right choice for an accuracy table, matching how
-results_comparison.md used TimeMixer's own published config.
+results_comparison.md used TimeMixer's own published config. Solar, Electricity and Traffic
+take their batch size and learning rate from upstream scripts/SparseTSF/linear/*.sh.
 
-Two lookbacks are swept:
+Two lookbacks are swept for the five light datasets:
   seq_len=96  -> directly comparable to our TimeMixer / TimeMixer++ tables
   seq_len=720 -> SparseTSF's published setting (it needs several periods of context)
+Solar, Electricity and Traffic run at seq_len=96 only (the comparable setting), with
+--stream_metrics 1 because their full test tensors exceed 16 GB of RAM at long horizons.
 
-Matrix: 5 datasets x 4 pred_lens x 2 lookbacks = 40 runs. Idempotent/resumable.
+Matrix: 5 x 4 x 2 + 3 x 4 = 52 runs. Idempotent/resumable.
 """
 
 import re
@@ -53,16 +56,27 @@ class DatasetConfig:
     enc_in: int
     period_len: int   # must divide BOTH seq_len and pred_len
     factor: int
+    learning_rate: float = LEARNING_RATE
+    batch_size: int = BATCH_SIZE
+    seq_lens: Tuple[int, ...] = tuple(SEQ_LENS)
+    stream_metrics: bool = False
 
 
 # period_len values are upstream's per-dataset choices (scripts/SparseTSF/linear/*.sh):
-# hourly ETTh -> 24; 15-min ETTm and 10-min Weather -> 4 (their "2-6 for large periods" rule)
+# hourly ETTh -> 24; 15-min ETTm and 10-min Weather -> 4 (their "2-6 for large periods" rule).
+# Solar/Electricity/Traffic: period_len, batch size and lr also from those scripts.
 DATASETS: List[DatasetConfig] = [
     DatasetConfig("ETTh1", "ETTh1", "ETTh1.csv", DATA_ROOT / "ETT-small", 7, 24, 1),
     DatasetConfig("ETTh2", "ETTh2", "ETTh2.csv", DATA_ROOT / "ETT-small", 7, 24, 1),
     DatasetConfig("ETTm1", "ETTm1", "ETTm1.csv", DATA_ROOT / "ETT-small", 7, 4, 1),
     DatasetConfig("ETTm2", "ETTm2", "ETTm2.csv", DATA_ROOT / "ETT-small", 7, 4, 1),
     DatasetConfig("Weather", "custom", "weather.csv", DATA_ROOT / "weather", 21, 4, 3),
+    DatasetConfig("Solar-Energy", "Solar", "solar_AL.txt", DATA_ROOT / "solar", 137, 4, 3,
+                  learning_rate=0.02, batch_size=256, seq_lens=(96,), stream_metrics=True),
+    DatasetConfig("Electricity", "custom", "electricity.csv", DATA_ROOT / "electricity", 321, 24, 3,
+                  learning_rate=0.02, batch_size=128, seq_lens=(96,), stream_metrics=True),
+    DatasetConfig("Traffic", "custom", "traffic.csv", DATA_ROOT / "traffic", 862, 24, 3,
+                  learning_rate=0.03, batch_size=128, seq_lens=(96,), stream_metrics=True),
 ]
 
 
@@ -139,15 +153,15 @@ def run_one(ds: DatasetConfig, seq_len: int, pred_len: int) -> None:
         "--model_type", MODEL_TYPE,
         "--d_model", str(D_MODEL),
         "--factor", str(ds.factor),
-        "--learning_rate", str(LEARNING_RATE),
+        "--learning_rate", str(ds.learning_rate),
         "--lradj", LRADJ,
         "--train_epochs", str(TRAIN_EPOCHS),
         "--patience", str(PATIENCE),
-        "--batch_size", str(BATCH_SIZE),
+        "--batch_size", str(ds.batch_size),
         "--num_workers", "0",
         "--des", DES,
         "--itr", "1",
-    ]
+    ] + (["--stream_metrics", "1"] if ds.stream_metrics else [])
 
     print(f"\n[RUN] SparseTSF {ds.name} seq_len={seq_len} pred_len={pred_len} "
           f"(period_len={ds.period_len})", flush=True)
@@ -161,14 +175,14 @@ def validate_configs() -> None:
     """Fail fast if any config violates SparseTSF's divisibility requirement."""
     bad = []
     for ds in DATASETS:
-        for seq_len in SEQ_LENS:
+        for seq_len in ds.seq_lens:
             for pred_len in PRED_LENS:
                 if seq_len % ds.period_len or pred_len % ds.period_len:
                     bad.append(f"{ds.name} sl={seq_len} pl={pred_len} per={ds.period_len}")
     if bad:
         raise SystemExit("Invalid (period_len must divide seq_len and pred_len):\n  "
                          + "\n  ".join(bad))
-    print(f"[OK] all {len(DATASETS) * len(SEQ_LENS) * len(PRED_LENS)} configs satisfy "
+    print(f"[OK] all {sum(len(d.seq_lens) for d in DATASETS) * len(PRED_LENS)} configs satisfy "
           f"the period_len divisibility constraint", flush=True)
 
 
@@ -200,7 +214,7 @@ def update_md() -> None:
         blocks.append(f"#### seq_len = {seq_len} ({label})\n")
         blocks.append("| Dataset | period_len | pred_len | MSE | MAE | Runtime (s) | Status |")
         blocks.append("|---|---:|---:|---:|---:|---:|---|")
-        for ds in DATASETS:
+        for ds in (d for d in DATASETS if seq_len in d.seq_lens):
             for pred_len in PRED_LENS:
                 mse, mae, rt, status = parse_log(log_path_for(ds, seq_len, pred_len))
                 blocks.append(
@@ -222,7 +236,9 @@ def update_md() -> None:
             a, b = v1.get((ds.name, pred_len)), pp.get((ds.name, pred_len))
             cands = {"TimeMixer": a, "TimeMixer++": b, "SparseTSF": s_mse}
             avail = {k: v for k, v in cands.items() if v is not None}
-            best = min(avail, key=avail.get) if avail else "-"
+            # Only name a winner when the two locally converged models both have a result;
+            # otherwise a missing cell would make whichever model ran look best by default.
+            best = min(avail, key=avail.get) if a is not None and s_mse is not None else "-"
             cmp_rows.append(
                 f"| {ds.name} | {pred_len} | {_fmt(a, '.6f')} | {_fmt(b, '.6f')} | "
                 f"{_fmt(s_mse, '.6f')} | {best} |"
@@ -240,10 +256,10 @@ def main() -> None:
     sys.stdout.reconfigure(line_buffering=True)
     validate_configs()
 
-    total = len(DATASETS) * len(SEQ_LENS) * len(PRED_LENS)
+    total = sum(len(d.seq_lens) for d in DATASETS) * len(PRED_LENS)
     done = 0
     for seq_len in SEQ_LENS:
-        for ds in DATASETS:
+        for ds in (d for d in DATASETS if seq_len in d.seq_lens):
             for pred_len in PRED_LENS:
                 done += 1
                 mse, _, _, status = parse_log(log_path_for(ds, seq_len, pred_len))
