@@ -151,6 +151,12 @@ parser.add_argument('--stsf_cls_segments', type=int, default=8,
 parser.add_argument('--percent', type=int, default=100,
                     help='percent of training data to use (few-shot); 100 = all')
 
+# forecasting test(): accumulate the metrics batch by batch instead of materialising every
+# prediction (opt-in; off by default so existing runs are unaffected). Needed where the full
+# prediction tensor exceeds RAM, e.g. Electricity at pred_len=720 or Traffic at 336/720.
+parser.add_argument('--stream_metrics', type=int, default=0,
+                    help='1 to compute test metrics batch by batch (low memory)')
+
 # energy / carbon tracking (opt-in; off by default so normal runs are unaffected)
 parser.add_argument('--track_emissions', type=int, default=0,
                     help='1 to measure energy/CO2 of train+test with codecarbon')

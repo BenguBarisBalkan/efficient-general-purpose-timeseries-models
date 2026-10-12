@@ -243,6 +243,8 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         checkpoints_path = './checkpoints/' + setting + '/'
         preds = []
         trues = []
+        stream = bool(getattr(self.args, 'stream_metrics', 0))
+        sums = {'n': 0, 'ae': 0.0, 'se': 0.0, 'ape': 0.0, 'spe': 0.0}
         folder_path = './test_results/' + setting + '/'
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
@@ -288,8 +290,24 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 pred = outputs
                 true = batch_y
 
-                preds.append(pred)
-                trues.append(true)
+                if stream:
+                    # --stream_metrics: fold this batch into running float64 sums and keep
+                    # nothing, so peak memory is one batch. Same formulas as utils.metrics.
+                    p, t = pred, true
+                    if self.args.data == 'PEMS':
+                        B, T, C = p.shape
+                        p = test_data.inverse_transform(p.reshape(-1, C)).reshape(B, T, C)
+                        t = test_data.inverse_transform(t.reshape(-1, C)).reshape(B, T, C)
+                    err = p - t
+                    ape = np.abs(err / t)
+                    sums['n'] += err.size
+                    sums['ae'] += np.abs(err).sum(dtype=np.float64)
+                    sums['se'] += np.square(err).sum(dtype=np.float64)
+                    sums['ape'] += np.where(ape > 5, 0, ape).sum(dtype=np.float64)
+                    sums['spe'] += np.square(err / t).sum(dtype=np.float64)
+                else:
+                    preds.append(pred)
+                    trues.append(true)
                 if i % 20 == 0:
                     input = batch_x.detach().cpu().numpy()
                     if test_data.scale and self.args.inverse:
@@ -298,6 +316,14 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                     gt = np.concatenate((input[0, :, -1], true[0, :, -1]), axis=0)
                     pd = np.concatenate((input[0, :, -1], pred[0, :, -1]), axis=0)
                     visual(gt, pd, os.path.join(folder_path, str(i) + '.pdf'))
+
+        if stream:
+            n = sums['n']
+            mae, mse = sums['ae'] / n, sums['se'] / n
+            rmse, mape, mspe = np.sqrt(mse), sums['ape'] / n, sums['spe'] / n
+            print('mse:{}, mae:{}'.format(mse, mae))
+            print('RMSE:{}, MAPE:{}, MSPE:{}'.format(rmse, mape, mspe))
+            return
 
         # np.concatenate needs the batch list AND the output alive at once (2x peak memory), which
         # MemoryErrors on wide datasets with long horizons (e.g. Electricity: 4864 x 720 x 321
