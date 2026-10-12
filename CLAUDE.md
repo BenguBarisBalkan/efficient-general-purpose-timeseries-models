@@ -289,6 +289,12 @@ If you relocate any of these, the `REPO_ROOT`-relative path constants at the top
   passes it *conditionally*, so loaders that don't accept it (M4/PEMS/Solar) are untouched on the
   normal path. It truncates the TRAIN split only; the scaler still fits the full train range (TSLib
   convention) and val/test are unchanged.
+- **`--stream_metrics 1` is opt-in and exists only for RAM.** `exp_long_term_forecasting.test()`
+  normally holds every prediction and target in memory, which exceeds 16 GB for Electricity at
+  pred_len 720 and Traffic at 336/720. The flag accumulates the same metrics batch by batch in
+  float64; checked against the default path on ETTh1 and PEMS08, it agrees to 6–7 significant
+  digits (the default sums in float32). Runners pass it only for the configs that need it, so every
+  existing number was produced without it.
 - **`exp_long_term_forecasting.test()` prints `RMSE:`/`MAPE:` in UPPERCASE on purpose.** Every runner
   regexes lowercase `mse:`/`mae:` and takes the LAST match — a lowercase `rmse:` contains `mse:` as a
   substring and would silently corrupt every existing results table. Keep new metric labels uppercase.

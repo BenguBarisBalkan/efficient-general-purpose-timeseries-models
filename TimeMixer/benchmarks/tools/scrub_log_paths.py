@@ -18,6 +18,10 @@ which would itself leak what it is meant to remove.
 
     venv/Scripts/python.exe benchmarks/tools/scrub_log_paths.py           # dry run
     venv/Scripts/python.exe benchmarks/tools/scrub_log_paths.py --apply   # write
+    venv/Scripts/python.exe benchmarks/tools/scrub_log_paths.py --apply logs/run_logs_pems x.log
+
+Paths (files or directories) restrict the scrub to them. Use that while a run is in progress:
+rewriting a log that a running process still has open would corrupt it.
 """
 
 import re
@@ -55,11 +59,22 @@ def metrics(data):
     return [p.findall(data) for p in METRIC_PATTERNS]
 
 
+def targets(args):
+    if not args:
+        return sorted(LOGS.rglob("*.log"))
+    out = []
+    for a in args:
+        p = Path(a).resolve()
+        out += sorted(p.rglob("*.log")) if p.is_dir() else [p]
+    return out
+
+
 def main():
     apply = "--apply" in sys.argv
+    paths = [a for a in sys.argv[1:] if a != "--apply"]
     variants = spellings()
     files = hits = 0
-    for f in sorted(LOGS.rglob("*.log")):
+    for f in targets(paths):
         raw = f.read_bytes()
         out = raw
         n = 0
