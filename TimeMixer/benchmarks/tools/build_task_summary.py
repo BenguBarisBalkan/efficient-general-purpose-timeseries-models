@@ -92,9 +92,14 @@ def main():
                 + zeroshot_avg(zs, 0) + " | " + zeroshot_avg(zs, 1) + " | _TimeMixer 0.467 (avg)_ |")
 
     an = read("results_comparison_anomaly.md")
-    rows.append("| Anomaly detection | PSM, SMD (of 5) | F1 (higher) | "
+    # TimeMixer++'s published F1, averaged over the datasets SparseTSF actually ran (its 5-dataset
+    # average includes SWaT, which is unobtainable here).
+    ran = re.findall(r"^\| (\w+) \| SparseTSF \| [^|]+ \| [^|]+ \| [^|]+ \| _(" + NUM + r")_ \| OK \|$",
+                     an, flags=re.M)
+    pp = "%.2f" % (sum(float(v) for _, v in ran) / len(ran)) if ran else "-"
+    rows.append("| Anomaly detection | " + ", ".join(d for d, _ in ran) + " (of 5) | F1 (higher) | "
                 + bold_avg("SparseTSF (local)", an) + " | " + bold_avg("TimeMixer (local", an)
-                + " | _TimeMixer++ 87.47 (5 ds)_ |")
+                + " | _TimeMixer++ " + pp + " (same %d ds)_ |" % len(ran))
 
     cl = read("results_comparison_classification.md")
     rows.append("| Classification | 10 UEA | accuracy (higher) | "

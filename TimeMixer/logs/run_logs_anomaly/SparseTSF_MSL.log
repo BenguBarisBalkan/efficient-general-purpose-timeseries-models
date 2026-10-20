@@ -1,0 +1,62 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=1.0, batch_size=128, c_out=55, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=16, data='MSL', data_path='ETTh1.csv', dec_in=55, decomp_method='moving_avg', des='Anom', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=55, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=48, learning_rate=0.0001, loss='MSE', lradj='TST', mask_rate=0.125, model='SparseTSF', model_id='ANOM_MSL', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=15, pct_start=0.2, percent=100, period_len=25, pred_len=0, root_path='<workspace>\\dataset\\MSL', seasonal_patterns='Monthly', seq_len=100, stream_metrics=0, stsf_cls_head='flat', stsf_cls_segments=8, stsf_decomp='off', stsf_decomp_kernel=25, stsf_diag_mask=0, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_kernel=3, stsf_phase_mix='off', stsf_phase_rank=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='anomaly_detection', top_k=5, track_emissions=0, train_epochs=3, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+>>>>>>>start training : anomaly_detection_ANOM_MSL_none_SparseTSF_MSL_sl100_pl0_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_Anom_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+test: (73729, 55)
+train: (58317, 55)
+train 58218
+test: (73729, 55)
+train: (58317, 55)
+val 73630
+test: (73729, 55)
+train: (58317, 55)
+test 73630
+	iters: 100, epoch: 1 | loss: 0.8873224
+	speed: 0.0979s/iter; left time: 123.9738s
+	iters: 200, epoch: 1 | loss: 0.8264017
+	speed: 0.0102s/iter; left time: 11.8905s
+	iters: 300, epoch: 1 | loss: 0.4886480
+	speed: 0.0104s/iter; left time: 11.0368s
+	iters: 400, epoch: 1 | loss: 0.7337503
+	speed: 0.0103s/iter; left time: 9.9183s
+Epoch: 1 cost time: 13.457887411117554
+Epoch: 1, Steps: 455 | Train Loss: 0.8118553 Vali Loss: 1.8629104 Test Loss: 1.8607020
+Validation loss decreased (inf --> 1.860702).  Saving model ...
+Updating learning rate to 9.32291952684714e-05
+	iters: 100, epoch: 2 | loss: 0.5780104
+	speed: 0.0652s/iter; left time: 52.8924s
+	iters: 200, epoch: 2 | loss: 0.5960177
+	speed: 0.0102s/iter; left time: 7.2297s
+	iters: 300, epoch: 2 | loss: 0.7818652
+	speed: 0.0098s/iter; left time: 5.9798s
+	iters: 400, epoch: 2 | loss: 0.5558130
+	speed: 0.0101s/iter; left time: 5.1827s
+Epoch: 2 cost time: 4.574921369552612
+Epoch: 2, Steps: 455 | Train Loss: 0.6954104 Vali Loss: 1.6692637 Test Loss: 1.6682113
+Validation loss decreased (1.860702 --> 1.668211).  Saving model ...
+Updating learning rate to 3.692040941962549e-05
+	iters: 100, epoch: 3 | loss: 0.6242116
+	speed: 0.0613s/iter; left time: 21.8065s
+	iters: 200, epoch: 3 | loss: 1.0266858
+	speed: 0.0102s/iter; left time: 2.6043s
+	iters: 300, epoch: 3 | loss: 0.5965326
+	speed: 0.0111s/iter; left time: 1.7277s
+	iters: 400, epoch: 3 | loss: 0.6873047
+	speed: 0.0134s/iter; left time: 0.7497s
+Epoch: 3 cost time: 5.188331842422485
+Epoch: 3, Steps: 455 | Train Loss: 0.6511998 Vali Loss: 1.6339026 Test Loss: 1.6342619
+Validation loss decreased (1.668211 --> 1.634262).  Saving model ...
+Updating learning rate to 6.069152216636792e-10
+>>>>>>>testing : anomaly_detection_ANOM_MSL_none_SparseTSF_MSL_sl100_pl0_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_Anom_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test: (73729, 55)
+train: (58317, 55)
+test 73630
+test: (73729, 55)
+train: (58317, 55)
+train 58218
+Threshold : 10.80424690246582
+pred:    (7363000,)
+gt:      (7363000,)
+pred:  (7363000,)
+gt:    (7363000,)
+Accuracy : 0.9580, Precision : 0.8780, Recall : 0.6984, F-score : 0.7780 

@@ -11,7 +11,8 @@ covers M4, PEMS, the anomaly sets and the UEA classification archives.
 **Fetching.** ETT / Weather / Electricity / Traffic / Solar / M4 / PEMS ship with the repo.
 PSM, SMD and the 10 UEA archives are downloaded by
 [`benchmarks/tools/fetch_task_datasets.py`](../benchmarks/tools/fetch_task_datasets.py).
-MSL, SMAP and SWaT could **not** be obtained — see [Unavailable](#unavailable-datasets).
+SWaT could **not** be obtained (gated) — see [Unavailable](#unavailable-datasets). MSL and SMAP
+are rebuilt from a mirror of NASA's original release (section 6).
 
 ---
 
@@ -117,14 +118,14 @@ No new data — both reuse the forecasting sets:
 
 ## 6. Anomaly detection
 
-Sliding window 100; metric = point-adjusted F1. Two of the paper's five datasets are usable here.
+Sliding window 100; metric = point-adjusted F1. Four of the paper's five datasets are usable here.
 
 | Dataset | Train rows | Test rows | Channels | Anomaly rate | Status |
 |---|---:|---:|---:|---:|---|
 | **PSM** | 132,481 | 87,841 | 25 | **27.8%** | ✅ fetched |
 | **SMD** | 708,405 | 708,420 | 38 | **4.2%** | ✅ assembled |
-| MSL | — | — | 55 | — | ❌ unavailable |
-| SMAP | — | — | 25 | — | ❌ unavailable |
+| **MSL** | 58,317 | 73,729 | 55 | **10.5%** | ✅ rebuilt |
+| **SMAP** | 135,183 | 427,617 | 25 | **12.8%** | ✅ rebuilt |
 | SWaT | — | — | 51 | — | ❌ gated |
 
 - **PSM** (Pooled Server Metrics, eBay): server telemetry, from the RANSynCoders repository. Note the
@@ -133,8 +134,17 @@ Sliding window 100; metric = point-adjusted F1. Two of the paper's five datasets
   per-machine files in sorted order. The resulting 708,405 training rows split exactly into the
   published 566,724 train + 141,681 validation, which confirms the concatenation matches the
   standard preprocessing.
+- **MSL** (Mars Science Laboratory rover) and **SMAP** (Soil Moisture Active Passive satellite),
+  NASA telemetry from Hundman et al. (2018). NASA's original download now returns HTTP 403, so they
+  are **rebuilt locally** from a Kaggle mirror of that release
+  (`patrickfleith/nasa-anomaly-detection-dataset-smap-msl`, downloaded by hand) with the
+  OmniAnomaly preprocessing: channels in sorted order, SMAP's P-2 left out, arrays joined along
+  time. The rebuilt train and test sizes and channel counts equal the published ones exactly
+  (`fetch_task_datasets.py` refuses to write them otherwise). The anomaly rates come out slightly
+  below the commonly cited 10.72% (MSL) and 13.13% (SMAP); the likely cause is a revision of NASA's
+  label file, so F1 on these two is close to, but not strictly identical with, the papers' data.
 - The loader derives validation as the last 20% of the training array for SMD, and reuses the test
-  split as validation for PSM.
+  split as validation for PSM, MSL and SMAP.
 
 ---
 
@@ -172,15 +182,14 @@ The 10 standard multivariate sets used by TSLib / TimesNet / TimeMixer++. Metric
 
 | Dataset | Task | Why not available |
 |---|---|---|
-| **MSL**, **SMAP** | Anomaly | Need the TimesNet/TSLib *preprocessed* `.npy` bundle. The original telemanom S3 object (`s3-us-west-2.amazonaws.com/telemanom/data.zip`) now returns **HTTP 403**, and the bundle is distributed via Google Drive / Tsinghua Cloud, which is not reliably scriptable. |
-| **SWaT** | Anomaly | **Gated** — requires an access request through the iTrust (SUTD) form. |
+| **SWaT** | Anomaly | **Gated** — requires an access request through the iTrust (SUTD) form. A third-party Kaggle re-upload exists but is not used: iTrust releases SWaT only on request, and its file sizes suggest it lacks the standard 4-day attack-period test split. |
 
-Both are drop-in once obtained; the exact filenames each loader expects are documented in the header
+It is drop-in once obtained; the exact filenames the loader expects are documented in the header
 of `benchmarks/tools/fetch_task_datasets.py`, and the anomaly runner reports missing sets as
 `NOT AVAILABLE` rather than silently skipping them.
 
-**Consequence for interpretation:** the anomaly average in this study is over **2 of 5** datasets and
-is therefore *not* comparable to the paper's 5-dataset average.
+**Consequence for interpretation:** the anomaly average in this study is over **4 of 5** datasets and
+is therefore *not* directly comparable to the paper's 5-dataset average.
 
 ---
 

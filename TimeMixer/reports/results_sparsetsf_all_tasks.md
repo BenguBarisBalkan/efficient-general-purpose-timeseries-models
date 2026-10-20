@@ -29,7 +29,7 @@ and **TimeMixer** (ICLR'24), against the 8 task categories the TimeMixer++ paper
 | 4 | Imputation | [results_comparison_imputation.md](results_comparison_imputation.md) | masked MSE/MAE | ✅ 6 datasets × 4 mask rates |
 | 5 | Few-shot (10% train) | [results_comparison_fewshot.md](results_comparison_fewshot.md) | MSE/MAE | ✅ 6 datasets × 4 horizons |
 | 6 | Zero-shot (transfer) | [results_comparison_zeroshot.md](results_comparison_zeroshot.md) | MSE/MAE | ✅ 6 pairs × 4 horizons |
-| 7 | Anomaly detection | [results_comparison_anomaly.md](results_comparison_anomaly.md) | point-adjusted F1 | ⚠️ PSM + SMD (MSL/SMAP/SWaT unobtainable) |
+| 7 | Anomaly detection | [results_comparison_anomaly.md](results_comparison_anomaly.md) | point-adjusted F1 | ⚠️ 4 of 5: PSM, SMD, MSL, SMAP (SWaT gated) |
 | 8 | Classification | [results_comparison_classification.md](results_comparison_classification.md) | accuracy | ✅ 10 UEA datasets |
 
 Every dataset in the study — what it is, measured sizes, and why it was or wasn't usable — is
@@ -50,9 +50,10 @@ Energy/carbon for the 3 models lives separately in
 2. **Zero-shot `period_len`.** The source dataset's `period_len` is reused for the target, because
    SparseTSF's linear layer is shaped `(seq_len/period_len → pred_len/period_len)` and the
    checkpoint must load. All horizons used are divisible by both 24 and 4, so every pair is valid.
-3. **Anomaly coverage.** MSL/SMAP need the TimesNet preprocessed `.npy` bundle (the original
-   telemanom S3 object now returns HTTP 403) and SWaT is gated behind the iTrust request form, so
-   the average F1 here is over a **subset** and is not comparable to the paper's 5-dataset average.
+3. **Anomaly coverage.** SWaT is gated behind the iTrust request form, so the average F1 here is
+   over **4 of 5** datasets and is not directly comparable to the paper's 5-dataset average. MSL and
+   SMAP are rebuilt from a mirror of NASA's release at exactly the published sizes, with anomaly
+   rates slightly below the cited ones (10.53% vs 10.72%, 12.79% vs 13.13%).
 4. **Classification head.** SparseTSF has no published classification head; the one used here
    (conv aggregation → flatten → linear) was written for this study. Weak results measure the
    architecture's fit to the task, not a tuned upper bound.
@@ -82,9 +83,12 @@ TimeMixer 62.37%, both far below TimeMixer++'s published 75.9%. SparseTSF is str
 signature is enough (SpokenArabicDigits 94.0, PEMS-SF 84.4) and collapses where it is not
 (Handwriting 8.6% over 26 classes, as does TimeMixer at 6.4%).
 
-**4. Anomaly detection is competitive but behind.** F1 87.64 against TimeMixer's 90.45 over PSM and
-SMD, with 41 parameters against ~62,600. The gap is mostly SMD recall (73.9 vs 81.6). (2 of 5
-datasets, so not comparable to the paper's 5-dataset averages.)
+**4. Anomaly detection is mixed.** Over the four obtainable datasets SparseTSF averages F1 79.96
+against TimeMixer's 75.49, with 41 parameters against ~62,600–62,800. The average hides that
+TimeMixer wins three of the four (PSM, SMD, SMAP), mostly on recall. SparseTSF's lead comes
+entirely from MSL, where the untuned TimeMixer catches only a third of the anomalies (F1 48.0
+against 77.8). Against TimeMixer++'s published figures on the same four datasets (85.75), SparseTSF
+is 5.8 points behind. (SWaT is gated, so this covers 4 of 5 datasets.)
 
 **5. Imputation is a clean efficiency trade:** TimeMixer wins all 24 cells and SparseTSF's masked MSE
 is ~35% higher over the six datasets, at about **6.5× less training time**.
@@ -97,6 +101,6 @@ is ~35% higher over the six datasets, at about **6.5× less training time**.
 | Imputation | ETT x4, Weather, ECL | masked MSE (lower) | 0.0838 (6 ds) | 0.0622 (6 ds) | — |
 | Few-shot (10% train) | ETT (Avg) | MSE (lower) | 0.441 | 0.513 | _TimeMixer 0.453_ |
 | Zero-shot (transfer) | 6 ETT pairs | MSE (lower) | 0.393 | 0.448 | _TimeMixer 0.467 (avg)_ |
-| Anomaly detection | PSM, SMD (of 5) | F1 (higher) | 87.64 | 90.45 | _TimeMixer++ 87.47 (5 ds)_ |
+| Anomaly detection | PSM, SMD, MSL, SMAP (of 5) | F1 (higher) | 79.96 | 75.49 | _TimeMixer++ 85.75 (same 4 ds)_ |
 | Classification | 10 UEA | accuracy (higher) | 60.90 | 62.37 | _TimeMixer++ 75.9_ |
 <!-- AUTO_SUMMARY_END -->
