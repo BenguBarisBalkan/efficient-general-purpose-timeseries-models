@@ -9,6 +9,39 @@ Numbers are **local** (this machine, this protocol) unless marked **published**.
 
 ---
 
+## 2026-10-21 — Anomaly detection extended to MSL and SMAP (4 of 5 datasets)
+
+**Planned.** Anomaly detection covered only 2 of the paper's 5 datasets. MSL and SMAP had been
+unobtainable because NASA's original download now returns HTTP 403. A Kaggle mirror of that release
+makes them available again.
+
+**Done.** Rebuilt MSL and SMAP from the mirror with the standard (OmniAnomaly) preprocessing. The
+rebuilt train and test sizes and channel counts equal the published ones exactly (MSL 58,317 /
+73,729 steps × 55; SMAP 135,183 / 427,617 × 25). Ran SparseTSF and TimeMixer on both (4 runs, same
+protocol as PSM and SMD). SWaT stays out: it is gated by iTrust, and a Kaggle re-upload was rejected
+because it has no redistribution right and appears to lack the standard attack-period test split.
+
+**Found.**
+- **Mixed result.** TimeMixer has the higher F1 on three of four datasets (PSM, SMD, SMAP 73.05
+  against 66.76), but SparseTSF has the higher average (79.96 against 75.49). That comes entirely from
+  MSL, where the untuned TimeMixer catches only a third of the anomalies (F1 48.02 against 77.80).
+- **Against the published TimeMixer++ on the same four datasets** (85.75), SparseTSF is 5.8 points
+  behind.
+- **Recall is the weak side for both models on the NASA data:** SparseTSF recall 69.8 (MSL) and
+  53.2 (SMAP) at precision ~88–89.
+- **Caveat:** the rebuilt anomaly rates (10.53% MSL, 12.79% SMAP) are slightly below the commonly
+  cited 10.72% and 13.13%, probably a revision of NASA's label file, so F1 on these two is close to
+  but not strictly identical with the papers' data.
+
+**Reports changed.** `results_comparison_anomaly.md`, `datasets_reference.md`, the cross-task
+summary, the SparseTSFPlus report's 8-task table, `results_param_counts.md`, and the thesis
+document.
+
+**Next.** Request SWaT from iTrust to complete the five. Otherwise unchanged: gated refinement, then
+one frozen SparseTSFPlus configuration across all eight tasks.
+
+---
+
 ## 2026-10-12 — Same-machine baselines on every task (second half)
 
 **Planned.** Finish the queue from the first half: TimeMixer's missing imputation cells

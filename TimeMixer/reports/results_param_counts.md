@@ -54,7 +54,9 @@ venv/Scripts/python.exe benchmarks/tools/count_params_all.py
 
 | Dataset | SparseTSF | TimeMixer |
 |---|---:|---:|
+| MSL | 41 | 62,813 |
 | PSM | 41 | 62,573 |
+| SMAP | 41 | 62,573 |
 | SMD | 41 | 62,677 |
 
 ## Classification

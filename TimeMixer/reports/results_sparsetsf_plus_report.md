@@ -27,7 +27,8 @@ The TimeMixer++ paper evaluates eight task categories. SparseTSF was extended to
 the previous phase of this study, giving the baseline picture below. The choice of target tasks was
 made from the published TimeMixer figures; TimeMixer was later run locally on every task
 (2026-10-12), and those same-machine figures are what the table now shows. They confirm the published
-picture, with one exception: on anomaly detection the local TimeMixer leads.
+picture. Anomaly detection, extended to four datasets on 2026-10-21, is mixed: TimeMixer leads on
+three of the four, SparseTSF on average.
 
 | # | Task | Metric | SparseTSF | TimeMixer (local) | TimeMixer++ (published) | Gap (SparseTSF vs best comparable) |
 |---|---|---|---:|---:|---:|---:|
@@ -37,7 +38,7 @@ picture, with one exception: on anomaly detection the local TimeMixer leads.
 | 4 | Imputation (6 datasets × 4 mask rates) | masked MSE ↓ | 0.0838 | **0.0622** | — | **+34.7%** |
 | 5 | Few-shot, 10% train (ETT avg) | MSE ↓ | 0.441 | 0.513 § | **0.396** | **+11.4%** |
 | 6 | Zero-shot transfer (6 ETT pairs) | mean MSE ↓ | 0.393 | 0.448 | **0.386** | **+1.9%** |
-| 7 | Anomaly detection (PSM, SMD) | F1 ↑ | 87.64 | **90.45** ¶ | 87.47 ‡ | **−2.8 pts** |
+| 7 | Anomaly detection (PSM, SMD, MSL, SMAP) | F1 ↑ | 79.96 | 75.49 ¶ | **85.75** ‡ | **−5.8 pts** |
 | 8 | Classification (10 UEA) | accuracy ↑ | 60.90 | 62.37 ¶ | **75.9** | **−15.0 pts** |
 
 † **TimeMixer++ was also run locally for forecasting (mean 0.449), but it is undertrained by
@@ -45,8 +46,11 @@ design:** it requires `lr=5e-5` for NaN stability, so its local accuracy underst
 architecture. Its published figure (0.324) is therefore used as the fairer reference here. Its
 local *energy* numbers are fair. Against the locally run TimeMixer the forecasting gap is +1.8%.
 
-‡ Not comparable: the published TimeMixer++ average covers all 5 anomaly datasets, and only PSM
-and SMD are obtainable here. The gap is therefore taken against the local TimeMixer on the same two.
+‡ TimeMixer++'s published per-dataset F1 averaged over the same four datasets. Its 5-dataset
+average (87.47) includes SWaT, which is gated. MSL and SMAP are rebuilt from a mirror of NASA's
+release at exactly the published sizes, with anomaly rates slightly below the cited ones. The local
+TimeMixer wins on PSM, SMD and SMAP; SparseTSF's higher average comes entirely from MSL, where the
+untuned TimeMixer collapses (F1 48.0 against 77.8).
 
 § The one task where the local TimeMixer falls clearly short of its published figure (0.453). The
 shared few-shot protocol trains at batch 32, which likely does not suit TimeMixer's full-data
@@ -112,7 +116,7 @@ Few-shot beats TimeMixer and trails only TimeMixer++, and its worst cases look l
 on a truncated training split rather than an architectural deficit. M4's gap is real (+18.4%) but
 its cause — short, heterogeneous, largely aperiodic series starving a period-based model — is
 intrinsic to the design rather than a fixable omission. Anomaly detection could only be measured on
-2 of 5 datasets, too weak a basis for a claim.
+2 of 5 datasets at the time (4 of 5 since 2026-10-21), too weak a basis for a claim.
 
 ---
 
