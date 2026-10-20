@@ -9,10 +9,15 @@ Idempotent: files already present are skipped. Stdlib only (urllib + zipfile).
 
     venv/Scripts/python.exe benchmarks/tools/fetch_task_datasets.py
 
+── MSL and SMAP: built from a manual download ──
+NASA's original link is dead, so download the Kaggle mirror of NASA's release by hand
+(patrickfleith/nasa-anomaly-detection-dataset-smap-msl; Kaggle needs a login) and leave the zip at
+dataset/archive.zip or dataset/_raw/nasa_smap_msl.zip. build_msl_smap() rebuilds the TSLib-format
+arrays from it and refuses to write them unless their sizes equal the published ones.
+
 ── Datasets this script does NOT fetch (documented so the loaders can be satisfied manually) ──
-The other anomaly sets need the TimesNet/TSLib *preprocessed* .npy bundle, which is only
-distributed via Google Drive / Tsinghua Cloud (not reliably scriptable). Drop the files with these
-exact names into the matching folder and they work with data_provider/data_loader.py as-is:
+The TimesNet/TSLib *preprocessed* bundle is distributed via Google Drive / Tsinghua Cloud (not
+reliably scriptable). Files with these exact names work with data_provider/data_loader.py as-is:
 
   dataset/MSL/   MSL_train.npy   MSL_test.npy   MSL_test_label.npy
   dataset/SMAP/  SMAP_train.npy  SMAP_test.npy  SMAP_test_label.npy
@@ -149,9 +154,86 @@ def fetch_smd() -> None:
         print(f"[ok  ] SMD_{split}.npy {data.shape}")
 
 
+# NASA's telemanom release (Hundman et al., 2018): per-channel train/<chan>.npy, test/<chan>.npy and
+# labeled_anomalies.csv. The original S3 link now returns 403; a mirror is the Kaggle dataset
+# patrickfleith/nasa-anomaly-detection-dataset-smap-msl. Download it manually (Kaggle needs a login)
+# and leave the zip, or its extracted folder, at one of these paths.
+NASA_SOURCES = [DATASET_ROOT / "_raw" / "nasa_smap_msl.zip", DATASET_ROOT / "_raw" / "nasa_smap_msl",
+                DATASET_ROOT / "archive.zip"]
+# Rebuilt sizes must equal the published ones (train steps, test steps, dims), or nothing is written.
+NASA_PUBLISHED = {"MSL": (58317, 73729, 55), "SMAP": (135183, 427617, 25)}
+
+
+def build_msl_smap() -> None:
+    """Build {MSL,SMAP}_{train,test,test_label}.npy from NASA's per-channel release.
+
+    Same procedure as the OmniAnomaly preprocessing behind the TimesNet/TSLib bundle: channels in
+    sorted order, filtered by spacecraft, SMAP's P-2 left out, train and test arrays concatenated
+    along time, and the labelled anomaly ranges (inclusive) set to 1. Verified by the sizes above.
+    Arrays are read with allow_pickle=False; nothing from the archive is executed.
+    """
+    import ast
+    import csv
+    import numpy as np
+
+    targets = {sc: {k: DATASET_ROOT / sc / f"{sc}_{k}.npy" for k in ("train", "test", "test_label")}
+               for sc in NASA_PUBLISHED}
+    if all(p.exists() for t in targets.values() for p in t.values()):
+        print("[skip] MSL, SMAP (.npy present)")
+        return
+    src = next((p for p in NASA_SOURCES if p.exists()), None)
+    if src is None:
+        print("[miss] MSL, SMAP: NASA release not found at " + ", ".join(str(p) for p in NASA_SOURCES))
+        return
+
+    if src.is_dir():
+        def read(rel):
+            return (src / rel).read_bytes()
+    else:
+        archive = zipfile.ZipFile(src)
+        by_suffix = {}
+        for name in archive.namelist():
+            parts = name.split("/")
+            if parts[-1] == "labeled_anomalies.csv":
+                by_suffix["labeled_anomalies.csv"] = name
+            elif len(parts) >= 2 and parts[-2] in ("train", "test") and parts[-1].endswith(".npy"):
+                by_suffix[parts[-2] + "/" + parts[-1]] = name
+
+        def read(rel):
+            return archive.read(by_suffix[rel])
+
+    def load(rel):
+        return np.load(io.BytesIO(read(rel)), allow_pickle=False)
+
+    table = list(csv.reader(io.StringIO(read("labeled_anomalies.csv").decode())))[1:]
+    rows = sorted(table, key=lambda r: r[0])
+    for sc, (n_train, n_test, dims) in NASA_PUBLISHED.items():
+        info = [r for r in rows if r[1] == sc and r[0] != "P-2"]
+        train = np.concatenate([load(f"train/{r[0]}.npy") for r in info], axis=0)
+        test = np.concatenate([load(f"test/{r[0]}.npy") for r in info], axis=0)
+        labels = []
+        for r in info:
+            lab = np.zeros(int(r[4]), dtype=np.float32)
+            for a, b in ast.literal_eval(r[2]):
+                lab[a:b + 1] = 1.0
+            labels.append(lab)
+        labels = np.concatenate(labels)
+        got = (train.shape[0], test.shape[0], train.shape[1])
+        if got != (n_train, n_test, dims) or labels.shape[0] != n_test:
+            raise SystemExit(f"[fail] {sc}: rebuilt sizes {got} differ from published "
+                             f"{(n_train, n_test, dims)}; nothing written")
+        out = DATASET_ROOT / sc
+        out.mkdir(parents=True, exist_ok=True)
+        for split, arr in (("train", train), ("test", test), ("test_label", labels)):
+            np.save(targets[sc][split], arr)
+        print(f"[ok  ] {sc}: train {train.shape}, test {test.shape}, "
+              f"anomalies {100 * labels.mean():.2f}% of test")
+
+
 if __name__ == "__main__":
     print(f"dataset root: {DATASET_ROOT}")
     fetch_psm()
     fetch_uea()
     fetch_smd()
-    print("\nDone. SMAP/MSL/SWaT still need manual sourcing — see this file's header.")
+    build_msl_smap()
+    print("\nDone. SWaT still needs manual sourcing (gated) — see this file's header.")

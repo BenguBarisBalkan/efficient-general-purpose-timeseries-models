@@ -287,9 +287,12 @@ If you relocate any of these, the `REPO_ROOT`-relative path constants at the top
   "~1k params" claim (inherent to classification).
 - **Task datasets: what's local vs. gated.** `benchmarks/tools/fetch_task_datasets.py` fetches
   **PSM** + **SMD** (anomaly) and the **10 standard UEA** classification sets; ETT/Weather/ECL/M4/PEMS
-  ship with the repo. Still **not** obtainable: **MSL/SMAP** (need the TimesNet/TSLib preprocessed
-  `.npy` bundle — the telemanom S3 source now 403s) and **SWaT** (gated, iTrust request form). Exact
-  target filenames are in that script's header; the anomaly runner marks missing sets `NOT AVAILABLE`.
+  ship with the repo. **MSL/SMAP** are rebuilt by `build_msl_smap()` in that script from a
+  hand-downloaded Kaggle mirror of NASA's release (the telemanom S3 source now 403s); it writes
+  nothing unless the rebuilt sizes equal the published ones. **SWaT** is still not obtainable
+  (gated, iTrust request form); a Kaggle re-upload exists but is deliberately not used (no
+  redistribution right, and it appears to lack the standard attack-period test split). Exact target
+  filenames are in that script's header; the anomaly runner marks missing sets `NOT AVAILABLE`.
   Note: `timeseriesclassification.com` rejects urllib with HTTP 403 but serves **curl**, so the
   fetcher falls back to curl.
 - **`--percent` (few-shot) is opt-in and only forwarded when < 100.** `data_provider/data_factory.py`
