@@ -34,6 +34,8 @@ _UNIT_DEFAULTS = {
     "stsf_phase_rank": 0,       # 0 = full period_len^2, >0 = low-rank factorisation
     "stsf_phase_kernel": 3,     # for stsf_phase_mix=conv
     "stsf_phase_gate": 0,       # 1 -> ReZero gate on phase mixing (+1 param)
+    "stsf_phase_complete": 0,   # 1 -> phase mixing only on complete inputs (not the holey pass)
+    "stsf_phase_mask": 0,       # 1 -> mask-aware phase mixing on inputs with missing values
     "stsf_periods": "",         # extra comma-separated periods, e.g. "8,24"
     "stsf_decomp": "off",       # off | free | linear
     "stsf_decomp_kernel": 25,   # forced odd (moving_avg pads (k-1)//2 per side)
@@ -180,16 +182,28 @@ class PhaseMix(nn.Module):
         else:
             raise ValueError("PhaseMix: unknown mode '{}'".format(mode))
 
-    def forward(self, img):
+    def forward(self, img, mask=None):
         # img: (N, period, n_seg) -- mix over dim=1 (phase)
+        # mask (same shape, 1 = observed) makes the mixing mask-aware: only observed phases
+        # feed it, rescaled by how much was observed (the partial-convolution rule that
+        # mask-aware aggregation applies to the time convolution).
+        src = img if mask is None else img * mask
+        n, period, n_seg = img.shape
         if self.mode == "linear":
-            h = img.transpose(1, 2)                      # (N, n_seg, period)
+            h = src.transpose(1, 2)                      # (N, n_seg, period)
             h = self.up(self.down(h)) if self.rank else self.mix(h)
             h = h.transpose(1, 2)
+            if mask is not None:
+                h = h * (period / torch.clamp(mask.sum(dim=1, keepdim=True), min=1.0))
         else:
-            n, period, n_seg = img.shape
-            h = img.permute(0, 2, 1).reshape(-1, 1, period)  # (N*n_seg, 1, period)
-            h = self.conv(h).reshape(n, n_seg, period).permute(0, 2, 1)
+            h = src.permute(0, 2, 1).reshape(-1, 1, period)  # (N*n_seg, 1, period)
+            h = self.conv(h)
+            if mask is not None:
+                m = mask.permute(0, 2, 1).reshape(-1, 1, period)
+                ones = torch.ones_like(self.conv.weight)
+                cnt = F.conv1d(m, ones, padding=self.conv.padding[0])
+                h = h * (self.conv.weight.numel() / torch.clamp(cnt, min=1.0))
+            h = h.reshape(n, n_seg, period).permute(0, 2, 1)
         if self.gate is not None:
             h = self.gate * h
         return img + h

@@ -109,6 +109,14 @@ VARIANTS: List[Variant] = [
     Variant("allrg", ("--stsf_mask_conv", "1", "--stsf_impute_passes", "2",
                       "--stsf_refine_gate", "1", "--stsf_phase_mix", "linear"),
             "U5 + phase mixing, refinement gated"),
+    Variant("allrg_pc", ("--stsf_mask_conv", "1", "--stsf_impute_passes", "2",
+                         "--stsf_refine_gate", "1", "--stsf_phase_mix", "linear",
+                         "--stsf_phase_complete", "1"),
+            "allrg, phase mixing only in the refinement pass (complete input)"),
+    Variant("allrg_pm", ("--stsf_mask_conv", "1", "--stsf_impute_passes", "2",
+                         "--stsf_refine_gate", "1", "--stsf_phase_mix", "linear",
+                         "--stsf_phase_mask", "1"),
+            "allrg, mask-aware phase mixing"),
 ]
 
 # Screening runs at the worst mask rate first; the full sweep follows for the winner only.

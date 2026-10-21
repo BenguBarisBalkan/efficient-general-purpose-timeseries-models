@@ -306,7 +306,11 @@ class Model(nn.Module):
         agg = self._aggregate(x_bcs, conv=conv, mask=mask_bcs)
         img, _ = fold_periods(agg.reshape(-1, s), period, self.pad_fold)
         if phase_mix is not None:
-            img = phase_mix(img)
+            if mask_bcs is not None and self.units.phase_mask:
+                m_img, _ = fold_periods(mask_bcs.reshape(-1, s), period, self.pad_fold)
+                img = phase_mix(img, m_img)
+            else:
+                img = phase_mix(img)
         if weight is not None:
             y = F.linear(img, weight, linear.bias)
         else:
@@ -356,8 +360,15 @@ class Model(nn.Module):
         weight = None
         if self.diag_keep is not None:
             weight = self.recon_linear.weight * self.diag_keep
+        # `--stsf_phase_complete 1`: phase mixing acts only on complete inputs. In imputation
+        # that skips the first pass, whose input still has its holes, and keeps the refinement
+        # pass, whose input has been filled. Phase mixing's measured harm appears only at high
+        # mask rates, which points at the holes being spread along the phase axis.
+        phase_mix = self.phase_mix
+        if mask is not None and self.units.phase_complete:
+            phase_mix = None
         y = self._cross_period(x, self.period_len, self.conv1d, self.recon_linear,
-                               self.seq_len, phase_mix=self.phase_mix,
+                               self.seq_len, phase_mix=phase_mix,
                                weight=weight, mask_bcs=m)
         for i, p in enumerate(self.extra_periods):
             y = y + self.extra_gates[i] * self._cross_period(
