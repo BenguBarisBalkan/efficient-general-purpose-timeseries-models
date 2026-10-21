@@ -45,7 +45,8 @@ The gap between the two is the current cost of generality.
   SparseTSF/TimeMixer ratio of 8.7% overstates SparseTSF's cost; same-session it is 5.3%.
 
 **Reports changed.** New `results_sparsetsf_plus_suite.md`; the SparseTSFPlus report (new
-headline, Section 6, runtime, next steps); `results_sparsetsf_all_tasks.md` (pointer and coverage
+headline, Section 6, runtime, next steps); the thesis document (new Section 16 and Summary
+bullet); `results_sparsetsf_all_tasks.md` (pointer and coverage
 tables).
 
 **Next.** Gates that let refinement and phase mixing switch themselves off, measured with the same
