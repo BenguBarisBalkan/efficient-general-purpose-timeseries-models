@@ -92,7 +92,8 @@ values were read from every tested checkpoint.
 validation, learned gate values); `results_sparsetsf_plus_suite.md` (both versions now use gated
 refinement; findings); `results_sparsetsf_plus_report.md` (headline, new Section 4 subsection on
 gates, Section 5 imputation re-selected on validation, Sections 6–8); `results_sparsetsf_all_tasks.md`
-(run counts).
+(run counts); the thesis document (new Section 17 on gates; Summary, Sections 7, 14, 15 and 16 updated
+to the gated numbers, with the first-run values kept where they explain the history).
 
 **Next.** Make phase mixing safe on inputs with missing values. The harm appearing only when many
 points are missing suggests that mixing along the phase axis spreads the holes. Candidates: apply
