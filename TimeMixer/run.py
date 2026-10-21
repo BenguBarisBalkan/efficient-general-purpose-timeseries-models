@@ -126,6 +126,10 @@ parser.add_argument('--stsf_phase_kernel', type=int, default=3,
                     help='kernel for --stsf_phase_mix conv (forced odd)')
 parser.add_argument('--stsf_phase_gate', type=int, default=0,
                     help='1 = zero-initialised scalar gate on phase mixing (ReZero, +1 param)')
+parser.add_argument('--stsf_phase_complete', type=int, default=0,
+                    help='1 = phase mixing only on complete inputs (imputation: refinement pass only)')
+parser.add_argument('--stsf_phase_mask', type=int, default=0,
+                    help='1 = mask-aware phase mixing on inputs with missing values (0 params)')
 parser.add_argument('--stsf_periods', type=str, default='',
                     help='extra comma-separated periods for the multi-period ensemble, e.g. "8,24"')
 parser.add_argument('--stsf_decomp', type=str, default='off',
@@ -161,6 +165,11 @@ parser.add_argument('--percent', type=int, default=100,
 parser.add_argument('--stream_metrics', type=int, default=0,
                     help='1 to compute test metrics batch by batch (low memory)')
 
+# seed repeats: every existing run used the fixed seed above. Another value re-seeds after
+# parsing; the default leaves the RNG exactly as seeded at import, so existing runs are unaffected.
+parser.add_argument('--seed', type=int, default=fix_seed,
+                    help='random seed (2021 = the seed of every existing run)')
+
 # energy / carbon tracking (opt-in; off by default so normal runs are unaffected)
 parser.add_argument('--track_emissions', type=int, default=0,
                     help='1 to measure energy/CO2 of train+test with codecarbon')
@@ -171,6 +180,10 @@ parser.add_argument('--emissions_file', type=str, default='emissions.csv',
 
 if __name__ == '__main__':
     args = parser.parse_args()
+    if args.seed != fix_seed:
+        random.seed(args.seed)
+        torch.manual_seed(args.seed)
+        np.random.seed(args.seed)
     args.use_gpu = True if torch.cuda.is_available() and args.use_gpu else False
 
     if args.use_gpu and args.use_multi_gpu:

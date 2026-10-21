@@ -9,6 +9,45 @@ Numbers are **local** (this machine, this protocol) unless marked **published**.
 
 ---
 
+## 2026-10-21 — 24-hour backbone plan, step 1: phase mixing on inputs with missing values
+
+The plan for the next 24 hours (agreed before an unattended run) is in `CLAUDE.md` ("Active plan")
+and in the plan document linked there: phase mixing on inputs with missing values (this entry),
+channel context for PEMS, seed repeats, and, if time allows, an automatic period choice. A unit
+that passes its decision rule is reported as a **candidate** configuration for review; the
+headline fixed configuration does not change.
+
+**Planned.**
+- **The problem.** With gated refinement in place, phase mixing is the only source of the
+  imputation gap between the fixed configuration (0.0689) and the per-task one (0.0651). It
+  helps or is neutral at masks 0.125 and 0.25 on every dataset (−4.1% to +2.5%), but at 0.375 and
+  0.5 it costs 31–44% on ETTh2 and 16–26% on Electricity.
+- **Hypothesis.** The harm appears only when many points are missing, so the holes are the likely
+  cause: mixing along the phase axis spreads the positions that hold no observation into the
+  observed hours of each period.
+- **Two candidates, both free of parameters:**
+  - `allrg_pc`: phase mixing on complete inputs only. The first imputation pass, which still has
+    the holes, skips it; the refinement pass, whose input has been filled, keeps it. Forecasting
+    and anomaly detection always have complete inputs, so they are bitwise unchanged.
+  - `allrg_pm`: mask-aware phase mixing. Only observed positions feed the mixing, rescaled by the
+    share of the period that was observed. This is the partial-convolution rule (Liu et al.,
+    2018) that mask-aware aggregation already applies to the time convolution.
+- **Checked before running:** with every point observed, mask-aware mixing equals plain phase
+  mixing exactly; on anomaly inputs (always complete) the complete-only form equals plain phase
+  mixing exactly; all units off is still bitwise SparseTSF.
+- **Runs.** Both on all 6 datasets × 4 mask rates (48 runs, about 2.5 hours), on top of `allrg`
+  (gated refinement, mask-aware aggregation, ungated phase mixing).
+- **Prediction.** The cost of phase mixing at masks 0.375 and 0.5 on ETTh2 and Electricity falls
+  below 5% (against `u5g`, the same model without phase mixing), the low-mask gains stay, and the
+  six-dataset mean falls from 0.0689 to 0.0655 or lower. **Refuted** if that cost stays above 15%:
+  then the holes are not the mechanism.
+- **Decision rule.** The variant with the lowest mean validation loss becomes a candidate if it
+  also beats `allrg` on validation.
+- **Also added:** a `--seed` flag for the seed repeats of step 3. Its default is the seed of every
+  existing run; a 1-epoch check reproduced the default run to 7 significant digits.
+
+---
+
 ## 2026-10-21 — Gates for refinement and phase mixing
 
 **Planned.** The fixed SparseTSFPlus loses to a tuned one in two places, both in imputation:

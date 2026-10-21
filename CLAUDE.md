@@ -72,6 +72,38 @@ Write entries for the supervisor: ideas and evidence, not implementation. Record
 since a rejected unit is a finding. Leave out process mistakes and their fixes unless they changed
 a result. When asked for the biweekly summary, build it from the entries since the last meeting.
 
+### Active plan — 24-hour unattended backbone work (agreed 2026-10-21)
+
+Full plan, decision rules and a status checklist: Claude Doc "SparseTSFPlus — 24-hour backbone
+plan (2026-10-21)", https://claude.ai/artifact/Kg1R4XDoXQSMBaWBkBD5Fb (doc id
+`9736c231-3e6d-46ee-85a2-8c18c821723e`). Tick its Status list and this one as steps finish.
+
+Agreed with the user: scope below is approved; a unit that passes the rules is reported as a
+**candidate** configuration, never swapped into the headline fixed one; PRs and thesis-document
+updates are allowed without asking; if disk runs short, **move** (never delete) `results/` folders
+from these runs to a folder on D:/; keep-awake is on.
+
+- [ ] **Step 0** — `--seed` flag in `run.py` (default 2021, existing runs unchanged); implement the
+  step 1–2 units behind default-off flags; equivalence gate, gate-at-zero check, 1-epoch smoke runs.
+- [ ] **Step 1** — phase mixing on inputs with missing values: `complete` (skip phase mixing in the
+  first imputation pass, apply it in the refinement pass) and `mask-aware` (mix observed positions
+  only, renormalised). 48 imputation runs on top of `allrg`. Predict the cost at masks 0.375/0.5 on
+  ETTh2 and Electricity < 5% and fixed imputation ≤ 0.0655; refuted if that cost stays > 15%.
+- [ ] **Step 2** — channel context for PEMS, gated, no parameter depending on channel count:
+  `mean` (SOFTS-style shared channel summary) and `corr` (parameter-free similarity weighting,
+  iTransformer-style). Screen PEMS03/04/07/08 + ETTh1/ETTm1/Weather at H=96. Predict PEMS MAE −10%
+  or better with ETT/Weather ≤ +1%; refuted if PEMS improves < 3%. Full suite + same-session energy
+  only if PEMS validation improves ≥ 5% and no check is > 1% worse; otherwise step 4.
+- [ ] **Step 3** — seeds 2022 and 2023 for SparseTSF, fixed SparseTSFPlus (and the candidate):
+  long-term on ETT×4 + Weather, M4, PEMS, few-shot, zero-shot, anomaly, imputation on ETTh1/ETTh2
+  (+ `u5g` on ETTh2). New `results_seed_repeats.md`; a finding needs the same sign on all three
+  seeds and a difference above twice the seed spread.
+- [ ] **Step 4 (stretch)** — automatic period choice: strongest FFT period of the training split,
+  restricted to valid divisors; long-term ETT/Weather and PEMS against published periods.
+- [ ] **Reporting** — after every step: progress-log entry (plan with prediction BEFORE the runs),
+  runner tables, SparseTSFPlus report, thesis-doc section (layout of Section 17), one merged PR.
+  Hard stop for new runs at hour 21; finish with a handoff entry written as the biweekly summary.
+
 ## Environment & commands
 
 - Interpreter is the in-repo venv: **`TimeMixer/venv/Scripts/python.exe`** (Python 3.8.10,

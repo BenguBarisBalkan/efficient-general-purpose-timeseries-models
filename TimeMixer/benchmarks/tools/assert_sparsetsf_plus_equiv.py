@@ -164,6 +164,40 @@ def run_gate_case(label, gated, without):
     return diff
 
 
+# Units that must reduce to an existing configuration on inputs where they have nothing to do:
+# (label, flags A, flags B, full_mask). Same seed, so both models get identical weights.
+ALLRG = dict(stsf_mask_conv=1, stsf_impute_passes=2, stsf_refine_gate=1, stsf_phase_mix="linear")
+SAME_CASES = [
+    # every point observed: mask-aware phase mixing has no hole to skip
+    ("imputation", dict(ALLRG, stsf_phase_mask=1), ALLRG, True),
+    # anomaly inputs are always complete: complete-input-only phase mixing is plain phase mixing
+    ("anomaly_detection", dict(stsf_phase_mix="linear", stsf_phase_complete=1),
+     dict(stsf_phase_mix="linear"), False),
+]
+
+
+def run_same_case(label, flags_a, flags_b, full_mask):
+    conf = dict(next(c for name, c in CASES if name == label))
+    torch.manual_seed(0)
+    a_model = PlusModel(cfg(**dict(conf, **flags_a)), force_reimpl=True).float().eval()
+    torch.manual_seed(0)
+    b_model = PlusModel(cfg(**dict(conf, **flags_b)), force_reimpl=True).float().eval()
+    x, kwargs = make_inputs(conf)
+    mask = kwargs.get("mask")
+    if full_mask and mask is not None:
+        torch.manual_seed(1234)
+        x = torch.randn_like(x)
+        mask = torch.ones_like(mask)
+    with torch.no_grad():
+        a = a_model(x, kwargs.get("x_mark_enc"), None, None, mask)
+        b = b_model(x, kwargs.get("x_mark_enc"), None, None, mask)
+    diff = (a - b).abs().max().item()
+    status = "EXACT" if diff == 0.0 else ("close({:.2e})".format(diff) if diff < 1e-6 else "FAIL")
+    name = ",".join(k[len("stsf_"):] for k in flags_a if k not in flags_b)
+    print("  {:<20} {:<16} max|diff|={:.3e}  {}".format(label, name, diff, status))
+    return diff
+
+
 def main():
     print("SparseTSFPlus (all units off)  vs  SparseTSF")
     print("=" * 74)
@@ -192,6 +226,17 @@ def main():
         except AssertionError as exc:
             print("  {:<20} gate       ASSERTION: {}".format(label, exc))
             failures.append((label, "gate", str(exc)))
+    print("=" * 74)
+    print("Units on inputs where they have nothing to do  vs  the configuration without them")
+    print("=" * 74)
+    for label, flags_a, flags_b, full_mask in SAME_CASES:
+        try:
+            diff = run_same_case(label, flags_a, flags_b, full_mask)
+            if diff > 1e-6:
+                failures.append((label, "same", "diff={:.3e}".format(diff)))
+        except AssertionError as exc:
+            print("  {:<20} same       ASSERTION: {}".format(label, exc))
+            failures.append((label, "same", str(exc)))
     print("=" * 74)
     if failures:
         print("FAILED {} case(s):".format(len(failures)))
