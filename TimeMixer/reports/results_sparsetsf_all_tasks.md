@@ -62,7 +62,7 @@ run yet. The unfinished runs are ruled out on this laptop (TimeMixer Traffic 336
 | Long-term forecasting | 8 datasets × 4 horizons = 32 | 32 (+20 at lookback 720) | 30 (+2 unfinished) | 21 (+1 unfinished) | 100 |
 | M4 short-term | 6 subsets | 6 | 6 | paper only | 12 |
 | PEMS short-term | 4 datasets | 4 | 4 | paper only | 12 |
-| Imputation | 6 datasets × 4 mask rates = 24 | 24 | 24 | paper only | 79 |
+| Imputation | 6 datasets × 4 mask rates = 24 | 24 | 24 | paper only | 151 |
 | Few-shot (10% train) | 6 datasets × 4 horizons = 24 | 24 | 24 | paper only | 48 |
 | Zero-shot | 6 pairs × 4 horizons = 24 | 24 | 24 | paper only | 48 |
 | Anomaly detection | 5 datasets (4 obtainable) | 4 | 4 | paper only | 8 |
@@ -83,8 +83,8 @@ run yet. The unfinished runs are ruled out on this laptop (TimeMixer Traffic 336
 | SparseTSF | 207 | 0 |
 | TimeMixer | 166 | 2: `run_logs/Traffic_pred336.log`, `run_logs/Traffic_pred720.log` |
 | TimeMixer++ | 41 | 1: `run_logs_pp/Solar-Energy_pred192.log` |
-| SparseTSFPlus | 405 | 0 |
-| **All** | **819** | **3** |
+| SparseTSFPlus | 477 | 0 |
+| **All** | **891** | **3** |
 <!-- AUTO_RUNS_END -->
 
 ## Protocol deviations worth stating in a write-up

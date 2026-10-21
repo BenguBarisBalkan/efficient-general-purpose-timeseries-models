@@ -124,6 +124,8 @@ parser.add_argument('--stsf_phase_rank', type=int, default=0,
                     help='0 = full period_len^2, >0 = low-rank phase mixing')
 parser.add_argument('--stsf_phase_kernel', type=int, default=3,
                     help='kernel for --stsf_phase_mix conv (forced odd)')
+parser.add_argument('--stsf_phase_gate', type=int, default=0,
+                    help='1 = zero-initialised scalar gate on phase mixing (ReZero, +1 param)')
 parser.add_argument('--stsf_periods', type=str, default='',
                     help='extra comma-separated periods for the multi-period ensemble, e.g. "8,24"')
 parser.add_argument('--stsf_decomp', type=str, default='off',
@@ -140,6 +142,8 @@ parser.add_argument('--stsf_diag_mask', type=int, default=0,
                     help='reconstruction: leave-one-out (zero the cross-period diagonal)')
 parser.add_argument('--stsf_impute_passes', type=int, default=1,
                     help='2 = weight-shared refinement pass (0 extra parameters)')
+parser.add_argument('--stsf_refine_gate', type=int, default=0,
+                    help='1 = zero-initialised scalar gate on each refinement pass (+1 param each)')
 parser.add_argument('--stsf_cls_head', type=str, default='flat',
                     help='classification head: flat (current) | flat_fixed | stats | segpool')
 parser.add_argument('--stsf_cls_segments', type=int, default=8,

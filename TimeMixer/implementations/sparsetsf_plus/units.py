@@ -13,6 +13,11 @@ Units are borrowed from this repo's other models wherever one already exists:
   phase-axis mixing     implementations/timemixer_pp/model.py   (TimeImageDecomposition,
                                                                  reduced from attention
                                                                  to a shared linear)
+
+Gates (`--stsf_phase_gate`, `--stsf_refine_gate`) follow ReZero (Bachlechner et al., UAI 2021):
+one scalar per unit, initialised at zero, multiplying the unit's contribution, with the unit's
+own weights initialised normally. At initialisation the model is exactly the model without the
+unit, and training decides how much of the unit to use, including none of it.
 """
 
 import math
@@ -28,6 +33,7 @@ _UNIT_DEFAULTS = {
     "stsf_phase_mix": "off",    # off | linear | conv
     "stsf_phase_rank": 0,       # 0 = full period_len^2, >0 = low-rank factorisation
     "stsf_phase_kernel": 3,     # for stsf_phase_mix=conv
+    "stsf_phase_gate": 0,       # 1 -> ReZero gate on phase mixing (+1 param)
     "stsf_periods": "",         # extra comma-separated periods, e.g. "8,24"
     "stsf_decomp": "off",       # off | free | linear
     "stsf_decomp_kernel": 25,   # forced odd (moving_avg pads (k-1)//2 per side)
@@ -36,6 +42,7 @@ _UNIT_DEFAULTS = {
     "stsf_mask_conv": 0,        # imputation: partial-conv renormalisation + passthrough
     "stsf_diag_mask": 0,        # reconstruction: leave-one-out (zero the diagonal)
     "stsf_impute_passes": 1,    # 2 -> weight-shared refinement pass
+    "stsf_refine_gate": 0,      # 1 -> ReZero gate on each refinement pass (+1 param per pass)
     "stsf_cls_head": "flat",    # flat (current) | flat_fixed | stats | segpool
     "stsf_cls_segments": 8,     # segpool: number of time segments to pool into
 }
@@ -141,24 +148,35 @@ class PhaseMix(nn.Module):
 
     Zero-init + residual means epoch 0 behaves exactly like SparseTSF, which kills the
     "maybe it just initialised badly" objection and keeps the ablation honest.
+
+    `gate=True` moves the zero from the weights to one scalar in front of them (ReZero). The
+    ungated mixer also starts at zero, but on Electricity imputation training then carries it
+    somewhere worse than zero: training loss 0.129 vs 0.095 without the unit at mask 0.25. With
+    the gate, the unit's whole contribution is scaled by one number that the training signal
+    can hold near zero, and the mixing weights start at the default initialisation because a
+    zero gate in front of zero weights would receive no gradient.
     """
 
-    def __init__(self, period_len, mode="linear", rank=0, kernel=3):
+    def __init__(self, period_len, mode="linear", rank=0, kernel=3, gate=False):
         super(PhaseMix, self).__init__()
         self.mode = mode
         self.rank = rank
+        self.gate = nn.Parameter(torch.zeros(1)) if gate else None
         if mode == "linear":
             if rank and rank > 0:
                 self.down = nn.Linear(period_len, rank, bias=False)
                 self.up = nn.Linear(rank, period_len, bias=False)
-                nn.init.zeros_(self.up.weight)
+                if not gate:
+                    nn.init.zeros_(self.up.weight)
             else:
                 self.mix = nn.Linear(period_len, period_len, bias=False)
-                nn.init.zeros_(self.mix.weight)
+                if not gate:
+                    nn.init.zeros_(self.mix.weight)
         elif mode == "conv":
             k = odd(kernel)
             self.conv = nn.Conv1d(1, 1, kernel_size=k, padding=k // 2, bias=False)
-            nn.init.zeros_(self.conv.weight)
+            if not gate:
+                nn.init.zeros_(self.conv.weight)
         else:
             raise ValueError("PhaseMix: unknown mode '{}'".format(mode))
 
@@ -167,10 +185,13 @@ class PhaseMix(nn.Module):
         if self.mode == "linear":
             h = img.transpose(1, 2)                      # (N, n_seg, period)
             h = self.up(self.down(h)) if self.rank else self.mix(h)
-            return img + h.transpose(1, 2)
-        n, period, n_seg = img.shape
-        h = img.permute(0, 2, 1).reshape(-1, 1, period)  # (N*n_seg, 1, period)
-        h = self.conv(h).reshape(n, n_seg, period).permute(0, 2, 1)
+            h = h.transpose(1, 2)
+        else:
+            n, period, n_seg = img.shape
+            h = img.permute(0, 2, 1).reshape(-1, 1, period)  # (N*n_seg, 1, period)
+            h = self.conv(h).reshape(n, n_seg, period).permute(0, 2, 1)
+        if self.gate is not None:
+            h = self.gate * h
         return img + h
 
 

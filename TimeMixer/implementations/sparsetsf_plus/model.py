@@ -192,6 +192,7 @@ class Model(nn.Module):
             self.phase_mix = PhaseMix(
                 self.period_len, mode=u.phase_mix,
                 rank=int(u.phase_rank), kernel=int(u.phase_kernel),
+                gate=bool(u.phase_gate),
             )
 
         # U3 multi-period ensemble. Branch 0 is the base path above; each extra period
@@ -240,6 +241,16 @@ class Model(nn.Module):
                 "diag_keep", 1.0 - torch.eye(self.seg_num), persistent=False)
         else:
             self.diag_keep = None
+
+        # U5 refinement gate (ReZero). Without it each refinement pass REPLACES the previous
+        # output, so "no refinement" is not representable once the unit is on, and the shared
+        # weights must serve both the holey input of pass 1 and the complete input of pass 2.
+        # On ETTh2 that costs training loss (0.114 vs 0.058 without refinement, mask 0.125).
+        # With the gate each pass adds g * (refined - previous), g starting at 0.
+        self.refine_gates = None
+        if (u.refine_gate and self.task_name == "imputation"
+                and int(u.impute_passes) > 1):
+            self.refine_gates = nn.Parameter(torch.zeros(int(u.impute_passes) - 1))
 
     def _announce(self):
         # Label deliberately avoids the substring 'mse' -- every benchmark runner regexes
@@ -365,10 +376,14 @@ class Model(nn.Module):
         # imputation loss is scored on masked positions only (exp/exp_imputation.py:78),
         # so this targets the metric directly.
         if mask is not None and int(self.units.impute_passes) > 1:
-            for _ in range(int(self.units.impute_passes) - 1):
+            for k in range(int(self.units.impute_passes) - 1):
                 filled = x_enc * mask + out * (1.0 - mask)
                 x2, denorm2 = self._norm(filled)
-                out = self._reconstruct(x2, denorm2)
+                refined = self._reconstruct(x2, denorm2)
+                if self.refine_gates is None:
+                    out = refined
+                else:
+                    out = out + self.refine_gates[k] * (refined - out)
         return out
 
     def _anomaly(self, x_enc):
