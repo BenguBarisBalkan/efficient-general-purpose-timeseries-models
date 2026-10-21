@@ -72,8 +72,9 @@ CONFIGS: Dict[str, Tuple[Optional[str], Optional[str]]] = {
 CANDIDATES: Dict[str, Tuple[Optional[str], Optional[str]]] = {
     "chmean": ("chmean", "allrg"),
     "chcorr": ("chcorr", "allrg"),
-    "allrg_pc": ("fixed", "allrg_pc"),
-    "allrg_pm": ("fixed", "allrg_pm"),
+    # imputation-only candidates: every other task is the fixed configuration unchanged
+    "allrg_pc": (None, "allrg_pc"),
+    "allrg_pm": (None, "allrg_pm"),
 }
 ALL_CONFIGS = dict(CONFIGS, **CANDIDATES)
 TASKS = ["longterm", "m4", "pems", "fewshot", "zeroshot", "anomaly", "imputation"]
@@ -345,6 +346,7 @@ def _fmt(x: Optional[float], spec: str = ".4f") -> str:
 def comparisons(configs: List[str]) -> List[Tuple[str, str]]:
     pairs = [("fixed", "SparseTSF"), ("u5g", "SparseTSF"), ("u5g", "fixed")]
     pairs += [(c, "fixed") for c in configs if c in CANDIDATES]
+    pairs += [(c, "u5g") for c in configs if c in ("allrg_pm", "allrg_pc")]
     return pairs
 
 
@@ -464,7 +466,8 @@ def main() -> None:
     seeds = [int(s) for s in args.seeds.split(",") if s] or SEEDS
     only = [t for t in args.only.split(",") if t] or TASKS
     protect_m4_originals()
-    jobs = [j for s in seeds for t in only for c in configs for j in jobs_for(t, c, s)]
+    # task by task, so a task's seeds complete together if the run is cut short
+    jobs = [j for t in only for s in seeds for c in configs for j in jobs_for(t, c, s)]
     for i, job in enumerate(jobs, 1):
         if job.done(_read(job.log)):
             print("[SKIP {}/{}] {} {} {} s{}".format(i, len(jobs), job.task, job.config, job.key, job.seed))

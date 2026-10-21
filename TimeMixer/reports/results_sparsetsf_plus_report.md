@@ -300,6 +300,40 @@ form (`allrg_pc`, `allrg_pm` in the [imputation ablation](results_sparsetsf_plus
 Reported as a candidate beside the fixed configuration, not adopted into it. It changes nothing
 outside imputation, because every other task's input is complete.
 
+### Channel context — helps PEMS a little, everywhere else nothing
+
+*Borrowed from: the aggregate-and-redistribute core of SOFTS (Han et al., 2024), and attention across
+variates in iTransformer (Liu et al., 2024) with its projections removed.* **Cost: 2–9 parameters.**
+
+**The problem.** PEMS is the largest remaining gap to TimeMixer (+45% MAE). The backbone treats every
+channel independently, so it cannot use the fact that neighbouring sensors move together, and
+TimeMixer runs PEMS with its channels embedded jointly.
+
+**Two forms, both behind a ReZero gate and with no parameter that depends on the channel count**
+(so checkpoints still transfer between datasets):
+- **Channel mean:** the mean of all channels in the window gets its own period map, and each channel
+  adds it scaled by its own least-squares loading on that mean (computed from the window).
+- **Channel correlation:** each channel adds a softmax-weighted mix of the other channels' forecasts,
+  weighted by input-window correlation, with a learned temperature.
+
+**Screen** on PEMS03/04/07/08 and, as a guard, ETTh1, ETTm1 and Weather at horizon 96, each run the
+fixed configuration's command plus the unit (generated table in
+[results_sparsetsf_plus_suite.md](results_sparsetsf_plus_suite.md)):
+
+| | PEMS validation | PEMS test MAE | Long-term checks (test MSE) | Parameters on PEMS |
+|---|---:|---:|---|---:|
+| fixed | — | 25.45 | — | 173 |
+| + channel mean | −3.7% | 24.46 (−3.9%) | −1.5% to +0.3% | 182 |
+| + channel correlation | −4.7% | 24.20 (−4.9%) | −0.7% to 0.0% | 175 |
+
+- **Both help PEMS on all four datasets and hurt nothing.** Channel correlation is the stronger:
+  −4.3% to −5.5% on every PEMS dataset for 2 parameters.
+- **Neither passed the pre-registered rule** for a full suite run (PEMS validation at least 5%
+  better); correlation missed at 4.7%. The predicted 10% was too optimistic.
+- **The PEMS gap stays large** (+38% against TimeMixer with channel correlation). A channel mean, or
+  a correlation-weighted mix of other channels' forecasts, carries only a small part of what
+  TimeMixer's joint channel embedding uses.
+
 ### Multi-period ensembling
 
 *Borrowed from: TimeMixer's multi-scale sum-ensemble, applied to periods instead of resolutions.*
@@ -670,23 +704,29 @@ Ordered by value for the goal of one model that serves every task.
    candidate, not yet part of the fixed configuration. The one cell it did not fix (ETTh2, mask
    0.375) is on the dataset with the training plateau, so seed repeats decide.
 
-2. **Repeat the headline results over more seeds.** Every run so far uses one seed. The fixed and
+2. **Cross-channel structure needs more than a context term.** Both channel-context units improved
+   PEMS by 4–5% without harm elsewhere but missed the 5% screening rule (Section 4). A larger PEMS
+   gain probably needs channel interaction inside the backbone rather than a term added to the
+   forecast, which conflicts with checkpoint transfer unless its parameters stay independent of the
+   channel count.
+
+3. **Repeat the headline results over more seeds.** Every run so far uses one seed. The fixed and
    per-task versions differ by under 1% on most tasks, which one seed cannot resolve.
 
-3. **Fold these results into the top-level narrative.** `results_final_report.md` and the root
+4. **Fold these results into the top-level narrative.** `results_final_report.md` and the root
    `README.md` still describe a three-model study. One SparseTSFPlus configuration that improves
    on SparseTSF on every task and beats TimeMixer on few-shot, zero-shot and anomaly detection, at
    37 to 8,661 parameters, changes the headline claim.
 
-4. **Measure energy beyond long-term forecasting.** The matched energy protocol covers only
+5. **Measure energy beyond long-term forecasting.** The matched energy protocol covers only
    long-term forecasting on five datasets. An efficiency claim across tasks needs the same
    measurement per task.
 
-5. **Close the classification gap in the backbone, not the head.** TimeMixer++ classifies with the
+6. **Close the classification gap in the backbone, not the head.** TimeMixer++ classifies with the
    same kind of flatten-linear readout as SparseTSF, so its 15-point lead comes from what its
    backbone feeds that readout. Every readout change tested here failed.
 
-6. **Investigate Weather.** It is period-insensitive, and the best unit improves it by under 1%. Its
+7. **Investigate Weather.** It is period-insensitive, and the best unit improves it by under 1%. Its
    daily cycle is 144 steps against a 96-step lookback, which no period-based mechanism can
    recover; a longer lookback is the more promising direction.
 
