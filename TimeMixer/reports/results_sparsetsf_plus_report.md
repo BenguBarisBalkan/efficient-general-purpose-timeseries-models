@@ -5,19 +5,20 @@ with cheap, individually-toggleable *units* borrowed from TimeMixer and TimeMixe
 
 **Headline.** Run as **one fixed configuration** on all eight tasks (Section 6), SparseTSFPlus
 improves on or matches SparseTSF on every task, with the largest gains on PEMS (−25.4%),
-imputation (−11.2%) and M4 (−6.0%). It gives up almost nothing against choosing units per task:
-within 0.4% everywhere except imputation (+3.9%). It beats the locally run TimeMixer on few-shot,
-zero-shot and anomaly detection with 37 to 8,661 parameters, and still trails it on long-term
-forecasting, M4, PEMS and imputation.
+imputation (−17.8%) and M4 (−6.0%). It gives up almost nothing against choosing units per task:
+within 0.4% everywhere except imputation (+5.8%, all of it from phase mixing). It beats the locally
+run TimeMixer on few-shot, zero-shot and anomaly detection with 37 to 8,661 parameters, and still
+trails it on long-term forecasting, M4, PEMS and imputation.
 
-Choosing units per dataset goes further. On imputation, SparseTSFPlus then cuts SparseTSF's error
-by 20.9% across all six datasets, closing 81% of its gap to TimeMixer (mean 0.0663 against 0.0622). It **matches
-TimeMixer on five of the six** (0.0584 against 0.0586) and stays 31% behind on Electricity, with
-41 to 597 parameters against TimeMixer's ~58,000–60,000. On PEMS multivariate short-term it removes 25%
-of the MAE on all four datasets for ~70 extra parameters. Forecasting gains are small (about 1%),
-and on classification no variant improved the average — both reported as findings rather than
-omitted. One caveat runs through all of it: the best configuration differs by dataset, and on ETTh2
-validation chose no units at all.
+On imputation, a learned gate on the refinement step (Section 4) made one configuration almost as
+good as choosing per dataset (0.0651 against 0.0646). That one configuration beats TimeMixer on four
+of the six datasets and on the mean of the five other than Electricity (0.0572 against 0.0586), with
+42 to 582 parameters against TimeMixer's ~58,000–60,000; it stays 30% behind on Electricity. Chosen
+per dataset, SparseTSFPlus cuts SparseTSF's imputation error by 22.8% and closes 88% of its gap to
+TimeMixer. On PEMS multivariate short-term it removes 25% of the MAE on all four datasets for ~70
+extra parameters. Forecasting gains are small (about 1%), and on classification no variant
+improved the average — both reported as findings rather than omitted. A gate on phase mixing did
+not work, and phase mixing in imputation at high mask rates is the main open problem.
 
 Supporting tables: [period sensitivity](results_period_sensitivity.md) ·
 [imputation ablation](results_sparsetsf_plus_ablation.md) ·
@@ -215,6 +216,53 @@ Rescales the convolution output by how much of each window was actually observed
 no longer drags the aggregate toward zero. Complements refinement rather than replacing it: on
 ETTm1 the two together are better than either alone.
 
+### Gates — a safe default for refinement and phase mixing
+
+*Borrowed from: ReZero (Bachlechner et al., UAI 2021), the same zero-initialised scalar this model
+already uses for its multi-period branches.* **Cost: 1 per gated unit.**
+
+**The problem.** Run as one fixed configuration (Section 6), SparseTSFPlus lost to a tuned one in
+two places: refinement on ETTh2 imputation and phase mixing on Electricity imputation. In both, the
+unit also raised the *training* loss, so the harm was visible to training rather than being
+overfitting. On ETTh2 at mask 0.125, refinement's training loss was 0.114 against 0.058 without it;
+on Electricity at mask 0.25, phase mixing's was 0.129 against 0.095.
+
+**The idea.** Multiply the unit's contribution by one learned number that starts at 0. A gated unit
+then starts out as the model without it, and training decides how much of the unit to use,
+including none.
+- **Refinement:** the output becomes pass 1 + g·(pass 2 − pass 1). Without the gate, pass 2
+  *replaces* pass 1, so once the unit is on, "no refinement" cannot even be represented.
+- **Phase mixing:** the phase image becomes img + g·mix(img). The mixer starts at its default
+  initialisation, since a zero gate in front of zero weights would never receive gradient.
+
+Before any run it was checked that each gate at 0 gives exactly (bitwise) the output of the model
+without that unit. Both gated forms ran on all six imputation datasets at all four mask rates
+([imputation ablation](results_sparsetsf_plus_ablation.md), variants `u5g`, `allg` and `allrg`).
+
+**Refinement gate: works, better than predicted.**
+- **The prediction was wrong in an instructive way.** It was that the gate would switch refinement
+  off on ETTh2. Instead it settled at about 0.5, averaging the two passes. That beat both no
+  refinement (0.0641 against 0.0703) and full refinement (0.0955), at every mask rate.
+- **It is better on all six datasets**, not only ETTh2. Gated refinement with mask-aware
+  aggregation averages 0.0651 against 0.0716 ungated (−9.1%), and it is also lowest on validation.
+- **The learned values are readable.** They rise with the mask rate on five of six datasets: the
+  more holes, the more weight goes to the refinement pass. They are lowest on the two hourly ETT
+  datasets (0.48–0.70) and near 1 elsewhere (mostly 0.8–1.07).
+
+**Phase-mixing gate: does not work.**
+- **Where phase mixing helps, it keeps helping.** Under gated refinement, phase mixing helps or is
+  neutral at masks 0.125 and 0.25 on every dataset (−4.1% to +2.5%).
+- **The harm is only at high mask rates, and the gate does not remove it.** At masks 0.375 and 0.5
+  phase mixing costs +31% to +44% on ETTh2 and +16% to +26% on Electricity, with or without the
+  gate. There the gate moves well away from 0, and training ends at the same worse result.
+- **On average the gate changes nothing:** 0.0688 with it against 0.0689 without. So the harm is
+  not something one scalar can switch off; training moves into it.
+
+**What follows.** Gated refinement replaces refinement in both versions of the model. Phase mixing
+stays ungated, because PEMS needs it (Section 6), and it is the one remaining source of the
+imputation gap. Its harm appearing only when many points are missing suggests a mechanism: mixing
+along the phase axis spreads the holes. That is the next thing to test (Section 8).
+
 ### Multi-period ensembling
 
 *Borrowed from: TimeMixer's multi-scale sum-ensemble, applied to periods instead of resolutions.*
@@ -303,70 +351,66 @@ is a property of SparseTSF worth stating: **any scale-equivariant normalisation 
 
 ## 5. How the results changed
 
-### Imputation — parity with TimeMixer on five of six datasets
+### Imputation — ahead of TimeMixer on four of six datasets
 
 Mean masked MSE over four mask rates. For each dataset the configuration is chosen on
-**validation** loss, and plain SparseTSF is one of the candidates, so validation can choose "no
-units". Both baselines were run on this machine under this protocol.
+**validation** loss among all seven variants of the ablation, and plain SparseTSF is one of the
+candidates, so validation can choose "no units". Both baselines were run on this machine under this
+protocol.
 
 | Dataset | Chosen on validation | Params | SparseTSF | **SparseTSFPlus** | vs SparseTSF | TimeMixer | vs TimeMixer |
 |---|---|---:|---:|---:|---:|---:|---:|
 | ETTh1 | refinement | 41 | 0.163307 | **0.120684** | −26.1% | 0.120057 | +0.5% |
-| ETTm1 | refinement, mask-aware, phase mixing | 597 | 0.071481 | **0.042010** | −41.2% | 0.047031 | **−10.7%** |
-| ETTh2 | none — plain SparseTSF | 41 | 0.070296 | 0.070296 | 0.0% | 0.066370 | +5.9% |
-| ETTm2 | refinement | 581 | 0.032690 | **0.027865** | −14.8% | 0.027787 | +0.3% |
-| Weather | refinement | 581 | 0.034388 | **0.031335** | −8.9% | 0.031546 | **−0.7%** |
-| Electricity | refinement, mask-aware | 41 | 0.130393 | **0.105336** | −19.2% | 0.080314 | +31.2% |
-| **Mean, all 6** | | | 0.083759 | **0.066254** | **−20.9%** | 0.062184 | **+6.5%** |
-| Mean, the 5 other than Electricity | | | 0.074432 | **0.058438** | **−21.5%** | 0.058558 | **−0.2%** |
+| ETTm1 | gated refinement, mask-aware, gated phase mixing | 599 | 0.071481 | **0.041517** | −41.9% | 0.047031 | **−11.7%** |
+| ETTh2 | gated refinement, mask-aware | 42 | 0.070296 | **0.064077** | −8.8% | 0.066370 | **−3.5%** |
+| ETTm2 | gated refinement, mask-aware | 582 | 0.032690 | **0.026926** | −17.6% | 0.027787 | **−3.1%** |
+| Weather | gated refinement, mask-aware, gated phase mixing | 599 | 0.034388 | **0.029912** | −13.0% | 0.031546 | **−5.2%** |
+| Electricity | gated refinement, mask-aware | 42 | 0.130393 | **0.104778** | −19.6% | 0.080314 | +30.5% |
+| **Mean, all 6** | | | 0.083759 | **0.064649** | **−22.8%** | 0.062184 | **+4.0%** |
+| Mean, the 5 other than Electricity | | | 0.074432 | **0.056623** | **−23.9%** | 0.058558 | **−3.3%** |
 
-Over all six datasets the gap to TimeMixer goes from **+34.7% to +6.5%**, closing 81% of it. On the
-five other than Electricity it goes from +27.1% to −0.2%. Validation picked the configuration with
-the lowest test error on 5 of 6 datasets; on ETTm2 it picked refinement over all units, which cost
-0.5%.
+Over all six datasets the gap to TimeMixer goes from **+34.7% to +4.0%**, closing 88% of it. On the
+five other than Electricity SparseTSFPlus is now 3.3% ahead (from +27.1% behind). Validation picked
+the configuration with the lowest test error, or one within 0.3% of it, on every dataset.
+
+**One configuration is now almost as good as choosing per dataset.** Before the refinement gate, the
+best single configuration was 8% behind the per-dataset choice (0.0716 against 0.0663). With it,
+gated refinement plus mask-aware aggregation on every dataset averages **0.0651**, within 0.7% of
+the per-dataset choice (0.0646). It beats TimeMixer on four of the six datasets (ETTh2, ETTm1, ETTm2,
+Weather) and on the mean of the five other than Electricity (0.0572 against 0.0586), with 42 to 582
+parameters. This is the gate's main result (Section 4).
 
 **Electricity is where TimeMixer stays clearly ahead.** TimeMixer's Electricity cells were measured
-last, after this ablation. Refinement with mask-aware aggregation cuts SparseTSF's error there by
-19.2%, but TimeMixer is 31.2% better still. So the parity holds on five of six datasets, not all six.
+last, after this ablation. Gated refinement with mask-aware aggregation cuts SparseTSF's error there
+by 19.6%, but TimeMixer is 30.5% better still.
 
-**ETTh2 is where the units fail.** Every unit variant is worse than plain SparseTSF there — up to 70%
-worse at low mask rates — and even the training loss settles at about twice SparseTSF's, so the
-shared-weight two-pass setup lands on a worse solution on this dataset. A fresh run of plain
-SparseTSF reproduced the published result exactly (0.058744, identical validation loss), so the
-setup is not at fault. Validation correctly rejects every unit on ETTh2.
-
-**The parity depends on choosing per dataset.** With one fixed configuration everywhere, the best is
-refinement plus mask-aware aggregation: 14.5% better than SparseTSF over six datasets, but 15.2%
-behind TimeMixer over six (10.8% over the five other than Electricity), with ETTh2 the main cost
-among those five. A refinement step that can switch itself off
-where it hurts would close most of that difference, and is the clearest next step toward one
-configuration for every dataset.
+**ETTh2 is no longer a failure.** Every ungated unit variant was worse than plain SparseTSF on ETTh2,
+by up to 70% at low mask rates, and its training loss settled at about twice SparseTSF's. Validation
+used to reject every unit there. With the gate, refinement settles at about half strength and beats
+plain SparseTSF at every mask rate (−8.8% on average), and TimeMixer as well (−3.5%).
 
 ETTh1 and ETTm1 per mask rate:
 
 | mask | ETTh1 SparseTSF | **ETTh1 Plus** | ETTh1 TimeMixer | ETTm1 SparseTSF | **ETTm1 Plus** | ETTm1 TimeMixer |
 |---:|---:|---:|---:|---:|---:|---:|
-| 0.125 | 0.113335 | **0.089294** | 0.096742 | 0.048898 | **0.034291** | 0.039071 |
-| 0.25 | 0.146550 | **0.105566** | 0.111707 | 0.062403 | **0.036845** | 0.042218 |
-| 0.375 | 0.179265 | **0.128675** | 0.125347 | 0.078078 | **0.042312** | 0.048693 |
-| 0.5 | 0.214076 | **0.159201** | 0.146432 | 0.096544 | **0.054591** | 0.058143 |
-| **mean** | 0.163307 | **0.120684** | 0.120057 | 0.071481 | **0.042010** | 0.047031 |
+| 0.125 | 0.113335 | **0.089294** | 0.096742 | 0.048898 | **0.034178** | 0.039071 |
+| 0.25 | 0.146550 | **0.105566** | 0.111707 | 0.062403 | **0.036781** | 0.042218 |
+| 0.375 | 0.179265 | **0.128675** | 0.125347 | 0.078078 | **0.042464** | 0.048693 |
+| 0.5 | 0.214076 | **0.159201** | 0.146432 | 0.096544 | **0.052645** | 0.058143 |
+| **mean** | 0.163307 | **0.120684** | 0.120057 | 0.071481 | **0.041517** | 0.047031 |
 
-The gap moves from **+36.0% → +0.5%** on ETTh1 and **+52.0% → −10.7%** on ETTm1. ETTh1 beats
+The gap moves from **+36.0% → +0.5%** on ETTh1 and **+52.0% → −11.7%** on ETTm1. ETTh1 beats
 TimeMixer outright at the two lower mask rates.
 
 Two observations worth discussing:
 
-- **The parameter-free unit does most of the work.** Refinement is part of the chosen configuration
-  on five of six datasets and adds no parameters; on ETTh1 and Electricity the improved model is the
-  same 41 parameters as stock SparseTSF.
-- **Unit composition depends on the dataset.** ETTm1 (~34k windows) benefits from every unit and
-  they compose; ETTh1 (~8.5k windows) is best with the free unit alone, and adding capacity hurts.
-  The ordering is stable across all four mask rates independently, so this is a real effect and not
-  an artefact — and with ETTh2 it means no single fixed configuration is optimal.
-
-On ETTh1 and ETTm1, validation ranked all 24 cells in exactly the test order, so the unit selection
-does not depend on the test signal.
+- **The parameter-free unit does most of the work.** Refinement, gated or not, is part of the chosen
+  configuration on all six datasets. It adds no parameters, and its gate adds one; on ETTh1, ETTh2
+  and Electricity the improved model has 41 or 42 parameters, against stock SparseTSF's 41.
+- **Unit composition depends on the dataset, but much less than it did.** ETTm1 (~34k windows)
+  benefits from every unit and they compose; ETTh1 (~8.5k windows) is best with ungated refinement
+  alone, and adding capacity hurts. Gated refinement narrows the spread: on every dataset it is
+  within 2% of the validation choice (on ETTh1 it is 1.9% behind).
 
 ### PEMS multivariate short-term — 24% of the MAE removed, channel-independently
 
@@ -458,33 +502,36 @@ thesis's actual target, SparseTSFPlus was run on every task and dataset of the p
 versions ([results_sparsetsf_plus_suite.md](results_sparsetsf_plus_suite.md)):
 
 - **Fixed**: one configuration for everything. Learned-trend decomposition and phase mixing in
-  the backbone; refinement and mask-aware aggregation whenever the input has missing values;
-  default heads otherwise.
+  the backbone; gated refinement and mask-aware aggregation whenever the input has missing values;
+  default heads otherwise. (Refinement was ungated in the first version of this run; the gate,
+  Section 4, changes only the imputation rows.)
 - **Per task**: the unit set that won each task in the ablations, applied unchanged to all of
   that task's datasets.
 
 Both use SparseTSF's own published period for every dataset, so nothing is tuned per dataset.
 
-**The cost of generality is small.** The fixed version is within 0.4% of the per-task version
-everywhere except imputation (+3.9%), and slightly ahead on long-term forecasting, M4 and PEMS.
-That one exception has a single source: phase mixing in the reconstruction path costs 17.7% on
-Electricity imputation.
+**The cost of generality is small outside imputation.** The fixed version is within 0.4% of the
+per-task version on every other task, and slightly ahead on long-term forecasting, M4 and PEMS. In
+imputation it is 5.8% behind (0.0689 against 0.0651). That gap has a single source: phase mixing,
+which the per-task imputation configuration leaves out. It costs 20.1% on ETTh2 and 10.5% on
+Electricity and is within ±1.2% on the other four datasets.
 
-**Against SparseTSF it improves or matches every task:** PEMS −25.4%, imputation −11.2%, M4 OWA
+**Against SparseTSF it improves or matches every task:** PEMS −25.4%, imputation −17.8%, M4 OWA
 −6.0%, few-shot −2.0%, long-term −1.8%, zero-shot −0.4%. Anomaly detection and classification do
 not move. Phase mixing changes anomaly F1 by 0.02 points while taking the model from 41 to 666
 parameters, and no unit applies to the classification head.
 
 **Against TimeMixer (local)** it wins few-shot (−12.1%), zero-shot (−12.7%) and anomaly detection
 (+4.5 F1 points, carried by MSL). It loses long-term forecasting (+8.4%; it wins both hourly ETT
-datasets and trails most on Solar), M4 (+8.7%), PEMS (+45.3%), imputation (+19.6%) and
+datasets and trails most on Solar), M4 (+8.7%), PEMS (+45.3%), imputation (+10.8%) and
 classification (−1.5 points).
 
-**Where the one configuration still hurts.** Two units are not yet safe by default:
-- Refinement on ETTh2 imputation: 0.0906 against SparseTSF's 0.0703.
-- Phase mixing on Electricity imputation: 0.1239 against 0.1053 without it.
-
-Both are the targets of the next step (Section 8). The remaining gaps to TimeMixer are the
+**Where the one configuration still hurts.** The first version of this run found two units that
+were not safe by default: refinement on ETTh2 imputation, and phase mixing on Electricity
+imputation. A learned gate fixed the first: gated refinement now beats ungated refinement on all
+six imputation datasets (Section 4). It did not fix the second. Phase mixing still costs 31–44%
+on ETTh2 and 16–26% on Electricity at mask rates 0.375 and 0.5, while helping slightly at lower
+rates, and it is the next step's target (Section 8). The remaining gaps to TimeMixer are the
 structural ones identified earlier:
 - cross-channel structure (PEMS)
 - a 96-step lookback shorter than the 144-step daily cycle (Solar, as for Weather)
@@ -563,20 +610,36 @@ forecasting on Solar, Electricity and Traffic took most of it. There SparseTSFPl
 epochs than SparseTSF before early stopping, and each epoch costs more, up to 4× SparseTSF's time
 on Traffic.
 
+**Gates (Section 4).** Three imputation variants on 6 datasets × 4 mask rates:
+
+| Experiment group | Runs | Training time |
+|---|---:|---:|
+| Gated refinement (`u5g`) | 24 | 2,932 s |
+| Gated refinement and gated phase mixing (`allg`) | 24 | 3,371 s |
+| Gated refinement, ungated phase mixing (`allrg`) | 24 | 3,202 s |
+| **Total** | **72** | **9,506 s (2 h 38 m)** |
+
+Wall clock was 3 h 30 m, about a third of it on Electricity.
+
 ---
 
 ## 8. Next steps
 
 Ordered by value for the goal of one model that serves every task.
 
-1. **Make the two harmful units safe by default.** The one-configuration run (Section 6) shows
-   exactly where a fixed SparseTSFPlus still loses to a tuned one:
-   - refinement on ETTh2 imputation;
-   - phase mixing in the reconstruction path on Electricity.
+1. **Make phase mixing safe on inputs with missing values.** Gated refinement closed one of the
+   two gaps the one-configuration run exposed (Section 4). The other remains: phase mixing costs
+   16–44% on ETTh2 and Electricity imputation at mask rates 0.375 and 0.5, a gate did not remove
+   it, and PEMS needs phase mixing, so it cannot simply leave the model. The harm appears only when
+   many points are missing, which suggests that mixing along the phase axis spreads the holes into
+   observed phases. Two candidates follow from that:
+   - apply phase mixing only to complete inputs, which in imputation means the refinement pass,
+     not the first pass;
+   - make it mask-aware, mixing only observed phases, the way mask-aware aggregation does for the
+     convolution.
 
-   Each needs a learned gate initialised to pass-through, so training can switch the unit off
-   where it hurts. Success means recovering those two datasets while keeping the gains elsewhere,
-   measured with the same suite runner.
+   Either should remove the high-mask harm and keep the small gains at low mask rates. If it does
+   not, the holes are not the mechanism.
 
 2. **Repeat the headline results over more seeds.** Every run so far uses one seed. The fixed and
    per-task versions differ by under 1% on most tasks, which one seed cannot resolve.
@@ -598,8 +661,9 @@ Ordered by value for the goal of one model that serves every task.
    daily cycle is 144 steps against a 96-step lookback, which no period-based mechanism can
    recover; a longer lookback is the more promising direction.
 
-Measured and closed since the first version of this report: one fixed configuration on all
-eight tasks and its energy cost (Section 6), the four remaining imputation datasets, PEMS03/04/07, low-rank phase mixing, both forms of decomposition, the multi-period
+Measured and closed since the first version of this report: learned gates for refinement (adopted)
+and phase mixing (rejected) (Section 4), one fixed configuration on all eight tasks and its energy
+cost (Section 6), the four remaining imputation datasets, PEMS03/04/07, low-rank phase mixing, both forms of decomposition, the multi-period
 ensemble, phase mixing combined with decomposition, and leave-one-out reconstruction for anomaly
 detection.
 

@@ -9,6 +9,98 @@ Numbers are **local** (this machine, this protocol) unless marked **published**.
 
 ---
 
+## 2026-10-21 — Gates for refinement and phase mixing
+
+**Planned.** The fixed SparseTSFPlus loses to a tuned one in two places, both in imputation:
+refinement on ETTh2 (0.0955 against 0.0703 without it) and phase mixing on Electricity (0.1239
+against 0.1053). The thesis rule is that a unit which helps one dataset and hurts another needs a
+safe default before it joins the fixed configuration.
+
+- **Evidence that a learned switch can work.** In both cases the unit also raises the *training*
+  loss: on ETTh2 at mask 0.125, refinement gives 0.114 against 0.058, and on Electricity at
+  mask 0.25 phase mixing gives 0.129 against 0.095. So the harm is visible to the training
+  signal; it is not overfitting.
+- **Idea.** A ReZero gate (Bachlechner et al., UAI 2021), the same zero-initialised scalar this
+  model already uses for its multi-period branches. Each unit's contribution is multiplied by one
+  learned number that starts at 0, so a gated unit starts as the model without it, and training
+  decides how much of it to use. Cost: 1 parameter per unit.
+- **Refinement gate.** The output becomes pass 1 + g·(pass 2 − pass 1). Without the gate, pass 2
+  replaces pass 1, so "no refinement" cannot even be represented once the unit is on, and the
+  shared weights must serve both the input with holes and the filled one.
+- **Phase-mixing gate.** img + g·mix(img). The ungated mixer also starts at zero, yet training
+  carries it somewhere worse on Electricity; the gate puts the unit's whole contribution behind
+  one number.
+- **Checked before running.** With each gate at its starting zero, the gated model's output is
+  bitwise identical to the model without that unit (forecasting, imputation, anomaly detection),
+  and all units off is still bitwise SparseTSF.
+- **Runs.** Two imputation variants on all 6 datasets × 4 mask rates (48 runs, about 3 hours):
+  `u5g` (refinement gated) and `allg` (refinement and phase mixing both gated, the candidate
+  imputation form of the fixed configuration). Each run's learned gate values go into its log.
+- **Predictions, and what would refute them.**
+  1. ETTh2: `u5g` comes back to within 5% of no refinement (≤ 0.074), with a small refinement
+     gate. Refuted if ETTh2 stays above 0.085.
+  2. Where refinement helps (ETTh1, ETTm1, ETTm2, Weather, Electricity), `u5g` stays within 3% of
+     ungated `u5`. If the gate stays near zero there too, it only switches refinement off
+     everywhere: safe, but useless.
+  3. Electricity: `allg` comes back to within 2% of `u5` (≤ 0.1075). Refuted if it stays above
+     0.115.
+  4. The six-dataset mean of `allg` is at or below the per-task result (0.0716), which would
+     close the 3.9% cost of generality in imputation.
+- **Caveats.** Imputation early-stops on the test split (upstream behaviour), so these results
+  are a sensitivity analysis, and every run uses one seed.
+
+**Done.** 72 imputation runs (3 h 30 m): the two planned variants, plus `allrg` (refinement gated,
+phase mixing ungated). `allrg` was added once ETTh2 and Electricity showed that only the refinement
+gate works, because it is the imputation form the fixed configuration then takes. Learned gate
+values were read from every tested checkpoint.
+
+**Found.** Six-dataset means of masked MSE (lower is better):
+
+| | no units | refinement | + phase mixing (old fixed) | **gated refinement** | both gated | gated refinement + phase mixing (new fixed) |
+|---|---:|---:|---:|---:|---:|---:|
+| test | 0.0838 | 0.0716 | 0.0744 | **0.0651** | 0.0688 | 0.0689 |
+| validation | 0.0904 | 0.0763 | 0.0784 | **0.0713** | 0.0737 | 0.0737 |
+
+- **Prediction 1 was wrong, and the result was better than predicted.** On ETTh2 the refinement gate
+  did not switch refinement off; it settled at about 0.5, averaging the two passes. That beat both no
+  refinement (0.0641 against 0.0703) and full refinement (0.0955) at every mask rate.
+- **Prediction 2 held, and more.** Gated refinement is better than ungated on all six datasets,
+  −9.1% on average, and lowest on validation. Its gate rises with the mask rate on five of six
+  datasets (more holes, more weight on the refinement pass), and is lowest on the hourly ETT sets
+  (0.48–0.70) and near 1 elsewhere.
+- **One imputation configuration is now within 0.7% of choosing per dataset** (0.0651 against
+  0.0646; before the gate, 8% behind). It beats the local TimeMixer on four of six datasets (ETTh2,
+  ETTm1, ETTm2, Weather) and on the mean of the five other than Electricity (0.0572 against 0.0586),
+  with 42 to 582 parameters. Electricity stays 30.5% behind.
+- **Prediction 3 was refuted: the phase-mixing gate does not work.** Electricity reached 0.1159
+  against the 0.115 refutation line; on average the gate changes nothing (0.0688 against 0.0689).
+  Phase mixing helps or is neutral at masks 0.125 and 0.25 on every dataset (−4.1% to +2.5%), but
+  at 0.375 and 0.5 it costs +31% to +44% on ETTh2 and +16% to +26% on Electricity, gated or not.
+  There the gate moves well away from 0 and training ends at the same worse result.
+- **Prediction 4 held as stated, but the gap it was meant to close moved.** Both gated (0.0688) is
+  below the old per-task 0.0716. But the per-task form improved too, to 0.0651, so the fixed
+  configuration (0.0744 → 0.0689, −7.4%) is now 5.8% behind it, all of it from phase mixing.
+- **Fixed configuration against the baselines, imputation:** −17.8% against SparseTSF (was −11.2%),
+  +10.8% against TimeMixer (was +19.6%). No other task changes, since the refinement gate acts only
+  on imputation.
+- **A side observation about ETTh2.** Some runs sit on a training-loss plateau around 0.11–0.12
+  and either escape late in training or never do. That is half the loss of predicting each window's
+  mean (0.24), so it is a partial solution rather than the trivial one. Which side a run lands on
+  is partly chance, one more reason for seed repeats.
+
+**Reports changed.** `results_sparsetsf_plus_ablation.md` (three variants, a mean table on test and
+validation, learned gate values); `results_sparsetsf_plus_suite.md` (both versions now use gated
+refinement; findings); `results_sparsetsf_plus_report.md` (headline, new Section 4 subsection on
+gates, Section 5 imputation re-selected on validation, Sections 6–8); `results_sparsetsf_all_tasks.md`
+(run counts).
+
+**Next.** Make phase mixing safe on inputs with missing values. The harm appearing only when many
+points are missing suggests that mixing along the phase axis spreads the holes. Candidates: apply
+phase mixing only to complete inputs (in imputation, the refinement pass), or make it mask-aware.
+If neither removes the high-mask harm, the holes are not the mechanism. Then seed repeats.
+
+---
+
 ## 2026-10-21 — SparseTSFPlus as one model on all eight tasks
 
 **Planned.** Until now every SparseTSFPlus result chose its units per dataset, which is an
