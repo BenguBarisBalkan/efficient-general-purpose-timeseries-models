@@ -9,6 +9,69 @@ Numbers are **local** (this machine, this protocol) unless marked **published**.
 
 ---
 
+## 2026-10-21 — SparseTSFPlus as one model on all eight tasks
+
+**Planned.** Until now every SparseTSFPlus result chose its units per dataset, which is an
+ablation, not a model. The thesis's target is one fixed configuration. So SparseTSFPlus was run on
+every task and dataset the other models have, in two versions:
+- **fixed**: one configuration for everything;
+- **per task**: each task's winning unit set, applied to all its datasets.
+
+The gap between the two is the current cost of generality.
+
+**Done.** 220 new runs overnight (about 8 hours) plus 40 same-session energy reference runs.
+- **Fixed version:** learned-trend decomposition and phase mixing in the backbone; refinement and
+  mask-aware aggregation when inputs have missing values.
+- **Both versions:** SparseTSF's published periods and training settings, so each row differs from
+  SparseTSF only in the units.
+- **Reused, not re-run:** imputation, classification, per-task PEMS and per-task anomaly, where
+  identical runs already existed.
+
+**Found.**
+- **One configuration costs almost nothing.** The fixed version is within 0.4% of the per-task one
+  on every task except imputation (+3.9%). That gap comes from phase mixing on Electricity
+  imputation (+17.7%).
+- **Against SparseTSF it improves or matches every task:** PEMS −25.4%, imputation −11.2%, M4 OWA
+  −6.0%, few-shot −2.0%, long-term −1.8%, zero-shot −0.4%. Anomaly detection and classification
+  are unchanged.
+- **Against TimeMixer (local)** it wins few-shot (−12.1%), zero-shot (−12.7%) and anomaly detection
+  (+4.5 F1). It loses long-term (+8.4%), M4 (+8.7%), PEMS (+45.3%), imputation (+19.6%) and
+  classification (−1.5 points).
+- **Not yet safe by default:** refinement on ETTh2 imputation and phase mixing on Electricity
+  imputation, the two places a fixed SparseTSFPlus still loses to a tuned one.
+- **Energy:** the fixed version uses 1.35× SparseTSF's energy and TimeMixer 18.9×
+  (14× SparseTSFPlus), with all three measured in the same session. Today's SparseTSF total is 42%
+  below July's, while TimeMixer's moved 5%, so only same-session ratios are reliable. The July
+  SparseTSF/TimeMixer ratio of 8.7% overstates SparseTSF's cost; same-session it is 5.3%.
+
+**Reports changed.** New `results_sparsetsf_plus_suite.md`; the SparseTSFPlus report (new
+headline, Section 6, runtime, next steps); `results_sparsetsf_all_tasks.md` (pointer and coverage
+tables).
+
+**Next.** Gates that let refinement and phase mixing switch themselves off, measured with the same
+suite runner; then seed repeats.
+
+---
+
+## 2026-10-21 — Runs-and-coverage tables
+
+**Planned.** One place that shows every run in the study, per model and task, against the paper's
+protocol, so coverage and gaps are visible at a glance.
+
+**Done.** A "Runs and coverage" section in `results_sparsetsf_all_tasks.md`, counted from the logs
+by `benchmarks/tools/build_run_inventory.py`, so it stays current after every new run.
+
+**Found.** 559 finished runs: SparseTSF 187, SparseTSFPlus 185, TimeMixer 146, TimeMixer++ 41.
+Three are unfinished and ruled out on this laptop (TimeMixer Traffic 336/720, TimeMixer++ Solar
+192). SparseTSF and TimeMixer cover every obtainable cell of the paper's protocol; TimeMixer++ is
+paper-only outside long-term forecasting. SparseTSFPlus has unit-variant runs only.
+
+**Reports changed.** `results_sparsetsf_all_tasks.md`.
+
+**Next.** The single-configuration SparseTSFPlus sweep, which is the column still missing.
+
+---
+
 ## 2026-10-21 — Anomaly detection extended to MSL and SMAP (4 of 5 datasets)
 
 **Planned.** Anomaly detection covered only 2 of the paper's 5 datasets. MSL and SMAP had been

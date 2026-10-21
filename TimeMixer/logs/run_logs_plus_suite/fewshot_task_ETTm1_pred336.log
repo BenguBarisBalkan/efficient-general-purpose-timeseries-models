@@ -1,0 +1,57 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=32, c_out=7, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=16, data='ETTm1', data_path='ETTm1.csv', dec_in=7, decomp_method='moving_avg', des='FewShot', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=7, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=0, learning_rate=0.02, loss='MSE', lradj='type3', mask_rate=0.125, model='SparseTSFPlus', model_id='FEWSHOT_PLUS_task_ETTm1_96_336', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=5, pct_start=0.2, percent=10, period_len=4, pred_len=336, root_path='<workspace>\\dataset\\ETT-small', seasonal_patterns='Monthly', seq_len=96, stream_metrics=0, stsf_cls_head='flat', stsf_cls_segments=8, stsf_decomp='linear', stsf_decomp_kernel=25, stsf_diag_mask=0, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_kernel=3, stsf_phase_mix='off', stsf_phase_rank=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='long_term_forecast', top_k=5, track_emissions=0, train_epochs=30, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+trainable_params:4037
+units:decomp=linear
+>>>>>>>start training : long_term_forecast_FEWSHOT_PLUS_task_ETTm1_96_336_none_SparseTSFPlus_ETTm1_sl96_pl336_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_FewShot_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 3111
+val 11185
+test 11185
+Epoch: 1 cost time: 2.4136993885040283
+Epoch: 1, Steps: 97 | Train Loss: 0.4867070 Vali Loss: 0.8592063 Test Loss: 0.6042249
+Validation loss decreased (inf --> 0.859206).  Saving model ...
+Updating learning rate to 0.02
+Epoch: 2 cost time: 0.38430213928222656
+Epoch: 2, Steps: 97 | Train Loss: 0.4369110 Vali Loss: 0.7636116 Test Loss: 0.5099308
+Validation loss decreased (0.859206 --> 0.763612).  Saving model ...
+Updating learning rate to 0.02
+Epoch: 3 cost time: 0.45891571044921875
+Epoch: 3, Steps: 97 | Train Loss: 0.4295757 Vali Loss: 0.7484189 Test Loss: 0.4896956
+Validation loss decreased (0.763612 --> 0.748419).  Saving model ...
+Updating learning rate to 0.02
+Epoch: 4 cost time: 0.4423224925994873
+Epoch: 4, Steps: 97 | Train Loss: 0.4267236 Vali Loss: 0.7728544 Test Loss: 0.5070014
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.018000000000000002
+Epoch: 5 cost time: 0.4690217971801758
+Epoch: 5, Steps: 97 | Train Loss: 0.4262291 Vali Loss: 0.7558074 Test Loss: 0.4933734
+EarlyStopping counter: 2 out of 5
+Updating learning rate to 0.016200000000000003
+Epoch: 6 cost time: 0.49470973014831543
+Epoch: 6, Steps: 97 | Train Loss: 0.4252752 Vali Loss: 0.7385760 Test Loss: 0.4792801
+Validation loss decreased (0.748419 --> 0.738576).  Saving model ...
+Updating learning rate to 0.014580000000000003
+Epoch: 7 cost time: 0.4680454730987549
+Epoch: 7, Steps: 97 | Train Loss: 0.4253137 Vali Loss: 0.7588801 Test Loss: 0.4926879
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.013122
+Epoch: 8 cost time: 0.5160555839538574
+Epoch: 8, Steps: 97 | Train Loss: 0.4245378 Vali Loss: 0.7750979 Test Loss: 0.5099556
+EarlyStopping counter: 2 out of 5
+Updating learning rate to 0.011809800000000002
+Epoch: 9 cost time: 0.4940347671508789
+Epoch: 9, Steps: 97 | Train Loss: 0.4246183 Vali Loss: 0.7571272 Test Loss: 0.4952240
+EarlyStopping counter: 3 out of 5
+Updating learning rate to 0.01062882
+Epoch: 10 cost time: 0.4809427261352539
+Epoch: 10, Steps: 97 | Train Loss: 0.4240367 Vali Loss: 0.7508297 Test Loss: 0.4883566
+EarlyStopping counter: 4 out of 5
+Updating learning rate to 0.009565938000000001
+Epoch: 11 cost time: 0.49154114723205566
+Epoch: 11, Steps: 97 | Train Loss: 0.4246766 Vali Loss: 0.7637747 Test Loss: 0.5004172
+EarlyStopping counter: 5 out of 5
+Early stopping
+>>>>>>>testing : long_term_forecast_FEWSHOT_PLUS_task_ETTm1_96_336_none_SparseTSFPlus_ETTm1_sl96_pl336_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_FewShot_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test 11185
+mse:0.4792802035808563, mae:0.4476237893104553
+RMSE:0.6923006772994995, MAPE:0.7263418436050415, MSPE:375.65240478515625

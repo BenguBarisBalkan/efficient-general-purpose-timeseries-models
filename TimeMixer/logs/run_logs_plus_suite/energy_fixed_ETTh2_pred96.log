@@ -1,0 +1,45 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=64, c_out=7, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=64, d_layers=1, d_model=32, data='ETTh2', data_path='ETTh2.csv', dec_in=7, decomp_method='moving_avg', des='Carbon', devices='0,1', distil=True, down_sampling_layers=3, down_sampling_method='avg', down_sampling_window=2, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions_timemixer.csv', emissions_output_dir='<workspace>\\TimeMixer\\logs', enc_in=7, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=0, learning_rate=5e-05, loss='MSE', lradj='type1', mask_rate=0.125, model='SparseTSFPlus', model_id='CARBON_SparseTSFPlus-fixed_ETTh2_96_96', model_type='linear', moving_avg=25, n_heads=4, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=999, pct_start=0.2, percent=100, period_len=24, pred_len=96, root_path='<workspace>\\dataset\\ETT-small', seasonal_patterns='Monthly', seq_len=96, stream_metrics=0, stsf_cls_head='flat', stsf_cls_segments=8, stsf_decomp='linear', stsf_decomp_kernel=25, stsf_diag_mask=0, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_kernel=3, stsf_phase_mix='linear', stsf_phase_rank=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='long_term_forecast', top_k=3, track_emissions=1, train_epochs=5, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+trainable_params:633
+units:phase_mix=linear,decomp=linear
+[codecarbon WARNING @ 05:21:41] Multiple instances of codecarbon are allowed to run at the same time.
+>>>>>>>start training : long_term_forecast_CARBON_SparseTSFPlus-fixed_ETTh2_96_96_none_SparseTSFPlus_ETTh2_sl96_pl96_dm32_nh4_el2_dl1_df64_fc1_ebtimeF_dtTrue_Carbon_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 8449
+val 2785
+test 2785
+	iters: 100, epoch: 1 | loss: 0.9142694
+	speed: 0.0280s/iter; left time: 15.7045s
+Epoch: 1 cost time: 2.989359140396118
+Epoch: 1, Steps: 132 | Train Loss: 0.6095846 Vali Loss: 0.3349303 Test Loss: 0.4378409
+Validation loss decreased (inf --> 0.334930).  Saving model ...
+Updating learning rate to 5e-05
+	iters: 100, epoch: 2 | loss: 0.5410135
+	speed: 0.0099s/iter; left time: 4.2367s
+Epoch: 2 cost time: 0.7442669868469238
+Epoch: 2, Steps: 132 | Train Loss: 0.6032851 Vali Loss: 0.3272518 Test Loss: 0.4273168
+Validation loss decreased (0.334930 --> 0.327252).  Saving model ...
+Updating learning rate to 2.5e-05
+	iters: 100, epoch: 3 | loss: 0.5163707
+	speed: 0.0100s/iter; left time: 2.9738s
+Epoch: 3 cost time: 0.7445225715637207
+Epoch: 3, Steps: 132 | Train Loss: 0.5943383 Vali Loss: 0.3240594 Test Loss: 0.4230298
+Validation loss decreased (0.327252 --> 0.324059).  Saving model ...
+Updating learning rate to 1.25e-05
+	iters: 100, epoch: 4 | loss: 0.5986180
+	speed: 0.0099s/iter; left time: 1.6313s
+Epoch: 4 cost time: 0.7225654125213623
+Epoch: 4, Steps: 132 | Train Loss: 0.5904904 Vali Loss: 0.3224524 Test Loss: 0.4210205
+Validation loss decreased (0.324059 --> 0.322452).  Saving model ...
+Updating learning rate to 6.25e-06
+	iters: 100, epoch: 5 | loss: 0.2919264
+	speed: 0.0099s/iter; left time: 0.3258s
+Epoch: 5 cost time: 0.7515232563018799
+Epoch: 5, Steps: 132 | Train Loss: 0.5886721 Vali Loss: 0.3217729 Test Loss: 0.4200461
+Validation loss decreased (0.322452 --> 0.321773).  Saving model ...
+Updating learning rate to 3.125e-06
+>>>>>>>testing : long_term_forecast_CARBON_SparseTSFPlus-fixed_ETTh2_96_96_none_SparseTSFPlus_ETTh2_sl96_pl96_dm32_nh4_el2_dl1_df64_fc1_ebtimeF_dtTrue_Carbon_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test 2785
+mse:0.4200459420681, mae:0.43150219321250916
+RMSE:0.648109495639801, MAPE:0.5826898217201233, MSPE:457.67181396484375
+emissions_kg:4.439029091522454e-05

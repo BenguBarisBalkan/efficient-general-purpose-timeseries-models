@@ -1,0 +1,61 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=256, c_out=7, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=128, data='ETTm2', data_path='ETTm2.csv', dec_in=7, decomp_method='moving_avg', des='PlusSuite', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=7, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=0, learning_rate=0.02, loss='MSE', lradj='type3', mask_rate=0.125, model='SparseTSFPlus', model_id='PLUS_task_ETTm2_96_96', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=5, pct_start=0.2, percent=100, period_len=4, pred_len=96, root_path='<workspace>\\dataset\\ETT-small', seasonal_patterns='Monthly', seq_len=96, stream_metrics=0, stsf_cls_head='flat', stsf_cls_segments=8, stsf_decomp='linear', stsf_decomp_kernel=25, stsf_diag_mask=0, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_kernel=3, stsf_phase_mix='off', stsf_phase_rank=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='long_term_forecast', top_k=5, track_emissions=0, train_epochs=30, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+trainable_params:1157
+units:decomp=linear
+>>>>>>>start training : long_term_forecast_PLUS_task_ETTm2_96_96_none_SparseTSFPlus_ETTm2_sl96_pl96_dm128_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_PlusSuite_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 34369
+val 11425
+test 11425
+	iters: 100, epoch: 1 | loss: 0.2279520
+	speed: 0.0368s/iter; left time: 144.3570s
+Epoch: 1 cost time: 4.126549959182739
+Epoch: 1, Steps: 134 | Train Loss: 0.2943738 Vali Loss: 0.1433953 Test Loss: 0.2044922
+Validation loss decreased (inf --> 0.143395).  Saving model ...
+Updating learning rate to 0.02
+	iters: 100, epoch: 2 | loss: 0.2088813
+	speed: 0.0237s/iter; left time: 89.7162s
+Epoch: 2 cost time: 1.7200753688812256
+Epoch: 2, Steps: 134 | Train Loss: 0.2464990 Vali Loss: 0.1301705 Test Loss: 0.1862896
+Validation loss decreased (0.143395 --> 0.130170).  Saving model ...
+Updating learning rate to 0.02
+	iters: 100, epoch: 3 | loss: 0.2787335
+	speed: 0.0245s/iter; left time: 89.6091s
+Epoch: 3 cost time: 1.7349138259887695
+Epoch: 3, Steps: 134 | Train Loss: 0.2399942 Vali Loss: 0.1269065 Test Loss: 0.1838289
+Validation loss decreased (0.130170 --> 0.126907).  Saving model ...
+Updating learning rate to 0.02
+	iters: 100, epoch: 4 | loss: 0.2434991
+	speed: 0.0240s/iter; left time: 84.5996s
+Epoch: 4 cost time: 1.7195348739624023
+Epoch: 4, Steps: 134 | Train Loss: 0.2394879 Vali Loss: 0.1280126 Test Loss: 0.1843059
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.018000000000000002
+	iters: 100, epoch: 5 | loss: 0.1804275
+	speed: 0.0246s/iter; left time: 83.2979s
+Epoch: 5 cost time: 1.8434858322143555
+Epoch: 5, Steps: 134 | Train Loss: 0.2393354 Vali Loss: 0.1308166 Test Loss: 0.1866905
+EarlyStopping counter: 2 out of 5
+Updating learning rate to 0.016200000000000003
+	iters: 100, epoch: 6 | loss: 0.2412855
+	speed: 0.0244s/iter; left time: 79.2374s
+Epoch: 6 cost time: 1.7680752277374268
+Epoch: 6, Steps: 134 | Train Loss: 0.2388865 Vali Loss: 0.1289699 Test Loss: 0.1849931
+EarlyStopping counter: 3 out of 5
+Updating learning rate to 0.014580000000000003
+	iters: 100, epoch: 7 | loss: 0.2860436
+	speed: 0.0233s/iter; left time: 72.5443s
+Epoch: 7 cost time: 1.689725637435913
+Epoch: 7, Steps: 134 | Train Loss: 0.2386459 Vali Loss: 0.1273794 Test Loss: 0.1835689
+EarlyStopping counter: 4 out of 5
+Updating learning rate to 0.013122
+	iters: 100, epoch: 8 | loss: 0.2482412
+	speed: 0.0244s/iter; left time: 72.7199s
+Epoch: 8 cost time: 1.7122340202331543
+Epoch: 8, Steps: 134 | Train Loss: 0.2385849 Vali Loss: 0.1284520 Test Loss: 0.1845026
+EarlyStopping counter: 5 out of 5
+Early stopping
+>>>>>>>testing : long_term_forecast_PLUS_task_ETTm2_96_96_none_SparseTSFPlus_ETTm2_sl96_pl96_dm128_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_PlusSuite_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test 11425
+mse:0.18382897973060608, mae:0.2657797932624817
+RMSE:0.4287528097629547, MAPE:0.41917622089385986, MSPE:261.728271484375

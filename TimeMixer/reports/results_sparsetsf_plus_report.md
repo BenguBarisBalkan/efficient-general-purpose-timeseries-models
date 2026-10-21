@@ -3,8 +3,15 @@
 Consolidated write-up for the fourth model in this study: **SparseTSFPlus**, SparseTSF extended
 with cheap, individually-toggleable *units* borrowed from TimeMixer and TimeMixer++.
 
-**Headline.** On imputation, SparseTSFPlus cuts SparseTSF's error by 20.9% across all six
-datasets, closing 81% of its gap to TimeMixer (mean 0.0663 against 0.0622). It **matches
+**Headline.** Run as **one fixed configuration** on all eight tasks (Section 6), SparseTSFPlus
+improves on or matches SparseTSF on every task, with the largest gains on PEMS (−25.4%),
+imputation (−11.2%) and M4 (−6.0%). It gives up almost nothing against choosing units per task:
+within 0.4% everywhere except imputation (+3.9%). It beats the locally run TimeMixer on few-shot,
+zero-shot and anomaly detection with 37 to 8,661 parameters, and still trails it on long-term
+forecasting, M4, PEMS and imputation.
+
+Choosing units per dataset goes further. On imputation, SparseTSFPlus then cuts SparseTSF's error
+by 20.9% across all six datasets, closing 81% of its gap to TimeMixer (mean 0.0663 against 0.0622). It **matches
 TimeMixer on five of the six** (0.0584 against 0.0586) and stays 31% behind on Electricity, with
 41 to 597 parameters against TimeMixer's ~58,000–60,000. On PEMS multivariate short-term it removes 25%
 of the MAE on all four datasets for ~70 extra parameters. Forecasting gains are small (about 1%),
@@ -17,6 +24,7 @@ Supporting tables: [period sensitivity](results_period_sensitivity.md) ·
 [forecasting ablation](results_sparsetsf_plus_forecast.md) ·
 [anomaly ablation](results_sparsetsf_plus_anomaly.md) ·
 [classification ablation](results_sparsetsf_plus_classification.md) ·
+[**one model on all 8 tasks**](results_sparsetsf_plus_suite.md) ·
 [8-task suite](results_sparsetsf_all_tasks.md)
 
 ---
@@ -443,7 +451,60 @@ that gap.
 
 ---
 
-## 6. Runtime
+## 6. One model on all eight tasks
+
+The ablations above chose units per dataset, which is an ablation, not a model. To test the
+thesis's actual target, SparseTSFPlus was run on every task and dataset of the protocol in two
+versions ([results_sparsetsf_plus_suite.md](results_sparsetsf_plus_suite.md)):
+
+- **Fixed**: one configuration for everything. Learned-trend decomposition and phase mixing in
+  the backbone; refinement and mask-aware aggregation whenever the input has missing values;
+  default heads otherwise.
+- **Per task**: the unit set that won each task in the ablations, applied unchanged to all of
+  that task's datasets.
+
+Both use SparseTSF's own published period for every dataset, so nothing is tuned per dataset.
+
+**The cost of generality is small.** The fixed version is within 0.4% of the per-task version
+everywhere except imputation (+3.9%), and slightly ahead on long-term forecasting, M4 and PEMS.
+That one exception has a single source: phase mixing in the reconstruction path costs 17.7% on
+Electricity imputation.
+
+**Against SparseTSF it improves or matches every task:** PEMS −25.4%, imputation −11.2%, M4 OWA
+−6.0%, few-shot −2.0%, long-term −1.8%, zero-shot −0.4%. Anomaly detection and classification do
+not move. Phase mixing changes anomaly F1 by 0.02 points while taking the model from 41 to 666
+parameters, and no unit applies to the classification head.
+
+**Against TimeMixer (local)** it wins few-shot (−12.1%), zero-shot (−12.7%) and anomaly detection
+(+4.5 F1 points, carried by MSL). It loses long-term forecasting (+8.4%; it wins both hourly ETT
+datasets and trails most on Solar), M4 (+8.7%), PEMS (+45.3%), imputation (+19.6%) and
+classification (−1.5 points).
+
+**Where the one configuration still hurts.** Two units are not yet safe by default:
+- Refinement on ETTh2 imputation: 0.0906 against SparseTSF's 0.0703.
+- Phase mixing on Electricity imputation: 0.1239 against 0.1053 without it.
+
+Both are the targets of the next step (Section 8). The remaining gaps to TimeMixer are the
+structural ones identified earlier:
+- cross-channel structure (PEMS)
+- a 96-step lookback shorter than the 144-step daily cycle (Solar, as for Weather)
+- the classification head
+
+**Energy**, measured in the matched fixed-epoch protocol with SparseTSF and TimeMixer re-run in
+the same session:
+- The fixed SparseTSFPlus uses 1.35× SparseTSF's energy, so its units cost about a third more.
+- TimeMixer uses 18.9× SparseTSF's energy, which is 14× SparseTSFPlus's.
+
+Runs this short vary between sessions. SparseTSF's July total was 42% higher than today's, while
+TimeMixer's moved 5%, so only same-session ratios should be quoted. The July carbon table's
+SparseTSF/TimeMixer ratio of 8.7% is therefore an overestimate; the same-session figure is 5.3%.
+
+All of this is one seed. The differences between the two versions are mostly under 1%, too small
+to rank them without repeats.
+
+---
+
+## 7. Runtime
 
 107 training runs for this phase. Training time is measured exactly from the per-epoch timings in
 each log; wall clock is as observed.
@@ -482,31 +543,52 @@ Electricity; because every runner skips configurations whose log already holds a
 remainder was resumed in two shorter jobs and nothing was lost. Across both rounds, 204 runs took
 4 h 15 m of training.
 
+**One model on all eight tasks (Section 6).** 220 runs for the two versions plus 40 same-session
+energy references:
+
+| Experiment group | Runs | Training time |
+|---|---:|---:|
+| Long-term forecasting, 8 datasets × 4 horizons × 2 versions | 64 | 15,210 s |
+| Zero-shot, 6 pairs × 4 horizons × 2 | 48 | 1,039 s |
+| Few-shot, 6 datasets × 4 horizons × 2 | 48 | 776 s |
+| PEMS, fixed version | 4 | 794 s |
+| M4, 6 subsets × 2 | 12 | 521 s |
+| Anomaly, fixed version | 4 | 96 s |
+| Energy, SparseTSFPlus (both versions) | 40 | 667 s |
+| Energy, same-session SparseTSF and TimeMixer references | 40 | 3,186 s |
+| **Total** | **260** | **22,289 s (6 h 11 m)** |
+
+Wall clock was 9 h 9 m: 7 h 56 m for the suite and 1 h 13 m for the references. Long-term
+forecasting on Solar, Electricity and Traffic took most of it. There SparseTSFPlus trains for more
+epochs than SparseTSF before early stopping, and each epoch costs more, up to 4× SparseTSF's time
+on Traffic.
+
 ---
 
-## 7. Next steps
+## 8. Next steps
 
 Ordered by value for the goal of one model that serves every task.
 
-1. **Make refinement safe by default.** It is the strongest unit and is chosen on five of six
-   imputation datasets, but on ETTh2 it does real harm, and that one dataset is what separates
-   per-dataset parity from a single fixed configuration (−0.2% against +10.8% versus TimeMixer on
-   the five datasets other than Electricity).
-   A second pass behind a learned gate initialised to pass-through would let training switch it off
-   where it hurts. Success means recovering ETTh2 while keeping the gains elsewhere.
+1. **Make the two harmful units safe by default.** The one-configuration run (Section 6) shows
+   exactly where a fixed SparseTSFPlus still loses to a tuned one:
+   - refinement on ETTh2 imputation;
+   - phase mixing in the reconstruction path on Electricity.
 
-2. **Run one frozen configuration on every task.** Learned-trend decomposition for forecasting,
-   phase mixing where the fold constrains the model, and the masked-input rule for missing values,
-   all fixed across datasets. Report the gain over SparseTSF and the cost of generality — how much
-   of the per-dataset gains a single configuration gives up.
+   Each needs a learned gate initialised to pass-through, so training can switch the unit off
+   where it hurts. Success means recovering those two datasets while keeping the gains elsewhere,
+   measured with the same suite runner.
+
+2. **Repeat the headline results over more seeds.** Every run so far uses one seed. The fixed and
+   per-task versions differ by under 1% on most tasks, which one seed cannot resolve.
 
 3. **Fold these results into the top-level narrative.** `results_final_report.md` and the root
-   `README.md` still describe a three-model study. Imputation parity with TimeMixer on five of six
-   datasets, at 41 to 597 parameters, changes the headline claim.
+   `README.md` still describe a three-model study. One SparseTSFPlus configuration that improves
+   on SparseTSF on every task and beats TimeMixer on few-shot, zero-shot and anomaly detection, at
+   37 to 8,661 parameters, changes the headline claim.
 
-4. **Re-run the energy sweep for the new model.** Any energy claim requires the matched fixed-epoch
-   carbon protocol. Refinement adds no parameters but runs the reconstruction head twice, so its
-   energy cost should be measured rather than assumed negligible.
+4. **Measure energy beyond long-term forecasting.** The matched energy protocol covers only
+   long-term forecasting on five datasets. An efficiency claim across tasks needs the same
+   measurement per task.
 
 5. **Close the classification gap in the backbone, not the head.** TimeMixer++ classifies with the
    same kind of flatten-linear readout as SparseTSF, so its 15-point lead comes from what its
@@ -516,8 +598,8 @@ Ordered by value for the goal of one model that serves every task.
    daily cycle is 144 steps against a 96-step lookback, which no period-based mechanism can
    recover; a longer lookback is the more promising direction.
 
-Measured and closed since the first version of this report: the four remaining imputation
-datasets, PEMS03/04/07, low-rank phase mixing, both forms of decomposition, the multi-period
+Measured and closed since the first version of this report: one fixed configuration on all
+eight tasks and its energy cost (Section 6), the four remaining imputation datasets, PEMS03/04/07, low-rank phase mixing, both forms of decomposition, the multi-period
 ensemble, phase mixing combined with decomposition, and leave-one-out reconstruction for anomaly
 detection.
 
