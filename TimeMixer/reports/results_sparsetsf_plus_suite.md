@@ -49,6 +49,11 @@ All runs use one seed, so differences below about 1% are not findings on their o
   anomaly detection (+4.5 F1 points, carried by MSL). It loses long-term forecasting (+8.4%), M4
   (+8.7%), PEMS (+45.3%), imputation (+10.8%) and classification (−1.5 points). On long-term
   forecasting it beats TimeMixer on both hourly ETT datasets and trails on the rest, most on Solar.
+- **Candidate screen (24-hour plan, step 2).** Two gated channel-context units were screened on
+  PEMS and three long-term guard cells (table below). Both improve PEMS test MAE on all four
+  datasets (channel mean −3.9%, channel correlation −4.9% on average) and change the long-term
+  guard cells by −1.5% to +0.3%, but neither reached the pre-registered 5% validation gain on PEMS,
+  so neither ran the full suite. Their columns elsewhere repeat the fixed configuration's cells.
 - **Size.** The fixed version stays between 37 and 8,661 parameters outside classification
   (classification is SparseTSF's own head, 3,142–970,712), against TimeMixer's tens of thousands
   to millions.
@@ -63,117 +68,134 @@ All runs use one seed, so differences below about 1% are not findings on their o
 <!-- AUTO_PLUS_SUITE_START -->
 ### Summary
 
-| Task | Metric | SparseTSF | SparseTSFPlus (fixed) | SparseTSFPlus (per task) | TimeMixer |
-|---|---|---:|---:|---:|---:|
-| Long-term forecasting | MSE ↓ | 0.3398 | 0.3338 | 0.3344 | 0.3079 |
-| M4 short-term forecasting | OWA ↓ | 0.972 | 0.914 | 0.918 | 0.841 |
-| PEMS short-term forecasting | MAE ↓ | 34.13 | 25.45 | 25.50 | 17.51 |
-| Imputation | MSE ↓ | 0.0838 | 0.0689 | 0.0651 | 0.0622 |
-| Few-shot forecasting, 10% of training data | MSE ↓ | 0.3763 | 0.3687 | 0.3688 | 0.4193 |
-| Zero-shot transfer | MSE ↓ | 0.3929 | 0.3912 | 0.3905 | 0.4480 |
-| Anomaly detection | F1 ↑ | 79.96 | 79.98 | 79.96 | 75.49 |
-| Classification | accuracy ↑ | 60.90 | 60.90 | 60.90 | 62.37 |
+| Task | Metric | SparseTSF | SparseTSFPlus (fixed) | SparseTSFPlus (per task) | TimeMixer | Candidate: + channel mean | Candidate: + channel correlation |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Long-term forecasting | MSE ↓ | 0.3398 | 0.3338 | 0.3344 | 0.3079 | - | - |
+| M4 short-term forecasting | OWA ↓ | 0.972 | 0.914 | 0.918 | 0.841 | - | - |
+| PEMS short-term forecasting | MAE ↓ | 34.13 | 25.45 | 25.50 | 17.51 | 24.46 | 24.20 |
+| Imputation | MSE ↓ | 0.0838 | 0.0689 | 0.0651 | 0.0622 | 0.0689 | 0.0689 |
+| Few-shot forecasting, 10% of training data | MSE ↓ | 0.3763 | 0.3687 | 0.3688 | 0.4193 | - | - |
+| Zero-shot transfer | MSE ↓ | 0.3929 | 0.3912 | 0.3905 | 0.4480 | - | - |
+| Anomaly detection | F1 ↑ | 79.96 | 79.98 | 79.96 | 75.49 | 79.98 | 79.98 |
+| Classification | accuracy ↑ | 60.90 | 60.90 | 60.90 | 62.37 | 60.90 | 60.90 |
+
+### Candidate screen (decided on validation)
+
+Best validation loss and test metric (MSE for long-term, MAE for PEMS) of each candidate against the fixed configuration, same settings. Δ is relative to fixed.
+
+| Cell | Fixed: vali | Fixed: test | + channel mean vali (Δ) | + channel mean test (Δ) | + channel correlation vali (Δ) | + channel correlation test (Δ) |
+|---|---:|---:|---:|---:|---:|---:|
+| pems PEMS03 | 21.80361 | 21.2522 | 20.95356 (-3.9%) | 20.3089 (-4.4%) | 20.53602 (-5.8%) | 20.1533 (-5.2%) |
+| pems PEMS04 | 28.78253 | 27.3722 | 27.84202 (-3.3%) | 26.4975 (-3.2%) | 27.53988 (-4.3%) | 26.1874 (-4.3%) |
+| pems PEMS07 | 31.00328 | 30.9433 | 29.90845 (-3.5%) | 29.8253 (-3.6%) | 29.45918 (-5.0%) | 29.2334 (-5.5%) |
+| pems PEMS08 | 22.95019 | 22.2402 | 21.97626 (-4.2%) | 21.2269 (-4.6%) | 22.07152 (-3.8%) | 21.2216 (-4.6%) |
+| longterm ETTh1_pred96 | 0.71844 | 0.3841 | 0.71562 (-0.4%) | 0.3854 (+0.3%) | 0.71657 (-0.3%) | 0.3838 (-0.1%) |
+| longterm ETTm1_pred96 | 0.41007 | 0.3582 | 0.40674 (-0.8%) | 0.3529 (-1.5%) | 0.41012 (+0.0%) | 0.3583 (+0.0%) |
+| longterm Weather_pred96 | 0.48198 | 0.1968 | 0.48149 (-0.1%) | 0.1941 (-1.3%) | 0.48001 (-0.4%) | 0.1954 (-0.7%) |
+
+- **Candidate: + channel mean**: PEMS validation -3.7% on average, worst long-term check -0.1% -> does not pass (rule: PEMS at least 5% better, no check more than 1% worse).
+- **Candidate: + channel correlation**: PEMS validation -4.7% on average, worst long-term check +0.0% -> does not pass (rule: PEMS at least 5% better, no check more than 1% worse).
 
 ### Long-term forecasting (seq_len 96, mean MSE over 4 horizons)
 
-| Dataset | SparseTSF | SparseTSFPlus (fixed) | SparseTSFPlus (per task) | TimeMixer |
-|---|---:|---:|---:|---:|
-| ETTh1 | 0.4347 | 0.4291 | 0.4318 | 0.4578 |
-| ETTh2 | 0.3566 | 0.3509 | 0.3551 | 0.3730 |
-| ETTm1 | 0.4172 | 0.4132 | 0.4109 | 0.3841 |
-| ETTm2 | 0.2884 | 0.2868 | 0.2866 | 0.2799 |
-| Weather | 0.2741 | 0.2727 | 0.2726 | 0.2454 |
-| Solar-Energy | 0.3858 | 0.3649 | 0.3643 | 0.2319 |
-| Electricity | 0.2218 | 0.2189 | 0.2198 | 0.1830 |
-| Traffic | 0.6346 | 0.6329 | 0.6349 | - |
-| **Mean (7 of 8 rows)** | **0.3398** | **0.3338** | **0.3344** | **0.3079** |
-| _SparseTSFPlus parameters_ | | _633–8,661_ | _57–8,645_ | |
+| Dataset | SparseTSF | SparseTSFPlus (fixed) | SparseTSFPlus (per task) | TimeMixer | Candidate: + channel mean | Candidate: + channel correlation |
+|---|---:|---:|---:|---:|---:|---:|
+| ETTh1 | 0.4347 | 0.4291 | 0.4318 | 0.4578 | - | - |
+| ETTh2 | 0.3566 | 0.3509 | 0.3551 | 0.3730 | - | - |
+| ETTm1 | 0.4172 | 0.4132 | 0.4109 | 0.3841 | - | - |
+| ETTm2 | 0.2884 | 0.2868 | 0.2866 | 0.2799 | - | - |
+| Weather | 0.2741 | 0.2727 | 0.2726 | 0.2454 | - | - |
+| Solar-Energy | 0.3858 | 0.3649 | 0.3643 | 0.2319 | - | - |
+| Electricity | 0.2218 | 0.2189 | 0.2198 | 0.1830 | - | - |
+| Traffic | 0.6346 | 0.6329 | 0.6349 | - | - | - |
+| **Mean (7 of 8 rows)** | **0.3398** | **0.3338** | **0.3344** | **0.3079** | **-** | **-** |
+| _SparseTSFPlus parameters_ | | _633–8,661_ | _57–8,645_ | | _650–1,750_ | _635–1,175_ |
 
 ### M4 short-term forecasting (OWA, 6 subsets)
 
-| Dataset | SparseTSF | SparseTSFPlus (fixed) | SparseTSFPlus (per task) | TimeMixer |
-|---|---:|---:|---:|---:|
-| M4 (6 subsets) | 0.972 | 0.914 | 0.918 | 0.841 |
-| **Mean (1 of 1 rows)** | **0.972** | **0.914** | **0.918** | **0.841** |
-| _SparseTSFPlus parameters_ | | _37–617_ | _17–43_ | |
+| Dataset | SparseTSF | SparseTSFPlus (fixed) | SparseTSFPlus (per task) | TimeMixer | Candidate: + channel mean | Candidate: + channel correlation |
+|---|---:|---:|---:|---:|---:|---:|
+| M4 (6 subsets) | 0.972 | 0.914 | 0.918 | 0.841 | - | - |
+| **Mean (1 of 1 rows)** | **0.972** | **0.914** | **0.918** | **0.841** | **-** | **-** |
+| _SparseTSFPlus parameters_ | | _37–617_ | _17–43_ | | _-_ | _-_ |
 
 ### PEMS short-term forecasting (MAE, input 96 → 12)
 
-| Dataset | SparseTSF | SparseTSFPlus (fixed) | SparseTSFPlus (per task) | TimeMixer |
-|---|---:|---:|---:|---:|
-| PEMS03 | 28.28 | 21.25 | 21.34 | 14.81 |
-| PEMS04 | 36.12 | 27.37 | 27.43 | 19.22 |
-| PEMS07 | 42.89 | 30.94 | 31.02 | 20.69 |
-| PEMS08 | 29.25 | 22.24 | 22.22 | 15.33 |
-| **Mean (4 of 4 rows)** | **34.13** | **25.45** | **25.50** | **17.51** |
-| _SparseTSFPlus parameters_ | | _173_ | _93_ | |
+| Dataset | SparseTSF | SparseTSFPlus (fixed) | SparseTSFPlus (per task) | TimeMixer | Candidate: + channel mean | Candidate: + channel correlation |
+|---|---:|---:|---:|---:|---:|---:|
+| PEMS03 | 28.28 | 21.25 | 21.34 | 14.81 | 20.31 | 20.15 |
+| PEMS04 | 36.12 | 27.37 | 27.43 | 19.22 | 26.50 | 26.19 |
+| PEMS07 | 42.89 | 30.94 | 31.02 | 20.69 | 29.83 | 29.23 |
+| PEMS08 | 29.25 | 22.24 | 22.22 | 15.33 | 21.23 | 21.22 |
+| **Mean (4 of 4 rows)** | **34.13** | **25.45** | **25.50** | **17.51** | **24.46** | **24.20** |
+| _SparseTSFPlus parameters_ | | _173_ | _93_ | | _182_ | _175_ |
 
 ### Imputation (masked MSE, mean over 4 mask rates)
 
-| Dataset | SparseTSF | SparseTSFPlus (fixed) | SparseTSFPlus (per task) | TimeMixer |
-|---|---:|---:|---:|---:|
-| ETTh1 | 0.1633 | 0.1222 | 0.1230 | 0.1201 |
-| ETTh2 | 0.0703 | 0.0770 | 0.0641 | 0.0664 |
-| ETTm1 | 0.0715 | 0.0415 | 0.0420 | 0.0470 |
-| ETTm2 | 0.0327 | 0.0268 | 0.0269 | 0.0278 |
-| Weather | 0.0344 | 0.0300 | 0.0299 | 0.0315 |
-| Electricity | 0.1304 | 0.1158 | 0.1048 | 0.0803 |
-| **Mean (6 of 6 rows)** | **0.0838** | **0.0689** | **0.0651** | **0.0622** |
-| _SparseTSFPlus parameters_ | | _598–618_ | _42–582_ | |
+| Dataset | SparseTSF | SparseTSFPlus (fixed) | SparseTSFPlus (per task) | TimeMixer | Candidate: + channel mean | Candidate: + channel correlation |
+|---|---:|---:|---:|---:|---:|---:|
+| ETTh1 | 0.1633 | 0.1222 | 0.1230 | 0.1201 | 0.1222 | 0.1222 |
+| ETTh2 | 0.0703 | 0.0770 | 0.0641 | 0.0664 | 0.0770 | 0.0770 |
+| ETTm1 | 0.0715 | 0.0415 | 0.0420 | 0.0470 | 0.0415 | 0.0415 |
+| ETTm2 | 0.0327 | 0.0268 | 0.0269 | 0.0278 | 0.0268 | 0.0268 |
+| Weather | 0.0344 | 0.0300 | 0.0299 | 0.0315 | 0.0300 | 0.0300 |
+| Electricity | 0.1304 | 0.1158 | 0.1048 | 0.0803 | 0.1158 | 0.1158 |
+| **Mean (6 of 6 rows)** | **0.0838** | **0.0689** | **0.0651** | **0.0622** | **0.0689** | **0.0689** |
+| _SparseTSFPlus parameters_ | | _598–618_ | _42–582_ | | _598–618_ | _598–618_ |
 
 ### Few-shot forecasting, 10% of training data (mean MSE over 4 horizons)
 
-| Dataset | SparseTSF | SparseTSFPlus (fixed) | SparseTSFPlus (per task) | TimeMixer |
-|---|---:|---:|---:|---:|
-| ETTh1 | 0.5517 | 0.5251 | 0.5337 | 0.6865 |
-| ETTh2 | 0.4297 | 0.4173 | 0.4169 | 0.4550 |
-| ETTm1 | 0.4935 | 0.4884 | 0.4850 | 0.6098 |
-| ETTm2 | 0.2885 | 0.2867 | 0.2867 | 0.3018 |
-| Weather | 0.2708 | 0.2691 | 0.2686 | 0.2536 |
-| Electricity | 0.2238 | 0.2259 | 0.2217 | 0.2093 |
-| **Mean (6 of 6 rows)** | **0.3763** | **0.3687** | **0.3688** | **0.4193** |
-| _SparseTSFPlus parameters_ | | _633–8,661_ | _57–8,645_ | |
+| Dataset | SparseTSF | SparseTSFPlus (fixed) | SparseTSFPlus (per task) | TimeMixer | Candidate: + channel mean | Candidate: + channel correlation |
+|---|---:|---:|---:|---:|---:|---:|
+| ETTh1 | 0.5517 | 0.5251 | 0.5337 | 0.6865 | - | - |
+| ETTh2 | 0.4297 | 0.4173 | 0.4169 | 0.4550 | - | - |
+| ETTm1 | 0.4935 | 0.4884 | 0.4850 | 0.6098 | - | - |
+| ETTm2 | 0.2885 | 0.2867 | 0.2867 | 0.3018 | - | - |
+| Weather | 0.2708 | 0.2691 | 0.2686 | 0.2536 | - | - |
+| Electricity | 0.2238 | 0.2259 | 0.2217 | 0.2093 | - | - |
+| **Mean (6 of 6 rows)** | **0.3763** | **0.3687** | **0.3688** | **0.4193** | **-** | **-** |
+| _SparseTSFPlus parameters_ | | _633–8,661_ | _57–8,645_ | | _-_ | _-_ |
 
 ### Zero-shot transfer (mean MSE over 4 horizons)
 
-| Dataset | SparseTSF | SparseTSFPlus (fixed) | SparseTSFPlus (per task) | TimeMixer |
-|---|---:|---:|---:|---:|
-| ETTh1 → ETTh2 | 0.3596 | 0.3554 | 0.3561 | 0.3669 |
-| ETTh1 → ETTm2 | 0.3207 | 0.3184 | 0.3196 | 0.3268 |
-| ETTh2 → ETTh1 | 0.4527 | 0.4629 | 0.4544 | 0.6387 |
-| ETTm1 → ETTh2 | 0.3958 | 0.3944 | 0.3939 | 0.4640 |
-| ETTm1 → ETTm2 | 0.2955 | 0.2938 | 0.2939 | 0.2998 |
-| ETTm2 → ETTm1 | 0.5329 | 0.5223 | 0.5254 | 0.5917 |
-| **Mean (6 of 6 rows)** | **0.3929** | **0.3912** | **0.3905** | **0.4480** |
-| _SparseTSFPlus parameters_ | | _633–8,661_ | _57–8,645_ | |
+| Dataset | SparseTSF | SparseTSFPlus (fixed) | SparseTSFPlus (per task) | TimeMixer | Candidate: + channel mean | Candidate: + channel correlation |
+|---|---:|---:|---:|---:|---:|---:|
+| ETTh1 → ETTh2 | 0.3596 | 0.3554 | 0.3561 | 0.3669 | - | - |
+| ETTh1 → ETTm2 | 0.3207 | 0.3184 | 0.3196 | 0.3268 | - | - |
+| ETTh2 → ETTh1 | 0.4527 | 0.4629 | 0.4544 | 0.6387 | - | - |
+| ETTm1 → ETTh2 | 0.3958 | 0.3944 | 0.3939 | 0.4640 | - | - |
+| ETTm1 → ETTm2 | 0.2955 | 0.2938 | 0.2939 | 0.2998 | - | - |
+| ETTm2 → ETTm1 | 0.5329 | 0.5223 | 0.5254 | 0.5917 | - | - |
+| **Mean (6 of 6 rows)** | **0.3929** | **0.3912** | **0.3905** | **0.4480** | **-** | **-** |
+| _SparseTSFPlus parameters_ | | _633–8,661_ | _57–8,645_ | | _-_ | _-_ |
 
 ### Anomaly detection (point-adjusted F1, %)
 
-| Dataset | SparseTSF | SparseTSFPlus (fixed) | SparseTSFPlus (per task) | TimeMixer |
-|---|---:|---:|---:|---:|
-| PSM | 95.26 | 95.38 | 95.26 | 96.72 |
-| SMD | 80.02 | 80.03 | 80.02 | 84.18 |
-| MSL | 77.80 | 77.79 | 77.80 | 48.02 |
-| SMAP | 66.76 | 66.74 | 66.76 | 73.05 |
-| **Mean (4 of 4 rows)** | **79.96** | **79.98** | **79.96** | **75.49** |
-| _SparseTSFPlus parameters_ | | _666_ | _= SparseTSF_ | |
+| Dataset | SparseTSF | SparseTSFPlus (fixed) | SparseTSFPlus (per task) | TimeMixer | Candidate: + channel mean | Candidate: + channel correlation |
+|---|---:|---:|---:|---:|---:|---:|
+| PSM | 95.26 | 95.38 | 95.26 | 96.72 | 95.38 | 95.38 |
+| SMD | 80.02 | 80.03 | 80.02 | 84.18 | 80.03 | 80.03 |
+| MSL | 77.80 | 77.79 | 77.80 | 48.02 | 77.79 | 77.79 |
+| SMAP | 66.76 | 66.74 | 66.76 | 73.05 | 66.74 | 66.74 |
+| **Mean (4 of 4 rows)** | **79.96** | **79.98** | **79.96** | **75.49** | **79.98** | **79.98** |
+| _SparseTSFPlus parameters_ | | _666_ | _= SparseTSF_ | | _-_ | _-_ |
 
 ### Classification (accuracy, %)
 
-| Dataset | SparseTSF | SparseTSFPlus (fixed) | SparseTSFPlus (per task) | TimeMixer |
-|---|---:|---:|---:|---:|
-| EthanolConcentration | 29.28 | 29.28 | 29.28 | 27.00 |
-| FaceDetection | 68.59 | 68.59 | 68.59 | 70.03 |
-| Handwriting | 8.59 | 8.59 | 8.59 | 6.35 |
-| Heartbeat | 54.63 | 54.63 | 54.63 | 75.61 |
-| JapaneseVowels | 61.62 | 61.62 | 61.62 | 46.49 |
-| PEMS-SF | 84.39 | 84.39 | 84.39 | 78.61 |
-| SelfRegulationSCP1 | 82.25 | 82.25 | 82.25 | 90.78 |
-| SelfRegulationSCP2 | 52.78 | 52.78 | 52.78 | 56.11 |
-| SpokenArabicDigits | 94.04 | 94.04 | 94.04 | 95.54 |
-| UWaveGestureLibrary | 72.81 | 72.81 | 72.81 | 77.19 |
-| **Mean (10 of 10 rows)** | **60.90** | **60.90** | **60.90** | **62.37** |
-| _SparseTSFPlus parameters_ | | _3,142–970,712_ | _3,142–970,712_ | |
+| Dataset | SparseTSF | SparseTSFPlus (fixed) | SparseTSFPlus (per task) | TimeMixer | Candidate: + channel mean | Candidate: + channel correlation |
+|---|---:|---:|---:|---:|---:|---:|
+| EthanolConcentration | 29.28 | 29.28 | 29.28 | 27.00 | 29.28 | 29.28 |
+| FaceDetection | 68.59 | 68.59 | 68.59 | 70.03 | 68.59 | 68.59 |
+| Handwriting | 8.59 | 8.59 | 8.59 | 6.35 | 8.59 | 8.59 |
+| Heartbeat | 54.63 | 54.63 | 54.63 | 75.61 | 54.63 | 54.63 |
+| JapaneseVowels | 61.62 | 61.62 | 61.62 | 46.49 | 61.62 | 61.62 |
+| PEMS-SF | 84.39 | 84.39 | 84.39 | 78.61 | 84.39 | 84.39 |
+| SelfRegulationSCP1 | 82.25 | 82.25 | 82.25 | 90.78 | 82.25 | 82.25 |
+| SelfRegulationSCP2 | 52.78 | 52.78 | 52.78 | 56.11 | 52.78 | 52.78 |
+| SpokenArabicDigits | 94.04 | 94.04 | 94.04 | 95.54 | 94.04 | 94.04 |
+| UWaveGestureLibrary | 72.81 | 72.81 | 72.81 | 77.19 | 72.81 | 72.81 |
+| **Mean (10 of 10 rows)** | **60.90** | **60.90** | **60.90** | **62.37** | **60.90** | **60.90** |
+| _SparseTSFPlus parameters_ | | _3,142–970,712_ | _3,142–970,712_ | | _-_ | _-_ |
 
 ### Energy (matched carbon protocol: fixed 5 epochs, no early stopping)
 

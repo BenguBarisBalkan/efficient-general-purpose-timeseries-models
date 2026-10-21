@@ -9,6 +9,28 @@ Numbers are **local** (this machine, this protocol) unless marked **published**.
 
 ---
 
+## 2026-10-22 — 24-hour backbone plan, step 3: seed repeats
+
+**Planned.**
+- **Why.** Every result so far is one seed (2021). Several headline differences are a few percent
+  or less (fixed against SparseTSF on long-term −1.8%, few-shot −2.0%, zero-shot −0.4%; fixed
+  against per task within 0.4%), and ETTh2 imputation has a training plateau that a run sometimes
+  escapes and sometimes does not.
+- **Runs.** Seeds 2022 and 2023 (`benchmarks/run_seed_repeats.py`), each the exact command behind
+  the seed-2021 number with only the seed changed: SparseTSF and the fixed SparseTSFPlus on
+  long-term forecasting (ETT×4, Weather), M4, PEMS, few-shot, zero-shot and anomaly detection, and
+  imputation on ETTh1 and ETTh2 for SparseTSF, the fixed form, gated refinement alone (`u5g`) and
+  the step 1 candidate (`allrg_pm`). Then both step 2 channel units on PEMS (16 runs). About 400
+  runs, roughly 7 hours.
+- **Rule.** A difference is a finding only if it has the same sign on all three seeds and its mean
+  is larger than twice the standard deviation of the per-seed differences.
+- **Predictions.** Fixed beats SparseTSF as a finding on PEMS, M4 and imputation (gains of 6–25%);
+  the long-term, few-shot and zero-shot gains (0.4–2%) may not survive. Gated refinement beats the
+  fixed imputation form on ETTh2 on every seed. The channel units' PEMS gains (4–5%) hold on every
+  seed.
+
+---
+
 ## 2026-10-21 — 24-hour backbone plan, step 2: channel context for PEMS
 
 **Planned.**
@@ -39,6 +61,34 @@ Numbers are **local** (this machine, this protocol) unless marked **published**.
 - **Decision rule (validation).** A candidate goes to the full suite if its PEMS validation loss
   is at least 5% lower on average and no long-term check is more than 1% worse. The report
   prints this decision from the logs.
+
+**Done.** 14 screen runs (00:14–00:59).
+
+**Found.**
+
+| | PEMS validation (mean Δ) | PEMS test MAE (mean of 4) | Long-term checks, test MSE Δ | Parameters (PEMS) |
+|---|---:|---:|---|---:|
+| fixed | — | 25.45 | — | 173 |
+| + channel mean | −3.7% | 24.46 (−3.9%) | −1.5% to +0.3% | 182 |
+| + channel correlation | −4.7% | 24.20 (−4.9%) | −0.7% to 0.0% | 175 |
+
+- **Both units help PEMS on every dataset, by 3–6%, and hurt nothing.** Channel correlation is
+  the stronger: test MAE improves on all four PEMS datasets (−4.3% to −5.5%) for 2 extra
+  parameters, and the channel-independent long-term datasets are unchanged.
+- **Neither passes the pre-registered rule** (PEMS validation at least 5% better). Correlation
+  misses narrowly, at 4.7%. Following the rule, neither went to the full suite.
+- **The prediction was too optimistic.** It was at least 10% on PEMS; the result is 4–5%. The
+  refutation line (under 3%) was not crossed. Against the local TimeMixer (17.51), PEMS stays far
+  behind (+38% with channel correlation, from +45%). So this much cross-channel information, a
+  mean or a correlation-weighted mix of other channels' forecasts, closes only a small part of the
+  PEMS gap. TimeMixer's joint channel embedding does considerably more.
+- Both units go into the seed repeats on PEMS (16 runs), to see whether a 4–5% gain is larger
+  than the run-to-run spread.
+
+**Reports changed.** `results_sparsetsf_plus_suite.md` (candidate screen table, generated);
+`results_sparsetsf_plus_report.md` (channel-context subsection); the thesis document.
+
+**Next.** Seed repeats (step 3, running since 01:01).
 
 ---
 
