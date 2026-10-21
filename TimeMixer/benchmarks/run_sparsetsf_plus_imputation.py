@@ -19,6 +19,12 @@ mask 0.5). Two units target it, both essentially free:
 
 plus --stsf_phase_mix linear, which adds the missing within-period direction.
 
+Gated variants (`u5g`, `allg`) test whether a learned gate gives the two units that hurt some
+datasets a safe default: refinement on ETTh2 and phase mixing on Electricity, where each one
+also raises the TRAINING loss, so the training signal can see the harm. Each gate is one scalar
+starting at zero (ReZero), so a gated unit starts as the model without it. The learned gate
+values are read from the checkpoint after each run and appended to its log.
+
 SELECTION CAVEAT, stated because it matters. exp/exp_imputation.py:164 early-stops on
 **test_loss**, not vali_loss -- upstream TSLib behaviour, shared by every model in this
 repo, so cross-model comparisons stay internally consistent. Do not "fix" it: that would
@@ -95,6 +101,14 @@ VARIANTS: List[Variant] = [
     Variant("phase", ("--stsf_phase_mix", "linear"), "intra-period mixing"),
     Variant("all", ("--stsf_mask_conv", "1", "--stsf_impute_passes", "2",
                     "--stsf_phase_mix", "linear"), "U5 + phase mixing"),
+    Variant("u5g", ("--stsf_mask_conv", "1", "--stsf_impute_passes", "2",
+                    "--stsf_refine_gate", "1"), "U5, refinement gated"),
+    Variant("allg", ("--stsf_mask_conv", "1", "--stsf_impute_passes", "2",
+                     "--stsf_refine_gate", "1", "--stsf_phase_mix", "linear",
+                     "--stsf_phase_gate", "1"), "U5 + phase mixing, both gated"),
+    Variant("allrg", ("--stsf_mask_conv", "1", "--stsf_impute_passes", "2",
+                      "--stsf_refine_gate", "1", "--stsf_phase_mix", "linear"),
+            "U5 + phase mixing, refinement gated"),
 ]
 
 # Screening runs at the worst mask rate first; the full sweep follows for the winner only.
@@ -137,6 +151,7 @@ MAE_PAT = re.compile(r"mae:" + NUM)
 VALI_PAT = re.compile(r"Vali Loss: ([0-9]+(?:\.[0-9]+)?)")
 PARAM_PAT = re.compile(r"trainable_params:([0-9]+)")
 EPOCH_PAT = re.compile(r"Epoch:\s+\d+\s+cost time:\s+([0-9]+(?:\.[0-9]+)?)")
+GATES_PAT = re.compile(r"^learned_gates:(.*)$", re.M)
 
 
 def _last(pat, text):
@@ -172,7 +187,7 @@ def report_path_for(ds: DatasetConfig, mask_rate: float, variant: Variant) -> Pa
 def parse_log(path: Path):
     """-> dict with mse/mae/vali/params/runtime/status"""
     out = {"mse": None, "mae": None, "vali": None, "params": None,
-           "runtime": None, "status": "PENDING"}
+           "runtime": None, "gates": None, "status": "PENDING"}
     if not path.exists():
         return out
     text = path.read_text(encoding="utf-8", errors="ignore")
@@ -183,6 +198,8 @@ def parse_log(path: Path):
     out["vali"] = min(v) if v else None
     ep = [float(x) for x in EPOCH_PAT.findall(text)]
     out["runtime"] = sum(ep) if ep else None
+    g = GATES_PAT.findall(text)
+    out["gates"] = g[-1].strip() if g else None
     out["status"] = "OK" if (out["mse"] is not None and out["mae"] is not None) \
         else "RUNNING/INCOMPLETE"
     return out
@@ -223,7 +240,30 @@ def run_one(ds: DatasetConfig, mask_rate: float, variant: Variant) -> None:
     t0 = time.time()
     with log_path.open("w", encoding="utf-8") as f:
         subprocess.run(cmd, cwd=str(REPO_ROOT), stdout=f, stderr=subprocess.STDOUT, text=True)
+    append_gates(ds, variant, log_path)
     print("      done in {:.0f}s".format(time.time() - t0), flush=True)
+
+
+def append_gates(ds: DatasetConfig, variant: Variant, log_path: Path) -> None:
+    """Append the learned gate values of the tested checkpoint to the run's log.
+
+    Whether training switched a unit off is the evidence a gate experiment is about, and
+    checkpoints are not kept in the repository. The checkpoint directory has no mask rate in
+    its name, so it is read straight after the run that wrote it.
+    """
+    if parse_log(log_path)["status"] != "OK":
+        return
+    hits = list((REPO_ROOT / "checkpoints").glob(
+        "imputation_IMPP_{}_{}_none_*/checkpoint.pth".format(ds.name, variant.name)))
+    if len(hits) != 1:
+        return
+    import torch
+    state = torch.load(str(hits[0]), map_location="cpu")
+    gates = ["{}={}".format(k, "/".join("{:.4f}".format(x) for x in t.flatten().tolist()))
+             for k, t in sorted(state.items()) if k.endswith(("gate", "gates"))]
+    if gates:
+        with log_path.open("a", encoding="utf-8") as f:
+            f.write("learned_gates:{}\n".format(",".join(gates)))
 
 
 START = "<!-- AUTO_PLUS_IMP_START -->"
@@ -256,8 +296,81 @@ def _fmt(v, nd=6):
     return "-" if v is None else "{:.{}f}".format(v, nd)
 
 
+def _gates_cell(gates: Optional[str]) -> str:
+    """'phase_mix.gate=0.1,refine_gates=0.9' -> 'phase 0.100, refine 0.900'"""
+    if not gates:
+        return "-"
+    out = []
+    for item in gates.split(","):
+        name, _, vals = item.partition("=")
+        short = "phase" if name.startswith("phase_mix") else name.replace("_gates", "")
+        out.append("{} {}".format(short, "/".join("{:.3f}".format(float(x)) for x in vals.split("/"))))
+    return ", ".join(out)
+
+
+def summary_md() -> List[str]:
+    """Means over the four mask rates, per dataset and variant, for every variant that has all
+    four on at least one dataset; then the learned gate values of the gated variants."""
+    cells = {}
+    for ds in DATASETS:
+        for v in VARIANTS:
+            rs = [parse_log(report_path_for(ds, m, v)) for m in FULL_MASKS]
+            if all(r["mse"] is not None for r in rs):
+                cells[(ds.name, v.name)] = rs
+    shown = [v for v in VARIANTS if any((d.name, v.name) in cells for d in DATASETS)]
+    if not shown:
+        return []
+    out = []
+    for title, key in (("masked test MSE", "mse"), ("best validation loss (select on this)", "vali")):
+        out += ["### Mean over the four mask rates: {}".format(title), "",
+                "| Dataset | " + " | ".join(v.name for v in shown) + " |",
+                "|---|" + "---:|" * len(shown)]
+        cols = {v.name: [] for v in shown}
+        for ds in DATASETS:
+            row = []
+            for v in shown:
+                rs = cells.get((ds.name, v.name))
+                val = None if rs is None or any(r[key] is None for r in rs) \
+                    else sum(r[key] for r in rs) / len(rs)
+                cols[v.name].append(val)
+                row.append(_fmt(val, 4))
+            out.append("| {} | {} |".format(ds.name, " | ".join(row)))
+        means = [None if any(x is None for x in cols[v.name])
+                 else sum(cols[v.name]) / len(cols[v.name]) for v in shown]
+        out.append("| **Mean ({} datasets)** | {} |".format(
+            len(DATASETS), " | ".join("**{}**".format(_fmt(m, 4)) for m in means)))
+        out.append("")
+    gated = [v for v in shown if any("gate" in f for f in v.flags)]
+    if gated:
+        out += ["### Learned gate values (mask 0.125 / 0.25 / 0.375 / 0.5)", "",
+                "Read from each run's tested checkpoint. Every gate starts at 0, the model "
+                "without the unit. A refinement gate of 1 is ungated refinement (pass 2 replaces "
+                "pass 1), and 0.5 averages the two passes. The phase gate multiplies a mixer "
+                "trained together with it, so its values are not on a common scale across runs: "
+                "read only whether it stayed near 0.", "",
+                "| Dataset | " + " | ".join(v.name for v in gated) + " |",
+                "|---|" + "---|" * len(gated)]
+        for ds in DATASETS:
+            row = []
+            for v in gated:
+                rs = cells.get((ds.name, v.name))
+                if rs is None or any(not r["gates"] for r in rs):
+                    row.append("-")
+                    continue
+                per = {}
+                for r in rs:
+                    for item in r["gates"].split(","):
+                        name, _, val = item.partition("=")
+                        short = "phase" if name.startswith("phase_mix") else name.replace("_gates", "")
+                        per.setdefault(short, []).append("{:.2f}".format(float(val.split("/")[0])))
+                row.append("; ".join("{} {}".format(k, " / ".join(vs)) for k, vs in sorted(per.items())))
+            out.append("| {} | {} |".format(ds.name, " | ".join(row)))
+        out.append("")
+    return out
+
+
 def update_md() -> None:
-    lines: List[str] = []
+    lines: List[str] = summary_md()
     masks = sorted({r for (_, r) in PUBLISHED} & set(_measured_masks()))
     if not masks:
         masks = SCREEN_MASKS
@@ -265,8 +378,8 @@ def update_md() -> None:
     for mask_rate in masks:
         lines.append("### mask_rate = {}".format(mask_rate))
         lines.append("")
-        lines.append("| Dataset | Variant | Params | Best vali | MSE | MAE | vs SparseTSF | vs TimeMixer | Runtime (s) | Status |")
-        lines.append("|---|---|---:|---:|---:|---:|---:|---:|---:|---|")
+        lines.append("| Dataset | Variant | Params | Best vali | MSE | MAE | vs SparseTSF | vs TimeMixer | Runtime (s) | Learned gates | Status |")
+        lines.append("|---|---|---:|---:|---:|---:|---:|---:|---:|---|---|")
         for ds in DATASETS:
             ref = PUBLISHED.get((ds.name, mask_rate))
             rows = []
@@ -286,18 +399,19 @@ def update_md() -> None:
                     if ref[1] is not None:
                         d_tm = "{:+.2f}%".format(100.0 * (r["mse"] - ref[1]) / ref[1])
                 lines.append(
-                    "| {} | {}{} | {} | {} | {} | {} | {} | {} | {} | {} |".format(
+                    "| {} | {}{} | {} | {} | {} | {} | {} | {} | {} | {} | {} |".format(
                         ds.name, v.name, mark,
                         "-" if r["params"] is None else "{:,}".format(r["params"]),
                         _fmt(r["vali"], 5), _fmt(r["mse"]), _fmt(r["mae"]),
-                        d_sp, d_tm, _fmt(r["runtime"], 0), r["status"]))
+                        d_sp, d_tm, _fmt(r["runtime"], 0), _gates_cell(r["gates"]),
+                        r["status"]))
             if ref:
                 lines.append(
-                    "| _{} local sweep_ | _SparseTSF_ | _—_ | _—_ | _{:.6f}_ | _—_ | _—_ | _—_ | _—_ | _reference_ |".format(
+                    "| _{} local sweep_ | _SparseTSF_ | _—_ | _—_ | _{:.6f}_ | _—_ | _—_ | _—_ | _—_ | _—_ | _reference_ |".format(
                         ds.name, ref[0]))
                 if ref[1] is not None:
                     lines.append(
-                        "| _{} local sweep_ | _TimeMixer_ | _~58–60k_ | _—_ | _{:.6f}_ | _—_ | _—_ | _—_ | _—_ | _reference_ |".format(
+                        "| _{} local sweep_ | _TimeMixer_ | _~58–60k_ | _—_ | _{:.6f}_ | _—_ | _—_ | _—_ | _—_ | _—_ | _reference_ |".format(
                             ds.name, ref[1]))
         lines.append("")
 

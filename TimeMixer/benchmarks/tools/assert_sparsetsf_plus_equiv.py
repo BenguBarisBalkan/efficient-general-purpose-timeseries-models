@@ -125,6 +125,45 @@ def run_case(label, conf, force_reimpl):
     return diff
 
 
+# A gated unit (ReZero: scalar gate initialised at zero) must start out as the model WITHOUT that
+# unit, exactly. (label, gated unit flags, flags of the same model with the unit removed)
+GATE_CASES = [
+    ("long_term_forecast",
+     dict(stsf_phase_mix="linear", stsf_phase_gate=1), dict()),
+    ("imputation",
+     dict(stsf_mask_conv=1, stsf_impute_passes=2, stsf_refine_gate=1,
+          stsf_phase_mix="linear", stsf_phase_gate=1),
+     dict(stsf_mask_conv=1)),
+    ("anomaly_detection",
+     dict(stsf_phase_mix="linear", stsf_phase_gate=1), dict()),
+]
+GATED_KEYS = ("phase_mix.", "refine_gates")
+
+
+def run_gate_case(label, gated, without):
+    conf = dict(next(c for name, c in CASES if name == label))
+    torch.manual_seed(0)
+    ref = PlusModel(cfg(**dict(conf, **without)), force_reimpl=True).float().eval()
+    torch.manual_seed(0)
+    new = PlusModel(cfg(**dict(conf, **gated)), force_reimpl=True).float().eval()
+
+    # copy by name: only the gated units' own tensors may be absent from the reference
+    missing, unexpected = new.load_state_dict(ref.state_dict(), strict=False)
+    stray = [k for k in missing if not k.startswith(GATED_KEYS)]
+    if unexpected or stray:
+        raise AssertionError("unexpected keys {} / missing non-unit keys {}".format(
+            unexpected, stray))
+
+    x, kwargs = make_inputs(conf)
+    with torch.no_grad():
+        a = ref(x, kwargs.get("x_mark_enc"), None, None, kwargs.get("mask"))
+        b = new(x, kwargs.get("x_mark_enc"), None, None, kwargs.get("mask"))
+    diff = (a - b).abs().max().item()
+    status = "EXACT" if diff == 0.0 else ("close({:.2e})".format(diff) if diff < 1e-6 else "FAIL")
+    print("  {:<20} new tensors={:<3} max|diff|={:.3e}  {}".format(label, len(missing), diff, status))
+    return diff
+
+
 def main():
     print("SparseTSFPlus (all units off)  vs  SparseTSF")
     print("=" * 74)
@@ -143,12 +182,25 @@ def main():
                     label, "reimpl" if force else "delegated", exc))
                 failures.append((label, force, str(exc)))
     print("=" * 74)
+    print("Gated units at initialisation  vs  the same model without them")
+    print("=" * 74)
+    for label, gated, without in GATE_CASES:
+        try:
+            diff = run_gate_case(label, gated, without)
+            if diff > 1e-6:
+                failures.append((label, "gate", "diff={:.3e}".format(diff)))
+        except AssertionError as exc:
+            print("  {:<20} gate       ASSERTION: {}".format(label, exc))
+            failures.append((label, "gate", str(exc)))
+    print("=" * 74)
     if failures:
         print("FAILED {} case(s):".format(len(failures)))
         for label, force, why in failures:
-            print("  - {} ({}): {}".format(label, "reimpl" if force else "delegated", why))
+            mode = force if isinstance(force, str) else ("reimpl" if force else "delegated")
+            print("  - {} ({}): {}".format(label, mode, why))
         return 1
-    print("ALL EQUIVALENT -- all-units-off reproduces SparseTSF on every task.")
+    print("ALL EQUIVALENT -- all-units-off reproduces SparseTSF on every task, and every gate "
+          "starts as pass-through.")
     return 0
 
 
