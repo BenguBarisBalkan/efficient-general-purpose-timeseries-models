@@ -1,0 +1,83 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=64, c_out=21, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=64, d_layers=1, d_model=32, data='custom', data_path='weather.csv', dec_in=21, decomp_method='moving_avg', des='Carbon', devices='0,1', distil=True, down_sampling_layers=3, down_sampling_method='avg', down_sampling_window=2, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions_timemixer.csv', emissions_output_dir='<workspace>\\TimeMixer\\logs', enc_in=21, factor=3, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=0, learning_rate=5e-05, loss='MSE', lradj='type1', mask_rate=0.125, model='TimeMixer', model_id='CARBON_TimeMixer-ref_Weather_96_720', model_type='linear', moving_avg=25, n_heads=4, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=999, pct_start=0.2, percent=100, period_len=4, pred_len=720, root_path='<workspace>\\dataset\\weather', seasonal_patterns='Monthly', seq_len=96, stream_metrics=0, stsf_cls_head='flat', stsf_cls_segments=8, stsf_decomp='off', stsf_decomp_kernel=25, stsf_diag_mask=0, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_kernel=3, stsf_phase_mix='off', stsf_phase_rank=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='long_term_forecast', top_k=3, track_emissions=1, train_epochs=5, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+[codecarbon WARNING @ 10:10:38] Multiple instances of codecarbon are allowed to run at the same time.
+>>>>>>>start training : long_term_forecast_CARBON_TimeMixer-ref_Weather_96_720_none_TimeMixer_custom_sl96_pl720_dm32_nh4_el2_dl1_df64_fc3_ebtimeF_dtTrue_Carbon_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 36072
+val 4551
+test 9820
+	iters: 100, epoch: 1 | loss: 1.0142812
+	speed: 0.1648s/iter; left time: 447.4700s
+	iters: 200, epoch: 1 | loss: 1.0244113
+	speed: 0.1402s/iter; left time: 366.7435s
+	iters: 300, epoch: 1 | loss: 0.9638518
+	speed: 0.1413s/iter; left time: 355.3854s
+	iters: 400, epoch: 1 | loss: 1.2067202
+	speed: 0.1414s/iter; left time: 341.5307s
+	iters: 500, epoch: 1 | loss: 0.9911492
+	speed: 0.1404s/iter; left time: 325.1995s
+Epoch: 1 cost time: 81.75753951072693
+Epoch: 1, Steps: 563 | Train Loss: 1.0182926 Vali Loss: 0.8858945 Test Loss: 0.3885105
+Validation loss decreased (inf --> 0.885894).  Saving model ...
+Updating learning rate to 5e-05
+	iters: 100, epoch: 2 | loss: 0.9855824
+	speed: 0.3433s/iter; left time: 739.1350s
+	iters: 200, epoch: 2 | loss: 0.8395247
+	speed: 0.1392s/iter; left time: 285.8276s
+	iters: 300, epoch: 2 | loss: 0.7109643
+	speed: 0.1407s/iter; left time: 274.7667s
+	iters: 400, epoch: 2 | loss: 1.0847883
+	speed: 0.1397s/iter; left time: 258.9093s
+	iters: 500, epoch: 2 | loss: 0.6984689
+	speed: 0.1409s/iter; left time: 247.0839s
+Epoch: 2 cost time: 78.75118803977966
+Epoch: 2, Steps: 563 | Train Loss: 0.8355647 Vali Loss: 0.7657599 Test Loss: 0.3676439
+Validation loss decreased (0.885894 --> 0.765760).  Saving model ...
+Updating learning rate to 2.5e-05
+	iters: 100, epoch: 3 | loss: 0.6406236
+	speed: 0.3445s/iter; left time: 547.8031s
+	iters: 200, epoch: 3 | loss: 0.6437841
+	speed: 0.1399s/iter; left time: 208.3953s
+	iters: 300, epoch: 3 | loss: 0.7434149
+	speed: 0.1400s/iter; left time: 194.5380s
+	iters: 400, epoch: 3 | loss: 0.6102437
+	speed: 0.1397s/iter; left time: 180.2226s
+	iters: 500, epoch: 3 | loss: 0.8114409
+	speed: 0.1418s/iter; left time: 168.7587s
+Epoch: 3 cost time: 78.90911626815796
+Epoch: 3, Steps: 563 | Train Loss: 0.7384382 Vali Loss: 0.7602190 Test Loss: 0.3657443
+Validation loss decreased (0.765760 --> 0.760219).  Saving model ...
+Updating learning rate to 1.25e-05
+	iters: 100, epoch: 4 | loss: 0.7134270
+	speed: 0.3431s/iter; left time: 352.3982s
+	iters: 200, epoch: 4 | loss: 0.5663258
+	speed: 0.1404s/iter; left time: 130.1097s
+	iters: 300, epoch: 4 | loss: 0.6752867
+	speed: 0.1406s/iter; left time: 116.2588s
+	iters: 400, epoch: 4 | loss: 0.7118374
+	speed: 0.1401s/iter; left time: 101.8166s
+	iters: 500, epoch: 4 | loss: 0.7146025
+	speed: 0.1402s/iter; left time: 87.9253s
+Epoch: 4 cost time: 78.93476796150208
+Epoch: 4, Steps: 563 | Train Loss: 0.7288601 Vali Loss: 0.7565322 Test Loss: 0.3646379
+Validation loss decreased (0.760219 --> 0.756532).  Saving model ...
+Updating learning rate to 6.25e-06
+	iters: 100, epoch: 5 | loss: 0.6878253
+	speed: 0.3448s/iter; left time: 159.9699s
+	iters: 200, epoch: 5 | loss: 0.7722050
+	speed: 0.1401s/iter; left time: 51.0078s
+	iters: 300, epoch: 5 | loss: 0.7673423
+	speed: 0.1396s/iter; left time: 36.8471s
+	iters: 400, epoch: 5 | loss: 0.6694605
+	speed: 0.1403s/iter; left time: 23.0088s
+	iters: 500, epoch: 5 | loss: 0.7767060
+	speed: 0.1405s/iter; left time: 8.9894s
+Epoch: 5 cost time: 78.90926456451416
+Epoch: 5, Steps: 563 | Train Loss: 0.7255425 Vali Loss: 0.7546590 Test Loss: 0.3639539
+Validation loss decreased (0.756532 --> 0.754659).  Saving model ...
+Updating learning rate to 3.125e-06
+>>>>>>>testing : long_term_forecast_CARBON_TimeMixer-ref_Weather_96_720_none_TimeMixer_custom_sl96_pl720_dm32_nh4_el2_dl1_df64_fc3_ebtimeF_dtTrue_Carbon_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test 9820
+mse:0.36395376920700073, mae:0.3558320701122284
+RMSE:0.6032857894897461, MAPE:0.6755130887031555, MSPE:30670566.0
+emissions_kg:0.005557747940680318

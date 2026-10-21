@@ -1,0 +1,41 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=32, c_out=7, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=16, data='ETTh2', data_path='ETTh2.csv', dec_in=7, decomp_method='moving_avg', des='FewShot', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=7, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=0, learning_rate=0.02, loss='MSE', lradj='type3', mask_rate=0.125, model='SparseTSFPlus', model_id='FEWSHOT_PLUS_fixed_ETTh2_96_720', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=5, pct_start=0.2, percent=10, period_len=24, pred_len=720, root_path='<workspace>\\dataset\\ETT-small', seasonal_patterns='Monthly', seq_len=96, stream_metrics=0, stsf_cls_head='flat', stsf_cls_segments=8, stsf_decomp='linear', stsf_decomp_kernel=25, stsf_diag_mask=0, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_kernel=3, stsf_phase_mix='linear', stsf_phase_rank=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='long_term_forecast', top_k=5, track_emissions=0, train_epochs=30, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+trainable_params:841
+units:phase_mix=linear,decomp=linear
+>>>>>>>start training : long_term_forecast_FEWSHOT_PLUS_fixed_ETTh2_96_720_none_SparseTSFPlus_ETTh2_sl96_pl720_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_FewShot_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 135
+val 2161
+test 2161
+Epoch: 1 cost time: 1.8809468746185303
+Epoch: 1, Steps: 4 | Train Loss: 0.9859256 Vali Loss: 0.7192318 Test Loss: 0.5088784
+Validation loss decreased (inf --> 0.719232).  Saving model ...
+Updating learning rate to 0.02
+Epoch: 2 cost time: 0.023000240325927734
+Epoch: 2, Steps: 4 | Train Loss: 0.9414093 Vali Loss: 0.6862121 Test Loss: 0.4789198
+Validation loss decreased (0.719232 --> 0.686212).  Saving model ...
+Updating learning rate to 0.02
+Epoch: 3 cost time: 0.02399921417236328
+Epoch: 3, Steps: 4 | Train Loss: 0.8544996 Vali Loss: 0.7153164 Test Loss: 0.5471717
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.02
+Epoch: 4 cost time: 0.023001432418823242
+Epoch: 4, Steps: 4 | Train Loss: 0.7052291 Vali Loss: 0.9181240 Test Loss: 0.8542939
+EarlyStopping counter: 2 out of 5
+Updating learning rate to 0.018000000000000002
+Epoch: 5 cost time: 0.018998146057128906
+Epoch: 5, Steps: 4 | Train Loss: 0.6167123 Vali Loss: 1.1330123 Test Loss: 1.1554112
+EarlyStopping counter: 3 out of 5
+Updating learning rate to 0.016200000000000003
+Epoch: 6 cost time: 0.0240018367767334
+Epoch: 6, Steps: 4 | Train Loss: 0.5671675 Vali Loss: 1.1161896 Test Loss: 1.1311310
+EarlyStopping counter: 4 out of 5
+Updating learning rate to 0.014580000000000003
+Epoch: 7 cost time: 0.021509408950805664
+Epoch: 7, Steps: 4 | Train Loss: 0.4958369 Vali Loss: 0.9880581 Test Loss: 0.9512268
+EarlyStopping counter: 5 out of 5
+Early stopping
+>>>>>>>testing : long_term_forecast_FEWSHOT_PLUS_fixed_ETTh2_96_720_none_SparseTSFPlus_ETTh2_sl96_pl720_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_FewShot_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test 2161
+mse:0.4789198637008667, mae:0.47479549050331116
+RMSE:0.6920403838157654, MAPE:0.6423763036727905, MSPE:624.0001220703125

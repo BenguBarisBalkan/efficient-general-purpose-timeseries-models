@@ -1,0 +1,53 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=32, c_out=7, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=16, data='ETTh2', data_path='ETTh2.csv', dec_in=7, decomp_method='moving_avg', des='FewShot', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=7, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=0, learning_rate=0.02, loss='MSE', lradj='type3', mask_rate=0.125, model='SparseTSFPlus', model_id='FEWSHOT_PLUS_task_ETTh2_96_96', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=5, pct_start=0.2, percent=10, period_len=24, pred_len=96, root_path='<workspace>\\dataset\\ETT-small', seasonal_patterns='Monthly', seq_len=96, stream_metrics=0, stsf_cls_head='flat', stsf_cls_segments=8, stsf_decomp='linear', stsf_decomp_kernel=25, stsf_diag_mask=0, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_kernel=3, stsf_phase_mix='off', stsf_phase_rank=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='long_term_forecast', top_k=5, track_emissions=0, train_epochs=30, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+trainable_params:57
+units:decomp=linear
+>>>>>>>start training : long_term_forecast_FEWSHOT_PLUS_task_ETTh2_96_96_none_SparseTSFPlus_ETTh2_sl96_pl96_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_FewShot_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 759
+val 2785
+test 2785
+Epoch: 1 cost time: 2.1124236583709717
+Epoch: 1, Steps: 23 | Train Loss: 0.3674595 Vali Loss: 0.3365275 Test Loss: 0.4319921
+Validation loss decreased (inf --> 0.336527).  Saving model ...
+Updating learning rate to 0.02
+Epoch: 2 cost time: 0.09673142433166504
+Epoch: 2, Steps: 23 | Train Loss: 0.3172542 Vali Loss: 0.2797826 Test Loss: 0.3784526
+Validation loss decreased (0.336527 --> 0.279783).  Saving model ...
+Updating learning rate to 0.02
+Epoch: 3 cost time: 0.1000673770904541
+Epoch: 3, Steps: 23 | Train Loss: 0.2409157 Vali Loss: 0.2642389 Test Loss: 0.3765501
+Validation loss decreased (0.279783 --> 0.264239).  Saving model ...
+Updating learning rate to 0.02
+Epoch: 4 cost time: 0.1067512035369873
+Epoch: 4, Steps: 23 | Train Loss: 0.2105784 Vali Loss: 0.2398872 Test Loss: 0.3353056
+Validation loss decreased (0.264239 --> 0.239887).  Saving model ...
+Updating learning rate to 0.018000000000000002
+Epoch: 5 cost time: 0.10307836532592773
+Epoch: 5, Steps: 23 | Train Loss: 0.2023361 Vali Loss: 0.2282405 Test Loss: 0.3153922
+Validation loss decreased (0.239887 --> 0.228241).  Saving model ...
+Updating learning rate to 0.016200000000000003
+Epoch: 6 cost time: 0.1020662784576416
+Epoch: 6, Steps: 23 | Train Loss: 0.2002906 Vali Loss: 0.2449261 Test Loss: 0.3461619
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.014580000000000003
+Epoch: 7 cost time: 0.11639809608459473
+Epoch: 7, Steps: 23 | Train Loss: 0.2002249 Vali Loss: 0.2318723 Test Loss: 0.3239547
+EarlyStopping counter: 2 out of 5
+Updating learning rate to 0.013122
+Epoch: 8 cost time: 0.0835723876953125
+Epoch: 8, Steps: 23 | Train Loss: 0.1981056 Vali Loss: 0.2357833 Test Loss: 0.3298089
+EarlyStopping counter: 3 out of 5
+Updating learning rate to 0.011809800000000002
+Epoch: 9 cost time: 0.09705305099487305
+Epoch: 9, Steps: 23 | Train Loss: 0.1976459 Vali Loss: 0.2365569 Test Loss: 0.3323391
+EarlyStopping counter: 4 out of 5
+Updating learning rate to 0.01062882
+Epoch: 10 cost time: 0.0975334644317627
+Epoch: 10, Steps: 23 | Train Loss: 0.1972742 Vali Loss: 0.2346660 Test Loss: 0.3293443
+EarlyStopping counter: 5 out of 5
+Early stopping
+>>>>>>>testing : long_term_forecast_FEWSHOT_PLUS_task_ETTh2_96_96_none_SparseTSFPlus_ETTh2_sl96_pl96_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_FewShot_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test 2785
+mse:0.3153921365737915, mae:0.3513944745063782
+RMSE:0.5615978240966797, MAPE:0.48923826217651367, MSPE:500.05023193359375

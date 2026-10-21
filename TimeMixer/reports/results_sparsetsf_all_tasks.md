@@ -16,6 +16,9 @@ and **TimeMixer** (ICLR'24), against the 8 task categories the TimeMixer++ paper
 - **TimeMixer++** figures are the *published* values from its paper, in *italics*: produced with the
   authors' tuning on their hardware, so they are reference points, not a controlled head-to-head.
   TimeMixer++ is not re-run per task because it is stable only at `lr=5e-5`, which undertrains it.
+- **SparseTSFPlus**, the model this study builds, is compared with both on every task, in one fixed
+  configuration and in the best configuration per task:
+  [results_sparsetsf_plus_suite.md](results_sparsetsf_plus_suite.md).
 - Hardware: RTX 3050 Ti Laptop (4 GB). Batch sizes are reduced from published values where needed.
 - Every runner is idempotent and regenerates its table between `<!-- AUTO_* -->` markers.
 
@@ -40,6 +43,49 @@ task** (the new heads, the design decisions, the traps) is in
 Energy/carbon for the 3 models lives separately in
 [results_carbon_comparison.md](results_carbon_comparison.md); the original 3-model accuracy study is
 [results_final_report.md](results_final_report.md).
+
+## Runs and coverage
+
+Every run in `logs/run_logs*/`, counted from the logs by
+`benchmarks/tools/build_run_inventory.py`. The SparseTSFPlus column counts unit-variant runs
+from its ablations, not one fixed configuration; that single-configuration sweep is still to come.
+"paper only" means TimeMixer++ is not re-run on that task: it trains stably only at a learning
+rate that leaves it undertrained, so its published figures are the fairer reference. "—" means not
+run yet. The unfinished runs are ruled out on this laptop (TimeMixer Traffic 336/720, where Traffic
+192 alone took 25 h) or never completed (TimeMixer++ Solar 192).
+
+<!-- AUTO_RUNS_START -->
+**Accuracy runs, by task** (the TimeMixer++ paper's protocol)
+
+| Task | Paper protocol | SparseTSF | TimeMixer | TimeMixer++ | SparseTSFPlus |
+|---|---|---:|---:|---:|---:|
+| Long-term forecasting | 8 datasets × 4 horizons = 32 | 32 (+20 at lookback 720) | 30 (+2 unfinished) | 21 (+1 unfinished) | 100 |
+| M4 short-term | 6 subsets | 6 | 6 | paper only | 12 |
+| PEMS short-term | 4 datasets | 4 | 4 | paper only | 12 |
+| Imputation | 6 datasets × 4 mask rates = 24 | 24 | 24 | paper only | 79 |
+| Few-shot (10% train) | 6 datasets × 4 horizons = 24 | 24 | 24 | paper only | 48 |
+| Zero-shot | 6 pairs × 4 horizons = 24 | 24 | 24 | paper only | 48 |
+| Anomaly detection | 5 datasets (4 obtainable) | 4 | 4 | paper only | 8 |
+| Classification | 10 UEA datasets | 10 | 10 | paper only | 48 |
+
+**Other experiments**
+
+| Experiment | SparseTSF | TimeMixer | TimeMixer++ | SparseTSFPlus |
+|---|---:|---:|---:|---:|
+| Energy study (fixed settings for every model, 5 datasets × 4 horizons; SparseTSF and TimeMixer measured twice, July and 2026-10-21) | 40 | 40 | 20 | 40 |
+| Period-length tests | 19 |  |  |  |
+| First SparseTSFPlus unit tests |  |  |  | 10 |
+
+**Totals**
+
+| Model | Finished | Unfinished |
+|---|---:|---|
+| SparseTSF | 207 | 0 |
+| TimeMixer | 166 | 2: `run_logs/Traffic_pred336.log`, `run_logs/Traffic_pred720.log` |
+| TimeMixer++ | 41 | 1: `run_logs_pp/Solar-Energy_pred192.log` |
+| SparseTSFPlus | 405 | 0 |
+| **All** | **819** | **3** |
+<!-- AUTO_RUNS_END -->
 
 ## Protocol deviations worth stating in a write-up
 
