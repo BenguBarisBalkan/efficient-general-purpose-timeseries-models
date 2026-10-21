@@ -263,6 +263,43 @@ stays ungated, because PEMS needs it (Section 6), and it is the one remaining so
 imputation gap. Its harm appearing only when many points are missing suggests a mechanism: mixing
 along the phase axis spreads the holes. That is the next thing to test (Section 8).
 
+### Phase mixing on inputs with missing values — a candidate
+
+*Borrowed from: partial convolutions (Liu et al., 2018), the rule mask-aware aggregation already
+applies to the time convolution.* **Cost: 0.**
+
+**The problem.** After the refinement gate, phase mixing is the only source of the imputation gap
+between the fixed and per-task configurations. It helps or is neutral at mask rates 0.125 and 0.25,
+but at 0.375 and 0.5 it costs 31–44% on ETTh2 and 16–26% on Electricity. Harm only when many points
+are missing suggests the holes: mixing along the phase axis spreads positions that hold no
+observation into the observed hours of each period.
+
+**Two forms were tested** on all six datasets at all four mask rates, on top of the fixed imputation
+form (`allrg_pc`, `allrg_pm` in the [imputation ablation](results_sparsetsf_plus_ablation.md)):
+- **Complete inputs only:** skip phase mixing in the first pass, which still has the holes, and keep
+  it in the refinement pass, whose input has been filled.
+- **Mask-aware:** only observed positions feed the mixing, rescaled by the share of the period that
+  was observed. With every point observed it equals plain phase mixing exactly (checked).
+
+**Results** (mean masked MSE over six datasets; validation in brackets):
+
+| Without phase mixing | Plain phase mixing (fixed) | Complete inputs only | **Mask-aware** |
+|---:|---:|---:|---:|
+| 0.0651 (0.0713) | 0.0689 (0.0737) | 0.0728 (0.0781) | **0.0657 (0.0717)** |
+
+- **Mask-aware phase mixing is a candidate.** It brings the fixed imputation form within 1.0% of the
+  form without phase mixing, and is better than plain phase mixing on validation. It removes the
+  high-mask harm in two of the four bad cells (ETTh2 at 0.5: +31% → −4.8%; Electricity at 0.5:
+  +16.5% → −14.1%) and halves it in a third (Electricity at 0.375: +26% → +13%).
+- **ETTh2 at mask 0.375 is unchanged** (+47%). That is the dataset whose runs sometimes stay on a
+  training plateau, so the seed repeats have to show whether this cell is the unit or chance.
+- **Complete inputs only fails.** Skipping phase mixing in the first pass costs 23–42% on
+  Electricity and 29–39% on ETTh1 even at low mask rates. The first pass needs phase mixing; what
+  helps is mixing only the observed points.
+
+Reported as a candidate beside the fixed configuration, not adopted into it. It changes nothing
+outside imputation, because every other task's input is complete.
+
 ### Multi-period ensembling
 
 *Borrowed from: TimeMixer's multi-scale sum-ensemble, applied to periods instead of resolutions.*
@@ -627,19 +664,11 @@ Wall clock was 3 h 30 m, about a third of it on Electricity.
 
 Ordered by value for the goal of one model that serves every task.
 
-1. **Make phase mixing safe on inputs with missing values.** Gated refinement closed one of the
-   two gaps the one-configuration run exposed (Section 4). The other remains: phase mixing costs
-   16–44% on ETTh2 and Electricity imputation at mask rates 0.375 and 0.5, a gate did not remove
-   it, and PEMS needs phase mixing, so it cannot simply leave the model. The harm appears only when
-   many points are missing, which suggests that mixing along the phase axis spreads the holes into
-   observed phases. Two candidates follow from that:
-   - apply phase mixing only to complete inputs, which in imputation means the refinement pass,
-     not the first pass;
-   - make it mask-aware, mixing only observed phases, the way mask-aware aggregation does for the
-     convolution.
-
-   Either should remove the high-mask harm and keep the small gains at low mask rates. If it does
-   not, the holes are not the mechanism.
+1. **Confirm mask-aware phase mixing over seeds.** Of the two fixes tested for phase mixing on
+   inputs with missing values (Section 4), mask-aware mixing brought the fixed imputation form within
+   1.0% of the form without phase mixing; applying it to complete inputs only failed. It is a
+   candidate, not yet part of the fixed configuration. The one cell it did not fix (ETTh2, mask
+   0.375) is on the dataset with the training plateau, so seed repeats decide.
 
 2. **Repeat the headline results over more seeds.** Every run so far uses one seed. The fixed and
    per-task versions differ by under 1% on most tasks, which one seed cannot resolve.

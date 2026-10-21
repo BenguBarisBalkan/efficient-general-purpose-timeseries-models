@@ -136,6 +136,8 @@ parser.add_argument('--stsf_decomp', type=str, default='off',
                     help='trend/season split: off | free (0 params) | linear')
 parser.add_argument('--stsf_decomp_kernel', type=int, default=25,
                     help='moving_avg kernel for --stsf_decomp (forced odd)')
+parser.add_argument('--stsf_channel_mix', type=str, default='off',
+                    help='forecasting channel context, gated: off | mean | corr')
 parser.add_argument('--stsf_pad_fold', type=int, default=0,
                     help='1 to allow period_len not dividing seq_len/pred_len (phase-aligned pad)')
 parser.add_argument('--stsf_linear_bias', type=int, default=0,
