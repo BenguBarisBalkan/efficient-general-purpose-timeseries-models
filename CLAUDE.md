@@ -113,6 +113,7 @@ venv/Scripts/python.exe benchmarks/run_anomaly_benchmarks.py          # anomaly 
 venv/Scripts/python.exe benchmarks/run_classification_benchmarks.py   # classification (accuracy)
 venv/Scripts/python.exe benchmarks/tools/count_params_all.py          # params, every model/task/dataset run
 venv/Scripts/python.exe benchmarks/tools/build_task_summary.py        # cross-task table in results_sparsetsf_all_tasks.md
+venv/Scripts/python.exe benchmarks/tools/build_run_inventory.py       # runs-and-coverage tables, same report
 ```
 
 SparseTSFPlus ablations (which grafted units earn their parameters). All idempotent:
@@ -125,6 +126,7 @@ venv/Scripts/python.exe benchmarks/run_sparsetsf_plus_forecast.py         # fore
 venv/Scripts/python.exe benchmarks/run_sparsetsf_plus_forecast.py --full-best   # validation winner at every horizon
 venv/Scripts/python.exe benchmarks/run_sparsetsf_plus_forecast.py --group pems  # PEMS03/04/07/08
 venv/Scripts/python.exe benchmarks/run_sparsetsf_plus_anomaly.py          # leave-one-out on PSM, SMD
+venv/Scripts/python.exe benchmarks/run_sparsetsf_plus_suite.py            # both versions on all 8 tasks + energy
 venv/Scripts/python.exe benchmarks/tools/assert_sparsetsf_plus_equiv.py   # THE GATE (see below)
 venv/Scripts/python.exe benchmarks/tools/scrub_log_paths.py --apply       # BEFORE committing new logs
 ```
@@ -325,6 +327,10 @@ If you relocate any of these, the `REPO_ROOT`-relative path constants at the top
   `Namespace` `repr()`. A pattern matching only single backslashes silently finds ~2% of them (5
   files instead of 267). The tool derives the path at runtime rather than hardcoding it (a hardcoded
   path in a committed file would leak it), and refuses to write any file whose metrics would change.
+  Run without path arguments, it also blanks the **IP-geolocated position** (`longitude`, `latitude`,
+  `region`) that CodeCarbon writes into every `logs/emissions_*.csv` row; no report uses those
+  columns, the country is kept for the CO₂ factor, and it refuses if any energy value would change.
+  Rows committed before 2026-10-21 still carry coordinates in git history.
 - **`.gitignore` does not support same-line comments.** `foo/    # 7 GB` is parsed as a pattern
   *including* the comment, so it matches nothing and the directory is silently committed. Every
   note in that file must sit on its own line. This bit once already (`m4_results/` leaked into

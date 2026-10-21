@@ -69,9 +69,49 @@ def targets(args):
     return out
 
 
+# CodeCarbon writes the machine's IP-geolocated position into every emissions row. No report uses
+# these columns (energy comes from the measured fields, and the CO2 factor from the country), so
+# they are blanked; the country is kept.
+LOCATION_COLUMNS = ("longitude", "latitude", "region")
+ENERGY_COLUMNS = ("duration", "emissions", "energy_consumed", "cpu_energy", "gpu_energy", "ram_energy")
+
+
+def scrub_emissions(apply):
+    import csv
+    import io
+    changed = 0
+    for f in sorted(LOGS.glob("emissions_*.csv")):
+        text = f.read_text(encoding="utf-8")
+        rows = list(csv.DictReader(io.StringIO(text)))
+        if not rows:
+            continue
+        fields = list(rows[0].keys())
+        before = [[r.get(c) for c in ENERGY_COLUMNS] for r in rows]
+        n = 0
+        for r in rows:
+            for c in LOCATION_COLUMNS:
+                if r.get(c):
+                    r[c] = ""
+                    n += 1
+        if not n:
+            continue
+        if [[r.get(c) for c in ENERGY_COLUMNS] for r in rows] != before:
+            raise SystemExit("REFUSING {}: its energy values would change".format(f))
+        changed += n
+        if apply:
+            buf = io.StringIO()
+            w = csv.DictWriter(buf, fieldnames=fields, lineterminator="\n")
+            w.writeheader()
+            w.writerows(rows)
+            f.write_text(buf.getvalue(), encoding="utf-8")
+    print("[{}] {} location values in emissions CSVs".format("APPLIED" if apply else "DRY RUN", changed))
+
+
 def main():
     apply = "--apply" in sys.argv
     paths = [a for a in sys.argv[1:] if a != "--apply"]
+    if not paths:
+        scrub_emissions(apply)
     variants = spellings()
     files = hits = 0
     for f in targets(paths):
