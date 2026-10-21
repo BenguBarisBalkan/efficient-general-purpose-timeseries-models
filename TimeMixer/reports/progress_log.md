@@ -9,6 +9,39 @@ Numbers are **local** (this machine, this protocol) unless marked **published**.
 
 ---
 
+## 2026-10-21 — 24-hour backbone plan, step 2: channel context for PEMS
+
+**Planned.**
+- **The problem.** PEMS is SparseTSFPlus's largest remaining gap to the local TimeMixer (25.45
+  against 17.51 MAE, +45%). The backbone treats every channel independently, so it cannot use
+  the fact that neighbouring traffic sensors move together. TimeMixer runs PEMS with its channels
+  embedded jointly (`channel_independence 0`), which points at cross-channel information as the
+  missing ingredient.
+- **Two candidates,** each behind a ReZero gate (starts as the model without the unit), applied
+  to the forecast, and with no parameter that depends on the channel count, so checkpoints still
+  transfer between datasets:
+  - `mean`: the channel mean of the window gets its own cross-period map; each channel adds it,
+    scaled by its own least-squares loading on that mean, computed from the window rather than
+    learned. Source: the aggregate-and-redistribute core of SOFTS (Han et al., 2024). Cost: one
+    small period map plus the gate (9 parameters on PEMS, 17 on ETTh1).
+  - `corr`: each channel adds a softmax-weighted mix of the other channels' forecasts, weighted
+    by how strongly their input windows correlate with its own, with a learned temperature.
+    Source: attention across variates in iTransformer (Liu et al., 2024), with the learned
+    projections removed. Cost: 2 parameters.
+- **Checked before running:** both gates at zero reproduce the fixed configuration exactly;
+  gradients reach both gates and the temperature is finite (an early version produced a NaN
+  gradient for the temperature and was fixed before any run).
+- **Screen.** Both on PEMS03/04/07/08 and, as a guard for datasets that prefer independent
+  channels, on ETTh1, ETTm1 and Weather at horizon 96 (14 runs). Each run is the fixed
+  configuration's own command plus the unit flag, so the fixed cells are the control.
+- **Prediction.** PEMS MAE falls by at least 10%, while ETTh1, ETTm1 and Weather are no more than
+  1% worse. **Refuted** if PEMS improves by less than 3%.
+- **Decision rule (validation).** A candidate goes to the full suite if its PEMS validation loss
+  is at least 5% lower on average and no long-term check is more than 1% worse. The report
+  prints this decision from the logs.
+
+---
+
 ## 2026-10-21 — 24-hour backbone plan, step 1: phase mixing on inputs with missing values
 
 The plan for the next 24 hours (agreed before an unattended run) is in `CLAUDE.md` ("Active plan")
@@ -45,6 +78,52 @@ headline fixed configuration does not change.
   also beats `allrg` on validation.
 - **Also added:** a `--seed` flag for the seed repeats of step 3. Its default is the seed of every
   existing run; a 1-epoch check reproduced the default run to 7 significant digits.
+
+**Done.** 48 imputation runs (21:49–00:14).
+
+**Found.** Six-dataset means of masked MSE:
+
+| | without phase mixing (`u5g`) | plain phase mixing (`allrg`, fixed) | complete inputs only (`allrg_pc`) | **mask-aware (`allrg_pm`)** |
+|---|---:|---:|---:|---:|
+| test | 0.0651 | 0.0689 | 0.0728 | **0.0657** |
+| validation | 0.0713 | 0.0737 | 0.0781 | **0.0717** |
+
+- **Mask-aware phase mixing is the candidate** (lowest validation of the two, and better than
+  `allrg` on validation). It brings the fixed imputation form from 0.0689 to 0.0657 (−4.6%), within
+  1.0% of the form without phase mixing (0.0651). Against SparseTSF that is −21.5%; against the local
+  TimeMixer, +5.7% (the fixed form was +10.8%).
+- **The prediction held only partly.** At masks 0.375 and 0.5 on ETTh2 and Electricity, phase
+  mixing's cost (against the same model without it) went:
+
+  | Cell | Plain phase mixing | Mask-aware |
+  |---|---:|---:|
+  | ETTh2, mask 0.5 | +31% | −4.8% |
+  | Electricity, mask 0.5 | +16.5% | −14.1% |
+  | Electricity, mask 0.375 | +26% | +13% |
+  | ETTh2, mask 0.375 | +44% | +47% |
+
+  So "below 5% in every high-mask cell" was not met, and the mean (0.0657) narrowly missed the
+  predicted 0.0655 or lower. ETTh2 at 0.375 is the dataset with the training plateau, so the seed
+  repeats decide whether that cell is the unit or chance. One new cost: Electricity at mask 0.25 is
+  +8.5% where plain phase mixing was −4.1%.
+- **Complete inputs only is rejected.** Skipping phase mixing in the first pass costs 23–42% on
+  Electricity and 29–39% on ETTh1 at low mask rates. So the first pass needs phase mixing; what
+  helps is mixing only the observed points, not removing the mixing. The holes are part of the
+  mechanism, but not in the simple form tested by `allrg_pc`.
+- **Step 4 closed without training.** On ETTh1 and ETTh2 the FFT rule (as in TimesNet) picks the
+  published period, 24. On every other dataset it picks 48, the edge of the allowed band, because
+  these spectra are dominated by slow variation. The period-sensitivity probe had already measured
+  48 as worse: +6.9% MSE on ETTm1 and +7.7% on Weather. On PEMS08 the probe found the error rising
+  with the period (period 3: 23.68 MAE; period 12: 29.25). For SparseTSF the dominant cycle is the
+  wrong choice; it benefits from short periods with more segments per window.
+  (`results_fft_periods.md`)
+
+**Reports changed.** `results_sparsetsf_plus_ablation.md` (two variants); new
+`results_fft_periods.md`; `results_sparsetsf_plus_report.md` (new subsection on phase mixing with
+missing values); the thesis document.
+
+**Next.** Step 2 screen (running). The seed repeats include the mask-aware candidate on ETTh1 and
+ETTh2.
 
 ---
 

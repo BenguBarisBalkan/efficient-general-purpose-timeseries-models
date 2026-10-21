@@ -252,6 +252,29 @@ class Model(nn.Module):
                 and int(u.impute_passes) > 1):
             self.refine_gates = nn.Parameter(torch.zeros(int(u.impute_passes) - 1))
 
+        # U8 channel context (forecasting). The backbone is channel-independent, so it cannot use
+        # the fact that neighbouring series move together, which TimeMixer exploits on PEMS by
+        # embedding all channels jointly. Both forms sit behind a ReZero gate (start = no unit),
+        # and neither has a parameter that depends on the channel count, so checkpoints still
+        # transfer between datasets (zero-shot).
+        #   mean  the channel mean of the window gets its own cross-period map; each channel adds
+        #         it scaled by its own least-squares loading on that mean (computed, not learned).
+        #         After the aggregate-and-redistribute core of SOFTS (Han et al., 2024).
+        #   corr  each channel adds a softmax-weighted mix of the OTHER channels' forecasts,
+        #         weighted by window correlation with a learned temperature. iTransformer-style
+        #         attention across variates (Liu et al., 2024) with the projections removed.
+        self.channel_gate = None
+        if u.channel_mix != "off" and self.task_name in _FORECAST_TASKS:
+            if u.channel_mix == "mean":
+                self.ctx_linear = nn.Linear(self.seg_num_x, self.seg_num_y, bias=False)
+            elif u.channel_mix == "corr":
+                self.channel_log_tau = nn.Parameter(torch.zeros(1))
+            else:
+                raise ValueError(
+                    "SparseTSFPlus: unknown --stsf_channel_mix '{}' (off | mean | corr)".format(
+                        u.channel_mix))
+            self.channel_gate = nn.Parameter(torch.zeros(1))
+
     def _announce(self):
         # Label deliberately avoids the substring 'mse' -- every benchmark runner regexes
         # lowercase mse:/mae: and takes the LAST match, so a colliding label would
@@ -331,6 +354,7 @@ class Model(nn.Module):
     # ── task paths ───────────────────────────────────────────────────────────────────
     def _forecast(self, x_enc):
         x_norm, denorm = self._norm(x_enc)
+        x_full = x_norm.permute(0, 2, 1)                              # before decomposition
 
         trend_out = None
         if self.decomp is not None:
@@ -352,7 +376,28 @@ class Model(nn.Module):
                 x, p, self.extra_convs[i], self.extra_linears[i], self.pred_len)
         if trend_out is not None:
             y = y + trend_out
+        if self.channel_gate is not None and y.shape[1] > 1:
+            y = y + self.channel_gate * self._channel_context(x_full, y)
         return denorm(y.permute(0, 2, 1))
+
+    def _channel_context(self, x, y):
+        """(B, C, S) normalised input, (B, C, H) forecast -> (B, C, H) cross-channel term."""
+        xc = x - x.mean(dim=-1, keepdim=True)
+        if self.units.channel_mix == "mean":
+            ctx = x.mean(dim=1, keepdim=True)                         # (B, 1, S)
+            ctx_y = self._cross_period(ctx, self.period_len, self.conv1d, self.ctx_linear,
+                                       self.pred_len)                 # (B, 1, H)
+            cc = xc.mean(dim=1, keepdim=True)
+            beta = (xc * cc).sum(dim=-1, keepdim=True) / torch.clamp(
+                (cc * cc).sum(dim=-1, keepdim=True), min=1e-5)        # (B, C, 1)
+            return beta * ctx_y
+        z = xc / torch.clamp(xc.norm(dim=-1, keepdim=True), min=1e-5)
+        rho = torch.bmm(z, z.transpose(1, 2))                         # (B, C, C) correlations
+        eye = torch.eye(rho.shape[1], dtype=torch.bool, device=rho.device)
+        # mask the diagonal AFTER the temperature: -inf / tau has a non-finite derivative in tau
+        logits = (rho / torch.exp(self.channel_log_tau)).masked_fill(eye, float("-inf"))
+        weights = torch.softmax(logits, dim=-1)                       # others only
+        return torch.bmm(weights, y)
 
     def _reconstruct(self, x_norm, denorm, mask=None):
         x = x_norm.permute(0, 2, 1)                                   # (B, C, S)

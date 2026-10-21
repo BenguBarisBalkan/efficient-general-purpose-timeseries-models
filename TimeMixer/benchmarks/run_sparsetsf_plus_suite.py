@@ -74,6 +74,24 @@ REUSE_IMPUTATION = {"fixed": "allrg", "task": "u5g"}
 REUSE_CLASSIFICATION = "flat"
 REUSE_PEMS_TASK = "phase_p4"
 
+# Candidates (24-hour plan, 2026-10-21): the fixed configuration plus one new unit, reported beside
+# it for review and never replacing it. A candidate's column appears once any of its runs exists.
+CANDIDATES = ["chmean", "chcorr"]
+LABEL.update({"chmean": "Candidate: + channel mean", "chcorr": "Candidate: + channel correlation"})
+FORECAST_FLAGS.update({"chmean": FORECAST_FLAGS["fixed"] + ["--stsf_channel_mix", "mean"],
+                       "chcorr": FORECAST_FLAGS["fixed"] + ["--stsf_channel_mix", "corr"]})
+# channel context acts on forecasting only, so these candidates share the fixed imputation cells
+REUSE_IMPUTATION.update({"chmean": "allrg", "chcorr": "allrg"})
+ALL_VERSIONS = VERSIONS + CANDIDATES
+# Step 2 screen: PEMS, plus long-term datasets that prefer independent channels (horizon 96).
+SCREEN_KEYS = {"pems": ["PEMS03", "PEMS04", "PEMS07", "PEMS08"],
+               "longterm": ["ETTh1_pred96", "ETTm1_pred96", "Weather_pred96"]}
+
+
+def shown_versions() -> List[str]:
+    """The headline versions, plus every candidate that has at least one run of its own."""
+    return VERSIONS + [v for v in CANDIDATES if any(LOGS_DIR.glob("*_{}_*.log".format(v)))]
+
 NUM = r"([0-9]+(?:\.[0-9]+)?(?:[eE][+\-]?[0-9]+)?)"
 MSE_PAT = re.compile(r"mse:" + NUM)
 MAE_PAT = re.compile(r"mae:" + NUM)
@@ -164,7 +182,7 @@ def jobs_m4(v: str) -> List[Job]:
 
 
 def jobs_pems(v: str) -> List[Job]:
-    if v != "fixed":
+    if v == "task":
         return []          # per task: the ablation's phase_p4 runs are reused
     cfg = PEMS.MODEL_CFG["SparseTSF"]
     jobs = []
@@ -319,7 +337,7 @@ ORDER = ["anomaly", "m4", "pems", "zeroshot", "fewshot", "longterm", "energy"]
 
 
 def all_jobs(only=None) -> List[Job]:
-    jobs = [j for v in VERSIONS for t in ORDER if not only or t in only for j in BUILDERS[t](v)]
+    jobs = [j for v in ALL_VERSIONS for t in ORDER if not only or t in only for j in BUILDERS[t](v)]
     if not only or "energyref" in only:
         jobs += jobs_energy_ref()
     return jobs
@@ -390,16 +408,24 @@ class Table:
     def add(self, name: str, **vals):
         self.rows.append((name, vals))
 
+    BASE = ["SparseTSF", "fixed", "task", "TimeMixer"]
+
     def columns(self) -> List[str]:
-        return ["SparseTSF", "fixed", "task", "TimeMixer"]
+        return self.BASE + [v for v in shown_versions() if v in CANDIDATES]
 
     def means(self) -> Tuple[Dict[str, Optional[float]], int]:
-        full = [r for _, r in self.rows if all(r.get(c) is not None for c in self.columns())]
-        return {c: _mean([r[c] for r in full]) for c in self.columns()}, len(full)
+        """Means over the rows complete in the headline columns; a candidate's mean is shown only
+        if it has a value on all of those rows, so a partial candidate never shifts the others."""
+        full = [r for _, r in self.rows if all(r.get(c) is not None for c in self.BASE)]
+        out = {c: _mean([r[c] for r in full]) for c in self.BASE}
+        for c in self.columns()[len(self.BASE):]:
+            vals = [r.get(c) for r in full]
+            out[c] = _mean(vals) if full and all(x is not None for x in vals) else None
+        return out, len(full)
 
     def markdown(self) -> List[str]:
-        head = {"SparseTSF": "SparseTSF", "fixed": LABEL["fixed"], "task": LABEL["task"],
-                "TimeMixer": "TimeMixer"}
+        head = {"SparseTSF": "SparseTSF", "TimeMixer": "TimeMixer"}
+        head.update(LABEL)
         out = ["### " + self.title, "",
                "| {} | ".format("Dataset") + " | ".join(head[c] for c in self.columns()) + " |",
                "|---|" + "---:|" * len(self.columns())]
@@ -410,29 +436,30 @@ class Table:
         out.append("| **Mean ({} of {} rows)** | ".format(n, len(self.rows))
                    + " | ".join("**{}**".format(_fmt(m[c], self.spec)) for c in self.columns()) + " |")
         if self.params:
-            out.append("| _SparseTSFPlus parameters_ | | _{}_ | _{}_ | |".format(
-                self.params.get("fixed", "-"), self.params.get("task", "-")))
+            cells = "".join(" |" if c in ("SparseTSF", "TimeMixer")
+                            else " _{}_ |".format(self.params.get(c, "-")) for c in self.columns())
+            out.append("| _SparseTSFPlus parameters_ |" + cells)
         out.append("")
         return out
 
 
 def table_longterm() -> Table:
     t = Table("Long-term forecasting (seq_len 96, mean MSE over 4 horizons)", "MSE", ".4f", False)
-    texts = {v: [] for v in VERSIONS}
+    texts = {v: [] for v in shown_versions()}
     for ds in LT.DATASETS:
-        cells = {c: [] for c in ("SparseTSF", "fixed", "task", "TimeMixer")}
+        cells = {c: [] for c in ["SparseTSF", "TimeMixer"] + shown_versions()}
         for p in LT.PRED_LENS:
             cells["SparseTSF"].append(LT.parse_log(LT.log_path_for(ds, 96, p))[0])
             cells["TimeMixer"].append(TMLT.parse_log_file(
                 REPO_ROOT / "logs" / "run_logs" / "{}_pred{}.log".format(ds.name, p))[0])
-            for v in VERSIONS:
+            for v in shown_versions():
                 txt = suite_log("longterm", v, "{}_pred{}".format(ds.name, p))
                 texts[v].append(txt)
                 cells[v].append(_last(MSE_PAT, txt))
         # a dataset's mean needs all four horizons, so missing cells cannot flatter a model
         t.add(ds.name, **{c: (_mean(vs) if all(x is not None for x in vs) else None)
                           for c, vs in cells.items()})
-    t.params = {v: _params(texts[v]) for v in VERSIONS}
+    t.params = {v: _params(texts[v]) for v in shown_versions()}
     return t
 
 
@@ -449,8 +476,10 @@ def table_m4() -> Table:
     t.add("M4 (6 subsets)", SparseTSF=_m4_owa(M4_RESULTS / "SparseTSF"),
           fixed=_m4_owa(M4_RESULTS / "{}_fixed".format(MODEL)),
           task=_m4_owa(M4_RESULTS / "{}_task".format(MODEL)),
-          TimeMixer=_m4_owa(M4_RESULTS / "TimeMixer"))
-    t.params = {v: _params([suite_log("m4", v, s) for s in M4.SUBSETS]) for v in VERSIONS}
+          TimeMixer=_m4_owa(M4_RESULTS / "TimeMixer"),
+          **{v: _m4_owa(M4_RESULTS / "{}_{}".format(MODEL, v))
+             for v in shown_versions() if v in CANDIDATES})
+    t.params = {v: _params([suite_log("m4", v, s) for s in M4.SUBSETS]) for v in shown_versions()}
     return t
 
 
@@ -463,51 +492,58 @@ def table_pems() -> Table:
         fixed_txt = suite_log("pems", "fixed", ds.name)
         task_path = PFC.log_path_for(pds[ds.name], pfv[REUSE_PEMS_TASK], 12)
         task_texts.append(read(task_path))
+        cand = {}
+        for v in shown_versions():
+            if v in CANDIDATES:
+                txt = suite_log("pems", v, ds.name)
+                cand[v] = _last(MAE_PAT, txt) if "RMSE:" in txt else None
         t.add(ds.name, SparseTSF=PEMS.parse_log(PEMS.log_path_for("SparseTSF", ds))[0],
               fixed=_last(MAE_PAT, fixed_txt) if "RMSE:" in fixed_txt else None,
               task=PFC.parse_log(task_path)["mae"],
-              TimeMixer=PEMS.parse_log(PEMS.log_path_for("TimeMixer", ds))[0])
+              TimeMixer=PEMS.parse_log(PEMS.log_path_for("TimeMixer", ds))[0], **cand)
     t.params = {"fixed": _params([suite_log("pems", "fixed", d.name) for d in PEMS.DATASETS]),
                 "task": _params(task_texts)}
+    t.params.update({v: _params([suite_log("pems", v, d.name) for d in PEMS.DATASETS])
+                     for v in shown_versions() if v in CANDIDATES})
     return t
 
 
 def table_imputation() -> Table:
     t = Table("Imputation (masked MSE, mean over 4 mask rates)", "MSE", ".4f", False)
     pv = {x.name: x for x in PIMP.VARIANTS}
-    texts = {v: [] for v in VERSIONS}
+    texts = {v: [] for v in shown_versions()}
     for ds in IMP.DATASETS:
         pds = next(d for d in PIMP.DATASETS if d.name == ds.name)
-        cells = {c: [] for c in ("SparseTSF", "fixed", "task", "TimeMixer")}
+        cells = {c: [] for c in ["SparseTSF", "TimeMixer"] + shown_versions()}
         for m in IMP.MASK_RATES:
             cells["SparseTSF"].append(IMP.parse_log(IMP.log_path_for("SparseTSF", ds, m))[0])
             cells["TimeMixer"].append(IMP.parse_log(IMP.log_path_for("TimeMixer", ds, m))[0])
-            for v in VERSIONS:
+            for v in shown_versions():
                 path = PIMP.report_path_for(pds, m, pv[REUSE_IMPUTATION[v]])
                 texts[v].append(read(path))
                 cells[v].append(PIMP.parse_log(path)["mse"])
         t.add(ds.name, **{c: (_mean(vs) if all(x is not None for x in vs) else None)
                           for c, vs in cells.items()})
-    t.params = {v: _params(texts[v]) for v in VERSIONS}
+    t.params = {v: _params(texts[v]) for v in shown_versions()}
     return t
 
 
 def table_fewshot() -> Table:
     t = Table("Few-shot forecasting, 10% of training data (mean MSE over 4 horizons)", "MSE", ".4f",
               False)
-    texts = {v: [] for v in VERSIONS}
+    texts = {v: [] for v in shown_versions()}
     for ds in FS.DATASETS:
-        cells = {c: [] for c in ("SparseTSF", "fixed", "task", "TimeMixer")}
+        cells = {c: [] for c in ["SparseTSF", "TimeMixer"] + shown_versions()}
         for p in FS.PRED_LENS:
             cells["SparseTSF"].append(FS.parse_log(FS.log_path_for(ds, p, "SparseTSF"))[0])
             cells["TimeMixer"].append(FS.parse_log(FS.log_path_for(ds, p, "TimeMixer"))[0])
-            for v in VERSIONS:
+            for v in shown_versions():
                 txt = suite_log("fewshot", v, "{}_pred{}".format(ds.name, p))
                 texts[v].append(txt)
                 cells[v].append(_last(MSE_PAT, txt))
         t.add(ds.name, **{c: (_mean(vs) if all(x is not None for x in vs) else None)
                           for c, vs in cells.items()})
-    t.params = {v: _params(texts[v]) for v in VERSIONS}
+    t.params = {v: _params(texts[v]) for v in shown_versions()}
     return t
 
 
@@ -517,19 +553,19 @@ def _zs_mse(text: str) -> Optional[float]:
 
 def table_zeroshot() -> Table:
     t = Table("Zero-shot transfer (mean MSE over 4 horizons)", "MSE", ".4f", False)
-    texts = {v: [] for v in VERSIONS}
+    texts = {v: [] for v in shown_versions()}
     for src, tgt in ZS.PAIRS:
-        cells = {c: [] for c in ("SparseTSF", "fixed", "task", "TimeMixer")}
+        cells = {c: [] for c in ["SparseTSF", "TimeMixer"] + shown_versions()}
         for p in ZS.PRED_LENS:
             for model in ("SparseTSF", "TimeMixer"):
                 cells[model].append(_zs_mse(read(ZS.log_path_for(src, tgt, p, model))))
-            for v in VERSIONS:
+            for v in shown_versions():
                 txt = suite_log("zeroshot", v, "{}_to_{}_pred{}".format(src, tgt, p))
                 texts[v].append(txt)
                 cells[v].append(_zs_mse(txt))
         t.add("{} → {}".format(src, tgt), **{c: (_mean(vs) if all(x is not None for x in vs) else None)
                                               for c, vs in cells.items()})
-    t.params = {v: _params(texts[v]) for v in VERSIONS}
+    t.params = {v: _params(texts[v]) for v in shown_versions()}
     return t
 
 
@@ -541,8 +577,11 @@ def table_anomaly() -> Table:
         txt = suite_log("anomaly", "fixed", ds.name)
         f1 = _last(F1_PAT, txt)
         sp = AN.parse_log(ds, "SparseTSF")[2]
-        t.add(ds.name, SparseTSF=sp, fixed=None if f1 is None else f1 * 100,
-              task=sp, TimeMixer=AN.parse_log(ds, "TimeMixer")[2])
+        fixed = None if f1 is None else f1 * 100
+        # candidates share the fixed cells: channel context acts on forecasting only
+        t.add(ds.name, SparseTSF=sp, fixed=fixed, task=sp,
+              TimeMixer=AN.parse_log(ds, "TimeMixer")[2],
+              **{v: fixed for v in shown_versions() if v in CANDIDATES})
     t.params = {"fixed": _params([suite_log("anomaly", "fixed", d.name) for d in AN.DATASETS]),
                 "task": "= SparseTSF"}
     return t
@@ -557,7 +596,8 @@ def table_classification() -> Table:
         texts.append(read(path))
         acc = PCLS.parse_log(path)["acc"]
         t.add(ds, SparseTSF=CLS.parse_log(CLS.log_path_for(ds, "SparseTSF"))[0], fixed=acc, task=acc,
-              TimeMixer=CLS.parse_log(CLS.log_path_for(ds, "TimeMixer"))[0])
+              TimeMixer=CLS.parse_log(CLS.log_path_for(ds, "TimeMixer"))[0],
+              **{v: acc for v in shown_versions() if v in CANDIDATES})
     p = _params(texts)
     t.params = {"fixed": p, "task": p}
     return t
@@ -647,9 +687,11 @@ START, END = "<!-- AUTO_PLUS_SUITE_START -->", "<!-- AUTO_PLUS_SUITE_END -->"
 
 
 def summary_rows(tables: List[Table]) -> List[str]:
+    cands = [v for v in shown_versions() if v in CANDIDATES]
     out = ["### Summary", "",
-           "| Task | Metric | SparseTSF | {} | {} | TimeMixer |".format(LABEL["fixed"], LABEL["task"]),
-           "|---|---|---:|---:|---:|---:|"]
+           "| Task | Metric | SparseTSF | {} | {} | TimeMixer |".format(LABEL["fixed"], LABEL["task"])
+           + "".join(" {} |".format(LABEL[v]) for v in cands),
+           "|---|---|---:|---:|---:|---:|" + "---:|" * len(cands)]
     for t in tables:
         m, n = t.means()
         out.append("| {} | {} {} | {} |".format(
@@ -659,10 +701,65 @@ def summary_rows(tables: List[Table]) -> List[str]:
     return out
 
 
+VALI_PAT = re.compile(r"Vali Loss: ([0-9]+(?:\.[0-9]+)?)")
+
+
+def _best_vali(text: str) -> Optional[float]:
+    v = [float(x) for x in VALI_PAT.findall(text)]
+    return min(v) if v else None
+
+
+def screen_md() -> List[str]:
+    """Step 2 screen: each candidate against the fixed configuration on the screen cells.
+    Validation decides; the test metric is shown for reporting only."""
+    cands = [v for v in shown_versions() if v in CANDIDATES]
+    if not cands:
+        return []
+    short = {v: LABEL[v].replace("Candidate: ", "") for v in cands}
+    out = ["### Candidate screen (decided on validation)", "",
+           "Best validation loss and test metric (MSE for long-term, MAE for PEMS) of each candidate "
+           "against the fixed configuration, same settings. Δ is relative to fixed.", "",
+           "| Cell | Fixed: vali | Fixed: test | " + " | ".join(
+               "{} vali (Δ) | {} test (Δ)".format(short[v], short[v]) for v in cands) + " |",
+           "|---|---:|---:|" + "---:|---:|" * len(cands)]
+    deltas = {v: {"pems": [], "longterm": []} for v in cands}
+    for task, keys in SCREEN_KEYS.items():
+        pat = MAE_PAT if task == "pems" else MSE_PAT
+        for key in keys:
+            ftxt = suite_log(task, "fixed", key)
+            fv, ft = _best_vali(ftxt), _last(pat, ftxt)
+            row = "| {} {} | {} | {} |".format(task, key, _fmt(fv, ".5f"), _fmt(ft, ".4f"))
+            for v in cands:
+                txt = suite_log(task, v, key)
+                cv, ct = _best_vali(txt), _last(pat, txt)
+                dv = None if cv is None or fv is None else 100 * (cv - fv) / fv
+                dt = None if ct is None or ft is None else 100 * (ct - ft) / ft
+                if dv is not None:
+                    deltas[v][task].append(dv)
+                row += " {} ({}) | {} ({}) |".format(
+                    _fmt(cv, ".5f"), "-" if dv is None else "{:+.1f}%".format(dv),
+                    _fmt(ct, ".4f"), "-" if dt is None else "{:+.1f}%".format(dt))
+            out.append(row)
+    out.append("")
+    for v in cands:
+        d = deltas[v]
+        if all(len(d[t]) == len(k) for t, k in SCREEN_KEYS.items()):
+            pems = sum(d["pems"]) / len(d["pems"])
+            worst = max(d["longterm"])
+            ok = pems <= -5.0 and worst <= 1.0
+            out.append("- **{}**: PEMS validation {:+.1f}% on average, worst long-term check {:+.1f}% "
+                       "-> {} (rule: PEMS at least 5% better, no check more than 1% worse).".format(
+                           LABEL[v], pems, worst, "passes" if ok else "does not pass"))
+        else:
+            out.append("- **{}**: screen incomplete.".format(LABEL[v]))
+    out.append("")
+    return out
+
+
 def update_md() -> None:
     tables = [table_longterm(), table_m4(), table_pems(), table_imputation(), table_fewshot(),
               table_zeroshot(), table_anomaly(), table_classification()]
-    body = summary_rows(tables)
+    body = summary_rows(tables) + screen_md()
     for t in tables:
         body += t.markdown()
     body += energy_md()
@@ -681,7 +778,9 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--update-from-logs-only", action="store_true")
     ap.add_argument("--only", default="", help="comma-separated tasks: " + ",".join(ORDER))
-    ap.add_argument("--versions", default="", help="comma-separated: fixed,task")
+    ap.add_argument("--versions", default="",
+                    help="comma-separated: " + ",".join(ALL_VERSIONS) + " (default: fixed,task)")
+    ap.add_argument("--keys", default="", help="comma-separated job keys, e.g. PEMS03,ETTh1_pred96")
     args = ap.parse_args()
     if args.update_from_logs_only:
         update_md()
@@ -690,6 +789,9 @@ def main() -> None:
     only = set(filter(None, args.only.split(",")))
     versions = set(filter(None, args.versions.split(","))) or set(VERSIONS)
     jobs = [j for j in all_jobs(only) if j.task == "energyref" or j.version in versions]
+    keys = set(filter(None, args.keys.split(",")))
+    if keys:
+        jobs = [j for j in jobs if j.key in keys]
     for i, job in enumerate(jobs, 1):
         if job.done(read(job.log)):
             print("[SKIP {}/{}] {} {} {}".format(i, len(jobs), job.task, job.version, job.key), flush=True)

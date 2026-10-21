@@ -39,6 +39,7 @@ _UNIT_DEFAULTS = {
     "stsf_periods": "",         # extra comma-separated periods, e.g. "8,24"
     "stsf_decomp": "off",       # off | free | linear
     "stsf_decomp_kernel": 25,   # forced odd (moving_avg pads (k-1)//2 per side)
+    "stsf_channel_mix": "off",  # forecasting: off | mean | corr (gated channel context)
     "stsf_pad_fold": 0,         # 1 -> allow period_len not dividing seq_len/pred_len
     "stsf_linear_bias": 0,      # bias on the cross-period linear
     "stsf_mask_conv": 0,        # imputation: partial-conv renormalisation + passthrough

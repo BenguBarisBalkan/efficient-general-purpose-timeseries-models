@@ -136,8 +136,14 @@ GATE_CASES = [
      dict(stsf_mask_conv=1)),
     ("anomaly_detection",
      dict(stsf_phase_mix="linear", stsf_phase_gate=1), dict()),
+    ("long_term_forecast",
+     dict(stsf_decomp="linear", stsf_phase_mix="linear", stsf_channel_mix="mean"),
+     dict(stsf_decomp="linear", stsf_phase_mix="linear")),
+    ("long_term_forecast",
+     dict(stsf_decomp="linear", stsf_phase_mix="linear", stsf_channel_mix="corr"),
+     dict(stsf_decomp="linear", stsf_phase_mix="linear")),
 ]
-GATED_KEYS = ("phase_mix.", "refine_gates")
+GATED_KEYS = ("phase_mix.", "refine_gates", "channel_gate", "ctx_linear", "channel_log_tau")
 
 
 def run_gate_case(label, gated, without):
