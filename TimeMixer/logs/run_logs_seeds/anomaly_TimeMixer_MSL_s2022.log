@@ -1,0 +1,62 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=1.0, batch_size=128, c_out=55, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=16, data='MSL', data_path='ETTh1.csv', dec_in=55, decomp_method='moving_avg', des='Anom', devices='0,1', distil=True, down_sampling_layers=3, down_sampling_method='avg', down_sampling_window=2, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=55, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=48, learning_rate=0.0001, loss='MSE', lradj='TST', mask_rate=0.125, model='TimeMixer', model_id='ANOM_TM_MSL_s2022', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=15, pct_start=0.2, percent=100, period_len=24, pred_len=0, root_path='<workspace>\\dataset\\MSL', seasonal_patterns='Monthly', seed=2022, seq_len=100, stream_metrics=0, stsf_channel_mix='off', stsf_cls_head='flat', stsf_cls_segments=8, stsf_decomp='off', stsf_decomp_kernel=25, stsf_diag_mask=0, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_complete=0, stsf_phase_gate=0, stsf_phase_kernel=3, stsf_phase_mask=0, stsf_phase_mix='off', stsf_phase_rank=0, stsf_refine_gate=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='anomaly_detection', top_k=5, track_emissions=0, train_epochs=3, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+>>>>>>>start training : anomaly_detection_ANOM_TM_MSL_s2022_none_TimeMixer_MSL_sl100_pl0_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_Anom_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+test: (73729, 55)
+train: (58317, 55)
+train 58218
+test: (73729, 55)
+train: (58317, 55)
+val 73630
+test: (73729, 55)
+train: (58317, 55)
+test 73630
+	iters: 100, epoch: 1 | loss: 0.9124765
+	speed: 0.2249s/iter; left time: 284.7089s
+	iters: 200, epoch: 1 | loss: 0.6074837
+	speed: 0.2058s/iter; left time: 240.0028s
+	iters: 300, epoch: 1 | loss: 0.2300258
+	speed: 0.2048s/iter; left time: 218.2763s
+	iters: 400, epoch: 1 | loss: 0.1103961
+	speed: 0.2047s/iter; left time: 197.7522s
+Epoch: 1 cost time: 95.31831097602844
+Epoch: 1, Steps: 455 | Train Loss: 0.5117398 Vali Loss: 0.2440683 Test Loss: 0.2441406
+Validation loss decreased (inf --> 0.244141).  Saving model ...
+Updating learning rate to 9.32291952684714e-05
+	iters: 100, epoch: 2 | loss: 0.0647090
+	speed: 1.1610s/iter; left time: 941.5509s
+	iters: 200, epoch: 2 | loss: 0.0374955
+	speed: 0.2054s/iter; left time: 146.0255s
+	iters: 300, epoch: 2 | loss: 0.0537732
+	speed: 0.2057s/iter; left time: 125.6894s
+	iters: 400, epoch: 2 | loss: 0.0542199
+	speed: 0.2059s/iter; left time: 105.2112s
+Epoch: 2 cost time: 93.4202790260315
+Epoch: 2, Steps: 455 | Train Loss: 0.0467502 Vali Loss: 0.0675938 Test Loss: 0.0666373
+Validation loss decreased (0.244141 --> 0.066637).  Saving model ...
+Updating learning rate to 3.692040941962549e-05
+	iters: 100, epoch: 3 | loss: 0.0285697
+	speed: 1.1643s/iter; left time: 414.4813s
+	iters: 200, epoch: 3 | loss: 0.0301168
+	speed: 0.2051s/iter; left time: 52.4934s
+	iters: 300, epoch: 3 | loss: 0.0202380
+	speed: 0.2049s/iter; left time: 31.9687s
+	iters: 400, epoch: 3 | loss: 0.0293199
+	speed: 0.2053s/iter; left time: 11.4989s
+Epoch: 3 cost time: 93.33544921875
+Epoch: 3, Steps: 455 | Train Loss: 0.0328177 Vali Loss: 0.0539370 Test Loss: 0.0538184
+Validation loss decreased (0.066637 --> 0.053818).  Saving model ...
+Updating learning rate to 6.069152216636792e-10
+>>>>>>>testing : anomaly_detection_ANOM_TM_MSL_s2022_none_TimeMixer_MSL_sl100_pl0_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_Anom_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test: (73729, 55)
+train: (58317, 55)
+test 73630
+test: (73729, 55)
+train: (58317, 55)
+train 58218
+Threshold : 0.0948161031305785
+pred:    (7363000,)
+gt:      (7363000,)
+pred:  (7363000,)
+gt:    (7363000,)
+Accuracy : 0.9624, Precision : 0.9047, Recall : 0.7195, F-score : 0.8016 

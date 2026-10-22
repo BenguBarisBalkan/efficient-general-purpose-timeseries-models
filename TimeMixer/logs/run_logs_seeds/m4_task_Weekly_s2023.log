@@ -1,0 +1,55 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=16, c_out=1, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=16, data='m4', data_path='ETTh1.csv', dec_in=1, decomp_method='moving_avg', des='M4', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=1, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=48, learning_rate=0.01, loss='SMAPE', lradj='TST', mask_rate=0.125, model='SparseTSFPlus', model_id='M4_PLUS_task_Weekly_task_s2023', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=5, pct_start=0.2, percent=100, period_len=13, pred_len=96, root_path='<workspace>\\dataset\\m4', seasonal_patterns='Weekly', seed=2023, seq_len=96, stream_metrics=0, stsf_channel_mix='off', stsf_cls_head='flat', stsf_cls_segments=8, stsf_decomp='linear', stsf_decomp_kernel=25, stsf_diag_mask=0, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_complete=0, stsf_phase_gate=0, stsf_phase_kernel=3, stsf_phase_mask=0, stsf_phase_mix='off', stsf_phase_rank=0, stsf_refine_gate=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='short_term_forecast', top_k=5, track_emissions=0, train_epochs=10, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+trainable_params:17
+units:decomp=linear
+>>>>>>>start training : short_term_forecast_M4_PLUS_task_Weekly_task_s2023_none_SparseTSFPlus_m4_sl96_pl96_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_M4_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 359
+val 359
+Epoch: 1 cost time: 2.51175594329834
+Epoch: 1, Steps: 23 | Train Loss: 13.7848416 Vali Loss: 12.4074937 Test Loss: 12.4074937
+Validation loss decreased (inf --> 12.407494).  Saving model ...
+Updating learning rate to 0.005367517584172003
+Epoch: 2 cost time: 0.11462759971618652
+Epoch: 2, Steps: 23 | Train Loss: 12.0409422 Vali Loss: 12.0871632 Test Loss: 12.0871632
+Validation loss decreased (12.407494 --> 12.087163).  Saving model ...
+Updating learning rate to 0.009999271227761496
+Epoch: 3 cost time: 0.09757399559020996
+Epoch: 3, Steps: 23 | Train Loss: 11.2353608 Vali Loss: 11.8384921 Test Loss: 11.8384921
+Validation loss decreased (12.087163 --> 11.838492).  Saving model ...
+Updating learning rate to 0.009586058163301235
+Epoch: 4 cost time: 0.10447478294372559
+Epoch: 4, Steps: 23 | Train Loss: 11.1677830 Vali Loss: 11.4032909 Test Loss: 11.4032909
+Validation loss decreased (11.838492 --> 11.403291).  Saving model ...
+Updating learning rate to 0.008474662361017835
+Epoch: 5 cost time: 0.1035459041595459
+Epoch: 5, Steps: 23 | Train Loss: 10.4379236 Vali Loss: 10.8722601 Test Loss: 10.8722601
+Validation loss decreased (11.403291 --> 10.872260).  Saving model ...
+Updating learning rate to 0.006834283756980907
+Epoch: 6 cost time: 0.09507441520690918
+Epoch: 6, Steps: 23 | Train Loss: 9.5533639 Vali Loss: 10.6949099 Test Loss: 10.6949099
+Validation loss decreased (10.872260 --> 10.694910).  Saving model ...
+Updating learning rate to 0.004914655123585998
+Epoch: 7 cost time: 0.10224080085754395
+Epoch: 7, Steps: 23 | Train Loss: 9.0601731 Vali Loss: 10.5237150 Test Loss: 10.5237150
+Validation loss decreased (10.694910 --> 10.523715).  Saving model ...
+Updating learning rate to 0.00300802251879059
+Epoch: 8 cost time: 0.1163334846496582
+Epoch: 8, Steps: 23 | Train Loss: 9.9289742 Vali Loss: 10.4078951 Test Loss: 10.4078951
+Validation loss decreased (10.523715 --> 10.407895).  Saving model ...
+Updating learning rate to 0.0014046534730071801
+Epoch: 9 cost time: 0.11856245994567871
+Epoch: 9, Steps: 23 | Train Loss: 9.4278847 Vali Loss: 10.3734526 Test Loss: 10.3734526
+Validation loss decreased (10.407895 --> 10.373453).  Saving model ...
+Updating learning rate to 0.00034864638887970094
+Epoch: 10 cost time: 0.13883495330810547
+Epoch: 10, Steps: 23 | Train Loss: 8.4194863 Vali Loss: 10.3683335 Test Loss: 10.3683335
+Validation loss decreased (10.373453 --> 10.368334).  Saving model ...
+Updating learning rate to 7.687722385044181e-07
+>>>>>>>testing : short_term_forecast_M4_PLUS_task_Weekly_task_s2023_none_SparseTSFPlus_m4_sl96_pl96_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_M4_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+train 359
+test 359
+0
+test shape: (359, 13, 1)
+SparseTSFPlus
+After all 6 tasks are finished, you can calculate the averaged index

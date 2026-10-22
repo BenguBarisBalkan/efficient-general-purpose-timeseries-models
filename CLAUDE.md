@@ -51,8 +51,11 @@ Check every step against these three requirements before running it and again be
      hardware and tuning). Never put them in one comparison without saying which is which.
    - Select on validation, never on test. Imputation, anomaly and classification early-stop on
      test, so call their results a sensitivity analysis.
-   - Every run so far uses one seed (`run.py` fixes 2021). Do not call a gain of a few percent a
-     finding until it holds across seeds.
+   - Runs default to one seed (`run.py` fixes 2021; `--seed` repeats a run with another). Do not
+     call a gain a finding until it holds across seeds: `benchmarks/run_seed_repeats.py` reports
+     seeds 2021–2023 and calls a difference a finding only if it has the same sign on every seed
+     and exceeds twice the spread. ETTh2 imputation is the cautionary case: its runs sometimes stay
+     on a training plateau at random, so one-seed ETTh2 differences can be pure noise.
 3. **Recorded.** Runners write the results into `reports/`; never type numbers in by hand. After
    each completed step, add an entry to the progress log (next section).
 
@@ -72,7 +75,7 @@ Write entries for the supervisor: ideas and evidence, not implementation. Record
 since a rejected unit is a finding. Leave out process mistakes and their fixes unless they changed
 a result. When asked for the biweekly summary, build it from the entries since the last meeting.
 
-### Active plan — 24-hour unattended backbone work (agreed 2026-10-21)
+### Completed plan — 24-hour unattended backbone work (2026-10-21/22)
 
 Full plan, decision rules and a status checklist: Claude Doc "SparseTSFPlus — 24-hour backbone
 plan (2026-10-21)", https://claude.ai/artifact/Kg1R4XDoXQSMBaWBkBD5Fb (doc id
@@ -94,13 +97,13 @@ from these runs to a folder on D:/; keep-awake is on.
   iTransformer-style). Screen PEMS03/04/07/08 + ETTh1/ETTm1/Weather at H=96. Predict PEMS MAE −10%
   or better with ETT/Weather ≤ +1%; refuted if PEMS improves < 3%. Full suite + same-session energy
   only if PEMS validation improves ≥ 5% and no check is > 1% worse; otherwise step 4.
-- [ ] **Step 3** — `benchmarks/run_seed_repeats.py`; seeds 2022 and 2023 for SparseTSF, fixed SparseTSFPlus (and the candidates, `--configs`):
+- [x] **Step 3** (done, PRs #19–#20; `results_seed_repeats.md`) — `benchmarks/run_seed_repeats.py`; seeds 2022 and 2023 for SparseTSF, fixed SparseTSFPlus (and the candidates, `--configs`):
   long-term on ETT×4 + Weather, M4, PEMS, few-shot, zero-shot, anomaly, imputation on ETTh1/ETTh2
   (+ `u5g` on ETTh2). New `results_seed_repeats.md`; a finding needs the same sign on all three
   seeds and a difference above twice the seed spread.
 - [x] **Step 4 (stretch)** (closed without training: FFT picks 24 on hourly ETT, 48 elsewhere, already measured worse; `results_fft_periods.md`) — automatic period choice: strongest FFT period of the training split,
   restricted to valid divisors; long-term ETT/Weather and PEMS against published periods.
-- [ ] **Reporting** — after every step: progress-log entry (plan with prediction BEFORE the runs),
+- [x] **Reporting** (done; handoff entry at the top of the progress log) — after every step: progress-log entry (plan with prediction BEFORE the runs),
   runner tables, SparseTSFPlus report, thesis-doc section (layout of Section 17), one merged PR.
   Hard stop for new runs at hour 21; finish with a handoff entry written as the biweekly summary.
 
@@ -159,6 +162,9 @@ venv/Scripts/python.exe benchmarks/run_sparsetsf_plus_forecast.py --full-best   
 venv/Scripts/python.exe benchmarks/run_sparsetsf_plus_forecast.py --group pems  # PEMS03/04/07/08
 venv/Scripts/python.exe benchmarks/run_sparsetsf_plus_anomaly.py          # leave-one-out on PSM, SMD
 venv/Scripts/python.exe benchmarks/run_sparsetsf_plus_suite.py            # both versions on all 8 tasks + energy
+venv/Scripts/python.exe benchmarks/run_sparsetsf_plus_suite.py --only pems,longterm --versions chcorr --keys PEMS03,ETTh1_pred96  # a candidate, some cells
+venv/Scripts/python.exe benchmarks/run_seed_repeats.py                    # seeds 2022/2023 of the headline comparisons
+venv/Scripts/python.exe benchmarks/tools/fft_periods.py                   # which period an FFT rule would pick (no training)
 venv/Scripts/python.exe benchmarks/tools/assert_sparsetsf_plus_equiv.py   # THE GATE (see below)
 venv/Scripts/python.exe benchmarks/tools/scrub_log_paths.py --apply       # BEFORE committing new logs
 ```

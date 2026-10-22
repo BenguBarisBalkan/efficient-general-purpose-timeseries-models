@@ -9,6 +9,62 @@ Numbers are **local** (this machine, this protocol) unless marked **published**.
 
 ---
 
+## 2026-10-22 — Handoff: 24 hours of backbone work (summary for the supervisor)
+
+**What was tried** (plan agreed on 21 October; every step's idea, source, prediction and refutation
+criterion was recorded below before its runs; about 660 runs in total):
+1. **Phase mixing on inputs with missing values** (imputation): mixing only on complete inputs, or
+   mask-aware mixing.
+2. **Channel context for PEMS**: a channel-mean term (after SOFTS) and a correlation-weighted mix of
+   other channels' forecasts (after iTransformer), both gated, with no parameter that depends on
+   the channel count.
+3. **Seed repeats** (seeds 2022 and 2023) of every headline comparison, plus the per-task version,
+   Electricity imputation and TimeMixer on PEMS and anomaly detection.
+4. **Choosing the period by FFT**, as TimesNet and TimeMixer++ do.
+
+**What held.**
+- **The one-model claim, over three seeds.** The fixed SparseTSFPlus beats SparseTSF beyond
+  run-to-run noise on PEMS (−24.4%), imputation (−16.2% on ETTh1/ETTh2), M4 (−6.1%), few-shot (−1.4%)
+  and long-term forecasting (−1.0%). Choosing units per task adds nothing measurable on forecasting:
+  every difference is under 0.7%.
+- **Channel correlation helps PEMS** by −5.25% ± 0.29% over three seeds, for 2 parameters and with no
+  harm on the long-term guard cells.
+- **TimeMixer's PEMS lead** is also a finding (the fixed SparseTSFPlus is +47.7% ± 2.0% behind).
+
+**What was refuted or weakened.**
+- **Single-seed imputation conclusions.** The imputation variants of SparseTSFPlus differ by less
+  than their run-to-run spread (3.7% on ETTh1/ETTh2, 7.4% on Electricity). Phase mixing's
+  imputation cost, which motivated yesterday's phase gate and today's step 1, is not a finding; the
+  bad ETTh2 cells come from a training plateau that strikes runs at random. Mask-aware phase mixing
+  is therefore an unconfirmed candidate (one consistent effect: best on Electricity at mask 0.5 on
+  every seed).
+- **Phase mixing on complete inputs only**: rejected (+23–42% on Electricity at low mask rates).
+- **The FFT period rule**: rejected without training. It picks the published period on hourly data
+  and 48 elsewhere, which the period-sensitivity probe had already measured as worse.
+- **The screening rule itself.** A single-seed validation threshold rejected channel correlation
+  (−4.7% against the required 5%) whose gain then held on every seed.
+- **"SparseTSFPlus beats TimeMixer on anomaly detection" is withdrawn.** TimeMixer's seed-2021 MSL
+  run failed (48.0 F1 against 80.2 and 79.4 on the other seeds); over three seeds TimeMixer is
+  ahead on two, and the difference is not a finding. The few-shot and zero-shot wins over TimeMixer
+  (about 12%) were not repeated for TimeMixer and remain single-seed on its side.
+
+**Decisions for the next meeting.**
+1. **Run channel correlation on the full suite?** It passed the seed test on PEMS but not the
+   pre-registered screen, so it was not run. Cost: about 4–5 hours.
+2. **Pair the imputation comparisons.** The random masks draw from the same random stream as the
+   weights, so each variant sees different holes. A separate generator for the masks (opt-in, so
+   existing tables stay valid) would make variant comparisons paired and far less noisy.
+3. **Reframe the imputation narrative in the thesis.** Gated refinement stays (it removed a failure
+   that was consistent within its seed and won on all six datasets), but phase mixing's imputation
+   cost and the mask-aware fix should be presented as unconfirmed.
+
+**Where everything is.** Each step's entry is below. Reports: `results_seed_repeats.md`,
+`results_sparsetsf_plus_report.md` (Sections 4, 6, 8), `results_sparsetsf_plus_suite.md`,
+`results_sparsetsf_plus_ablation.md`, `results_fft_periods.md`. Thesis document: Sections 18–21.
+PRs #16–#20.
+
+---
+
 ## 2026-10-22 — 24-hour backbone plan, step 3: seed repeats
 
 **Planned.**
@@ -38,6 +94,56 @@ Numbers are **local** (this machine, this protocol) unless marked **published**.
   - TimeMixer on PEMS and anomaly detection (16 runs), so the comparisons against TimeMixer have a
     spread on both sides; prediction: fixed against TimeMixer stays a finding on both (PEMS +45%,
     anomaly +4.5 F1).
+
+**Done.** About 600 runs between 01:01 and the afternoon of 22 October (`results_seed_repeats.md`).
+
+**Found.**
+
+| Task | Fixed vs SparseTSF | Finding? | Fixed vs per task | Finding? |
+|---|---:|---|---:|---|
+| PEMS | −24.4% ± 0.9% | yes | — | — |
+| Imputation (ETTh1, ETTh2) | −16.2% ± 2.6% | yes | — | — |
+| M4 | −6.1% ± 0.6% | yes | −0.7% ± 0.6% | no |
+| Few-shot | −1.4% ± 0.5% | yes | −0.4% ± 0.5% | no |
+| Long-term (ETT×4, Weather) | −1.0% ± 0.2% | yes | −0.4% ± 0.1% | yes, fixed better |
+| Zero-shot | −0.4% ± 0.2% | no | +0.2% ± 0.1% | yes, per task better |
+| Anomaly detection | +0.02 F1 | no | — | — |
+
+- **Predictions on the headline held, and more.** PEMS, M4 and imputation are findings as
+  predicted. So are long-term (−1.0%) and few-shot (−1.4%), which I expected might not survive: the
+  run-to-run spread on these tasks is only 0.1–0.5%. Zero-shot (−0.42% ± 0.24%) misses twice the
+  spread narrowly.
+- **One configuration costs nothing measurable on forecasting**, as predicted. Every difference to
+  the per-task version is under 0.7%; the fixed version is better on long-term forecasting, the
+  per-task one by 0.2% on zero-shot.
+- **The imputation predictions failed, and that is the most important result of the day.** Gated
+  refinement alone does not beat the fixed form on ETTh2 on every seed (ETTh1/ETTh2: −1.8% ± 4.1%),
+  and mask-aware phase mixing does not beat it on Electricity on every seed (−6.0% ± 7.4%). The
+  fixed imputation form itself varies by 3.7% (ETTh1/ETTh2) and 7.4% (Electricity) between seeds.
+  Phase mixing's imputation cost, the motivation for the phase-mixing gate and step 1, was +20.1%,
+  −2.7% and −2.0% on ETTh2 and +10.5%, +7.4% and −0.1% on Electricity: not a finding. The bad
+  ETTh2 cells are a training plateau that strikes at random (on seed 2023 the model without phase
+  mixing hit it as well). So yesterday's and this morning's imputation conclusions, drawn from one
+  seed, were partly noise. Gated refinement stays: it removed a failure that was consistent within
+  the seed-2021 runs and won on all six datasets, though its ungated comparison was never repeated.
+- **One consistent imputation effect:** on Electricity at mask 0.5, mask-aware phase mixing is the
+  best variant on all three seeds (0.1108–0.1158 against 0.1293–0.1571); at 0.375 it is worse on
+  all three.
+- **Channel correlation's PEMS gain holds** (−5.25% ± 0.29%, a finding; channel mean −3.12% ±
+  0.66%), although the one-seed screen rejected both. The screen's single-seed validation threshold
+  was too blunt for a small, consistent effect.
+- **Seed 2021 was not always typical:** fixed PEMS 25.79 over three seeds (seed 2021: 25.45); fixed
+  Electricity imputation 0.1067 (seed 2021: 0.1158).
+- **TimeMixer repeats: one prediction held, one failed.** Its PEMS lead holds (fixed +47.7% ± 2.0%
+  behind; TimeMixer 17.46 ± 0.06). The predicted anomaly win did not: TimeMixer scored 75.49, 83.55
+  and 83.39 F1, because its seed-2021 MSL run failed (48.0 against 80.2 and 79.4). The fixed
+  configuration's difference is +4.5, −2.5 and −2.9 points, not a finding, and TimeMixer is ahead
+  on PSM, SMD and SMAP on every seed. The claim "beats TimeMixer on anomaly detection" is withdrawn.
+
+**Reports changed.** New `results_seed_repeats.md`; `results_sparsetsf_plus_report.md` (headline,
+seed caveats in Section 4, a three-seed subsection in Section 6, next steps);
+`results_sparsetsf_plus_suite.md` (findings); the thesis document (Section 21, notes after Sections
+16, 17, 18 and 20, Summary bullet); `CLAUDE.md` (the seed rule and the ETTh2 caution).
 
 ---
 
