@@ -1,0 +1,100 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=1.0, batch_size=128, c_out=25, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=16, data='PSM', data_path='ETTh1.csv', dec_in=25, decomp_method='moving_avg', des='Anom', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=25, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=48, learning_rate=0.0001, loss='MSE', lradj='TST', mask_rate=0.125, model='SparseTSFPlus', model_id='ANOM_PLUS_fixed_PSM_fixed_s2023', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=15, pct_start=0.2, percent=100, period_len=25, pred_len=0, root_path='<workspace>\\dataset\\PSM', seasonal_patterns='Monthly', seed=2023, seq_len=100, stream_metrics=0, stsf_channel_mix='off', stsf_cls_head='flat', stsf_cls_segments=8, stsf_decomp='off', stsf_decomp_kernel=25, stsf_diag_mask=0, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_complete=0, stsf_phase_gate=0, stsf_phase_kernel=3, stsf_phase_mask=0, stsf_phase_mix='linear', stsf_phase_rank=0, stsf_refine_gate=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='anomaly_detection', top_k=5, track_emissions=0, train_epochs=3, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+trainable_params:666
+units:phase_mix=linear
+>>>>>>>start training : anomaly_detection_ANOM_PLUS_fixed_PSM_fixed_s2023_none_SparseTSFPlus_PSM_sl100_pl0_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_Anom_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+test: (87841, 25)
+train: (132481, 25)
+train 132382
+test: (87841, 25)
+train: (132481, 25)
+val 87742
+test: (87841, 25)
+train: (132481, 25)
+test 87742
+	iters: 100, epoch: 1 | loss: 0.1784004
+	speed: 0.0288s/iter; left time: 86.6202s
+	iters: 200, epoch: 1 | loss: 0.1127257
+	speed: 0.0063s/iter; left time: 18.3578s
+	iters: 300, epoch: 1 | loss: 0.1127145
+	speed: 0.0068s/iter; left time: 18.9850s
+	iters: 400, epoch: 1 | loss: 0.0847123
+	speed: 0.0064s/iter; left time: 17.4172s
+	iters: 500, epoch: 1 | loss: 0.1151788
+	speed: 0.0053s/iter; left time: 13.8395s
+	iters: 600, epoch: 1 | loss: 0.1114511
+	speed: 0.0058s/iter; left time: 14.4613s
+	iters: 700, epoch: 1 | loss: 0.1300023
+	speed: 0.0063s/iter; left time: 15.1594s
+	iters: 800, epoch: 1 | loss: 0.1031738
+	speed: 0.0066s/iter; left time: 15.1614s
+	iters: 900, epoch: 1 | loss: 0.1016109
+	speed: 0.0063s/iter; left time: 13.9789s
+	iters: 1000, epoch: 1 | loss: 0.0906841
+	speed: 0.0053s/iter; left time: 11.1252s
+Epoch: 1 cost time: 8.578771829605103
+Epoch: 1, Steps: 1035 | Train Loss: 0.1100531 Vali Loss: 0.0934732 Test Loss: 0.0935274
+Validation loss decreased (inf --> 0.093527).  Saving model ...
+Updating learning rate to 9.326964420446288e-05
+	iters: 100, epoch: 2 | loss: 0.1023848
+	speed: 0.0511s/iter; left time: 100.7704s
+	iters: 200, epoch: 2 | loss: 0.0800930
+	speed: 0.0058s/iter; left time: 10.9126s
+	iters: 300, epoch: 2 | loss: 0.1131045
+	speed: 0.0053s/iter; left time: 9.4558s
+	iters: 400, epoch: 2 | loss: 0.0844720
+	speed: 0.0063s/iter; left time: 10.5382s
+	iters: 500, epoch: 2 | loss: 0.0850441
+	speed: 0.0064s/iter; left time: 10.0696s
+	iters: 600, epoch: 2 | loss: 0.0722325
+	speed: 0.0065s/iter; left time: 9.4905s
+	iters: 700, epoch: 2 | loss: 0.1002826
+	speed: 0.0058s/iter; left time: 7.8840s
+	iters: 800, epoch: 2 | loss: 0.0572118
+	speed: 0.0052s/iter; left time: 6.6507s
+	iters: 900, epoch: 2 | loss: 0.0658276
+	speed: 0.0062s/iter; left time: 7.2112s
+	iters: 1000, epoch: 2 | loss: 0.0593582
+	speed: 0.0065s/iter; left time: 7.0148s
+Epoch: 2 cost time: 6.280153512954712
+Epoch: 2, Steps: 1035 | Train Loss: 0.0818235 Vali Loss: 0.0732598 Test Loss: 0.0733103
+Validation loss decreased (0.093527 --> 0.073310).  Saving model ...
+Updating learning rate to 3.6998228285742496e-05
+	iters: 100, epoch: 3 | loss: 0.0702656
+	speed: 0.0499s/iter; left time: 46.7378s
+	iters: 200, epoch: 3 | loss: 0.0667617
+	speed: 0.0064s/iter; left time: 5.3250s
+	iters: 300, epoch: 3 | loss: 0.0674073
+	speed: 0.0066s/iter; left time: 4.8546s
+	iters: 400, epoch: 3 | loss: 0.0961026
+	speed: 0.0063s/iter; left time: 4.0377s
+	iters: 500, epoch: 3 | loss: 0.0624033
+	speed: 0.0053s/iter; left time: 2.8426s
+	iters: 600, epoch: 3 | loss: 0.0842325
+	speed: 0.0058s/iter; left time: 2.5490s
+	iters: 700, epoch: 3 | loss: 0.0513794
+	speed: 0.0064s/iter; left time: 2.1472s
+	iters: 800, epoch: 3 | loss: 0.0678962
+	speed: 0.0066s/iter; left time: 1.5546s
+	iters: 900, epoch: 3 | loss: 0.0927226
+	speed: 0.0064s/iter; left time: 0.8732s
+	iters: 1000, epoch: 3 | loss: 0.0615355
+	speed: 0.0054s/iter; left time: 0.1945s
+Epoch: 3 cost time: 6.320162296295166
+Epoch: 3, Steps: 1035 | Train Loss: 0.0690352 Vali Loss: 0.0690646 Test Loss: 0.0690583
+Validation loss decreased (0.073310 --> 0.069058).  Saving model ...
+Updating learning rate to 4.399884689037186e-10
+>>>>>>>testing : anomaly_detection_ANOM_PLUS_fixed_PSM_fixed_s2023_none_SparseTSFPlus_PSM_sl100_pl0_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_Anom_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test: (87841, 25)
+train: (132481, 25)
+test 87742
+test: (87841, 25)
+train: (132481, 25)
+train 132382
+Threshold : 0.43151738166809395
+pred:    (8774200,)
+gt:      (8774200,)
+pred:  (8774200,)
+gt:    (8774200,)
+Accuracy : 0.9747, Precision : 0.9896, Recall : 0.9184, F-score : 0.9527 

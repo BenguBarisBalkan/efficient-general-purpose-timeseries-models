@@ -1,0 +1,53 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=256, c_out=21, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=128, data='custom', data_path='weather.csv', dec_in=21, decomp_method='moving_avg', des='PlusSuite', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=21, factor=3, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=0, learning_rate=0.02, loss='MSE', lradj='type3', mask_rate=0.125, model='SparseTSF', model_id='PLUS_fixed_Weather_96_96_SparseTSF_s2023', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=5, pct_start=0.2, percent=100, period_len=4, pred_len=96, root_path='<workspace>\\dataset\\weather', seasonal_patterns='Monthly', seed=2023, seq_len=96, stream_metrics=0, stsf_channel_mix='off', stsf_cls_head='flat', stsf_cls_segments=8, stsf_decomp='off', stsf_decomp_kernel=25, stsf_diag_mask=0, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_complete=0, stsf_phase_gate=0, stsf_phase_kernel=3, stsf_phase_mask=0, stsf_phase_mix='off', stsf_phase_rank=0, stsf_refine_gate=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='long_term_forecast', top_k=5, track_emissions=0, train_epochs=30, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+>>>>>>>start training : long_term_forecast_PLUS_fixed_Weather_96_96_SparseTSF_s2023_none_SparseTSF_custom_sl96_pl96_dm128_nh8_el2_dl1_df32_fc3_ebtimeF_dtTrue_PlusSuite_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 36696
+val 5175
+test 10444
+	iters: 100, epoch: 1 | loss: 0.5490236
+	speed: 0.0359s/iter; left time: 150.6435s
+Epoch: 1 cost time: 4.315810441970825
+Epoch: 1, Steps: 143 | Train Loss: 0.6833374 Vali Loss: 0.5564505 Test Loss: 0.2234279
+Validation loss decreased (inf --> 0.556450).  Saving model ...
+Updating learning rate to 0.02
+	iters: 100, epoch: 2 | loss: 0.4180222
+	speed: 0.0289s/iter; left time: 116.9690s
+Epoch: 2 cost time: 2.372738838195801
+Epoch: 2, Steps: 143 | Train Loss: 0.5297055 Vali Loss: 0.4926448 Test Loss: 0.1976767
+Validation loss decreased (0.556450 --> 0.492645).  Saving model ...
+Updating learning rate to 0.02
+	iters: 100, epoch: 3 | loss: 0.4448635
+	speed: 0.0290s/iter; left time: 113.4228s
+Epoch: 3 cost time: 2.3546431064605713
+Epoch: 3, Steps: 143 | Train Loss: 0.5171980 Vali Loss: 0.4945099 Test Loss: 0.1995127
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.02
+	iters: 100, epoch: 4 | loss: 0.5443359
+	speed: 0.0289s/iter; left time: 108.8929s
+Epoch: 4 cost time: 2.367800712585449
+Epoch: 4, Steps: 143 | Train Loss: 0.5147502 Vali Loss: 0.4952854 Test Loss: 0.2027988
+EarlyStopping counter: 2 out of 5
+Updating learning rate to 0.018000000000000002
+	iters: 100, epoch: 5 | loss: 0.5625259
+	speed: 0.0288s/iter; left time: 104.1778s
+Epoch: 5 cost time: 2.3449313640594482
+Epoch: 5, Steps: 143 | Train Loss: 0.5141991 Vali Loss: 0.4947176 Test Loss: 0.2011828
+EarlyStopping counter: 3 out of 5
+Updating learning rate to 0.016200000000000003
+	iters: 100, epoch: 6 | loss: 0.5556607
+	speed: 0.0293s/iter; left time: 101.8463s
+Epoch: 6 cost time: 2.3923909664154053
+Epoch: 6, Steps: 143 | Train Loss: 0.5142888 Vali Loss: 0.4930768 Test Loss: 0.2011377
+EarlyStopping counter: 4 out of 5
+Updating learning rate to 0.014580000000000003
+	iters: 100, epoch: 7 | loss: 0.6391156
+	speed: 0.0288s/iter; left time: 95.8440s
+Epoch: 7 cost time: 2.343060255050659
+Epoch: 7, Steps: 143 | Train Loss: 0.5137759 Vali Loss: 0.4957194 Test Loss: 0.2032609
+EarlyStopping counter: 5 out of 5
+Early stopping
+>>>>>>>testing : long_term_forecast_PLUS_fixed_Weather_96_96_SparseTSF_s2023_none_SparseTSF_custom_sl96_pl96_dm128_nh8_el2_dl1_df32_fc3_ebtimeF_dtTrue_PlusSuite_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test 10444
+mse:0.19767695665359497, mae:0.23735441267490387
+RMSE:0.44460877776145935, MAPE:0.5254828333854675, MSPE:25823106.0

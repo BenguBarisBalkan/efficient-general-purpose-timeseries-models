@@ -1,0 +1,106 @@
+===== TRAIN on source =====
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=256, c_out=7, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=16, data='ETTm1', data_path='ETTm1.csv', dec_in=7, decomp_method='moving_avg', des='ZeroShot', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=7, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=0, learning_rate=0.02, loss='MSE', lradj='type3', mask_rate=0.125, model='SparseTSF', model_id='ZS_PLUS_fixed_ETTm1_to_ETTh2_336_SparseTSF_s2022', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=5, pct_start=0.2, percent=100, period_len=4, pred_len=336, root_path='<workspace>\\dataset\\ETT-small', seasonal_patterns='Monthly', seed=2022, seq_len=96, stream_metrics=0, stsf_channel_mix='off', stsf_cls_head='flat', stsf_cls_segments=8, stsf_decomp='off', stsf_decomp_kernel=25, stsf_diag_mask=0, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_complete=0, stsf_phase_gate=0, stsf_phase_kernel=3, stsf_phase_mask=0, stsf_phase_mix='off', stsf_phase_rank=0, stsf_refine_gate=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='long_term_forecast', top_k=5, track_emissions=0, train_epochs=30, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+>>>>>>>start training : long_term_forecast_ZS_PLUS_fixed_ETTm1_to_ETTh2_336_SparseTSF_s2022_none_SparseTSF_ETTm1_sl96_pl336_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_ZeroShot_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 34129
+val 11185
+test 11185
+	iters: 100, epoch: 1 | loss: 0.4575599
+	speed: 0.0399s/iter; left time: 155.3483s
+Epoch: 1 cost time: 4.581715822219849
+Epoch: 1, Steps: 133 | Train Loss: 0.5412486 Vali Loss: 0.7901791 Test Loss: 0.5314838
+Validation loss decreased (inf --> 0.790179).  Saving model ...
+Updating learning rate to 0.02
+	iters: 100, epoch: 2 | loss: 0.4369285
+	speed: 0.0336s/iter; left time: 126.3418s
+Epoch: 2 cost time: 2.1348230838775635
+Epoch: 2, Steps: 133 | Train Loss: 0.4362594 Vali Loss: 0.6983863 Test Loss: 0.4309226
+Validation loss decreased (0.790179 --> 0.698386).  Saving model ...
+Updating learning rate to 0.02
+	iters: 100, epoch: 3 | loss: 0.4241909
+	speed: 0.0338s/iter; left time: 122.5525s
+Epoch: 3 cost time: 2.156040668487549
+Epoch: 3, Steps: 133 | Train Loss: 0.4226100 Vali Loss: 0.6927252 Test Loss: 0.4268259
+Validation loss decreased (0.698386 --> 0.692725).  Saving model ...
+Updating learning rate to 0.02
+	iters: 100, epoch: 4 | loss: 0.4559098
+	speed: 0.0330s/iter; left time: 115.1328s
+Epoch: 4 cost time: 2.316023111343384
+Epoch: 4, Steps: 133 | Train Loss: 0.4218470 Vali Loss: 0.6946790 Test Loss: 0.4292269
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.018000000000000002
+	iters: 100, epoch: 5 | loss: 0.4230357
+	speed: 0.0337s/iter; left time: 113.1728s
+Epoch: 5 cost time: 2.255776882171631
+Epoch: 5, Steps: 133 | Train Loss: 0.4215612 Vali Loss: 0.6939638 Test Loss: 0.4274161
+EarlyStopping counter: 2 out of 5
+Updating learning rate to 0.016200000000000003
+	iters: 100, epoch: 6 | loss: 0.4486481
+	speed: 0.0348s/iter; left time: 112.1166s
+Epoch: 6 cost time: 2.3079376220703125
+Epoch: 6, Steps: 133 | Train Loss: 0.4210759 Vali Loss: 0.6925272 Test Loss: 0.4253688
+Validation loss decreased (0.692725 --> 0.692527).  Saving model ...
+Updating learning rate to 0.014580000000000003
+	iters: 100, epoch: 7 | loss: 0.4336710
+	speed: 0.0327s/iter; left time: 100.9903s
+Epoch: 7 cost time: 2.3139703273773193
+Epoch: 7, Steps: 133 | Train Loss: 0.4209937 Vali Loss: 0.6968957 Test Loss: 0.4287020
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.013122
+	iters: 100, epoch: 8 | loss: 0.4281206
+	speed: 0.0352s/iter; left time: 104.2552s
+Epoch: 8 cost time: 2.3651556968688965
+Epoch: 8, Steps: 133 | Train Loss: 0.4207673 Vali Loss: 0.7003497 Test Loss: 0.4324490
+EarlyStopping counter: 2 out of 5
+Updating learning rate to 0.011809800000000002
+	iters: 100, epoch: 9 | loss: 0.4300298
+	speed: 0.0329s/iter; left time: 93.1309s
+Epoch: 9 cost time: 2.1925840377807617
+Epoch: 9, Steps: 133 | Train Loss: 0.4211175 Vali Loss: 0.6868050 Test Loss: 0.4234869
+Validation loss decreased (0.692527 --> 0.686805).  Saving model ...
+Updating learning rate to 0.01062882
+	iters: 100, epoch: 10 | loss: 0.4242209
+	speed: 0.0332s/iter; left time: 89.4405s
+Epoch: 10 cost time: 2.1946916580200195
+Epoch: 10, Steps: 133 | Train Loss: 0.4207352 Vali Loss: 0.6946859 Test Loss: 0.4276873
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.009565938000000001
+	iters: 100, epoch: 11 | loss: 0.4302582
+	speed: 0.0336s/iter; left time: 86.0000s
+Epoch: 11 cost time: 2.1546425819396973
+Epoch: 11, Steps: 133 | Train Loss: 0.4207695 Vali Loss: 0.6903547 Test Loss: 0.4261143
+EarlyStopping counter: 2 out of 5
+Updating learning rate to 0.008609344200000002
+	iters: 100, epoch: 12 | loss: 0.4343334
+	speed: 0.0350s/iter; left time: 84.8841s
+Epoch: 12 cost time: 2.3318049907684326
+Epoch: 12, Steps: 133 | Train Loss: 0.4205448 Vali Loss: 0.6905531 Test Loss: 0.4234388
+EarlyStopping counter: 3 out of 5
+Updating learning rate to 0.007748409780000002
+	iters: 100, epoch: 13 | loss: 0.4234981
+	speed: 0.0347s/iter; left time: 79.6342s
+Epoch: 13 cost time: 2.359147787094116
+Epoch: 13, Steps: 133 | Train Loss: 0.4206779 Vali Loss: 0.6930991 Test Loss: 0.4266478
+EarlyStopping counter: 4 out of 5
+Updating learning rate to 0.006973568802000002
+	iters: 100, epoch: 14 | loss: 0.3977700
+	speed: 0.0340s/iter; left time: 73.5554s
+Epoch: 14 cost time: 2.289524555206299
+Epoch: 14, Steps: 133 | Train Loss: 0.4207776 Vali Loss: 0.6909769 Test Loss: 0.4248638
+EarlyStopping counter: 5 out of 5
+Early stopping
+>>>>>>>testing : long_term_forecast_ZS_PLUS_fixed_ETTm1_to_ETTh2_336_SparseTSF_s2022_none_SparseTSF_ETTm1_sl96_pl336_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_ZeroShot_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test 11185
+mse:0.42348653078079224, mae:0.41337716579437256
+RMSE:0.6507584452629089, MAPE:0.6842015385627747, MSPE:390.4479064941406
+
+===== TEST on target (zero-shot) =====
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=256, c_out=7, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=16, data='ETTh2', data_path='ETTh2.csv', dec_in=7, decomp_method='moving_avg', des='ZeroShot', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=7, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=0, itr=1, label_len=0, learning_rate=0.02, loss='MSE', lradj='type3', mask_rate=0.125, model='SparseTSF', model_id='ZS_PLUS_fixed_ETTm1_to_ETTh2_336_SparseTSF_s2022', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=5, pct_start=0.2, percent=100, period_len=4, pred_len=336, root_path='<workspace>\\dataset\\ETT-small', seasonal_patterns='Monthly', seed=2022, seq_len=96, stream_metrics=0, stsf_channel_mix='off', stsf_cls_head='flat', stsf_cls_segments=8, stsf_decomp='off', stsf_decomp_kernel=25, stsf_diag_mask=0, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_complete=0, stsf_phase_gate=0, stsf_phase_kernel=3, stsf_phase_mask=0, stsf_phase_mix='off', stsf_phase_rank=0, stsf_refine_gate=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='long_term_forecast', top_k=5, track_emissions=0, train_epochs=30, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+>>>>>>>testing : long_term_forecast_ZS_PLUS_fixed_ETTm1_to_ETTh2_336_SparseTSF_s2022_none_SparseTSF_ETTh2_sl96_pl336_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_ZeroShot_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test 2545
+loading model
+mse:0.4060356020927429, mae:0.42152678966522217
+RMSE:0.6372092366218567, MAPE:0.5842427611351013, MSPE:613.8804321289062

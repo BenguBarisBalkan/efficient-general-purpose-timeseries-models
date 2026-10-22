@@ -1,0 +1,62 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=1.0, batch_size=128, c_out=55, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=16, data='MSL', data_path='ETTh1.csv', dec_in=55, decomp_method='moving_avg', des='Anom', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=55, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=48, learning_rate=0.0001, loss='MSE', lradj='TST', mask_rate=0.125, model='SparseTSF', model_id='ANOM_PLUS_fixed_MSL_SparseTSF_s2023', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=15, pct_start=0.2, percent=100, period_len=25, pred_len=0, root_path='<workspace>\\dataset\\MSL', seasonal_patterns='Monthly', seed=2023, seq_len=100, stream_metrics=0, stsf_channel_mix='off', stsf_cls_head='flat', stsf_cls_segments=8, stsf_decomp='off', stsf_decomp_kernel=25, stsf_diag_mask=0, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_complete=0, stsf_phase_gate=0, stsf_phase_kernel=3, stsf_phase_mask=0, stsf_phase_mix='off', stsf_phase_rank=0, stsf_refine_gate=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='anomaly_detection', top_k=5, track_emissions=0, train_epochs=3, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+>>>>>>>start training : anomaly_detection_ANOM_PLUS_fixed_MSL_SparseTSF_s2023_none_SparseTSF_MSL_sl100_pl0_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_Anom_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+test: (73729, 55)
+train: (58317, 55)
+train 58218
+test: (73729, 55)
+train: (58317, 55)
+val 73630
+test: (73729, 55)
+train: (58317, 55)
+test 73630
+	iters: 100, epoch: 1 | loss: 0.9734736
+	speed: 0.0328s/iter; left time: 41.4868s
+	iters: 200, epoch: 1 | loss: 0.8492659
+	speed: 0.0114s/iter; left time: 13.2867s
+	iters: 300, epoch: 1 | loss: 0.9529165
+	speed: 0.0106s/iter; left time: 11.2933s
+	iters: 400, epoch: 1 | loss: 0.4951674
+	speed: 0.0107s/iter; left time: 10.3515s
+Epoch: 1 cost time: 7.163151979446411
+Epoch: 1, Steps: 455 | Train Loss: 0.6258945 Vali Loss: 1.4519038 Test Loss: 1.4512880
+Validation loss decreased (inf --> 1.451288).  Saving model ...
+Updating learning rate to 9.32291952684714e-05
+	iters: 100, epoch: 2 | loss: 0.5086184
+	speed: 0.0614s/iter; left time: 49.7693s
+	iters: 200, epoch: 2 | loss: 0.3876688
+	speed: 0.0114s/iter; left time: 8.1180s
+	iters: 300, epoch: 2 | loss: 0.5975326
+	speed: 0.0100s/iter; left time: 6.1332s
+	iters: 400, epoch: 2 | loss: 0.5498885
+	speed: 0.0114s/iter; left time: 5.8334s
+Epoch: 2 cost time: 5.024556875228882
+Epoch: 2, Steps: 455 | Train Loss: 0.5461435 Vali Loss: 1.3133946 Test Loss: 1.3125892
+Validation loss decreased (1.451288 --> 1.312589).  Saving model ...
+Updating learning rate to 3.692040941962549e-05
+	iters: 100, epoch: 3 | loss: 0.4968516
+	speed: 0.0606s/iter; left time: 21.5734s
+	iters: 200, epoch: 3 | loss: 0.6039993
+	speed: 0.0110s/iter; left time: 2.8162s
+	iters: 300, epoch: 3 | loss: 0.6069736
+	speed: 0.0100s/iter; left time: 1.5596s
+	iters: 400, epoch: 3 | loss: 0.4290003
+	speed: 0.0114s/iter; left time: 0.6382s
+Epoch: 3 cost time: 5.008346319198608
+Epoch: 3, Steps: 455 | Train Loss: 0.5153881 Vali Loss: 1.2920786 Test Loss: 1.2884934
+Validation loss decreased (1.312589 --> 1.288493).  Saving model ...
+Updating learning rate to 6.069152216636792e-10
+>>>>>>>testing : anomaly_detection_ANOM_PLUS_fixed_MSL_SparseTSF_s2023_none_SparseTSF_MSL_sl100_pl0_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_Anom_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test: (73729, 55)
+train: (58317, 55)
+test 73630
+test: (73729, 55)
+train: (58317, 55)
+train 58218
+Threshold : 9.177385568618726
+pred:    (7363000,)
+gt:      (7363000,)
+pred:  (7363000,)
+gt:    (7363000,)
+Accuracy : 0.9563, Precision : 0.8785, Recall : 0.6802, F-score : 0.7667 

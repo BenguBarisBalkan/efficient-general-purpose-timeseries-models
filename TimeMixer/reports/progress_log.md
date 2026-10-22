@@ -28,6 +28,16 @@ Numbers are **local** (this machine, this protocol) unless marked **published**.
   the long-term, few-shot and zero-shot gains (0.4–2%) may not survive. Gated refinement beats the
   fixed imputation form on ETTh2 on every seed. The channel units' PEMS gains (4–5%) hold on every
   seed.
+- **Added with the time step 4 freed** (same rules, queued after the runs above):
+  - the per-task SparseTSFPlus on long-term, M4, few-shot and zero-shot (148 runs), to test whether
+    "one configuration costs almost nothing" (differences within 0.4%) is more than noise;
+    prediction: fixed against per task is not a finding on any of these tasks;
+  - Electricity imputation for the fixed form, gated refinement alone and mask-aware phase mixing
+    (24 runs), the dataset where mask-aware mixing mattered most; prediction: mask-aware beats the
+    fixed form on every seed;
+  - TimeMixer on PEMS and anomaly detection (16 runs), so the comparisons against TimeMixer have a
+    spread on both sides; prediction: fixed against TimeMixer stays a finding on both (PEMS +45%,
+    anomaly +4.5 F1).
 
 ---
 

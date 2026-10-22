@@ -1,0 +1,100 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=16, c_out=1, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=16, data='m4', data_path='ETTh1.csv', dec_in=1, decomp_method='moving_avg', des='M4', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=1, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=48, learning_rate=0.01, loss='SMAPE', lradj='TST', mask_rate=0.125, model='SparseTSF', model_id='M4_PLUS_fixed_Daily_SparseTSF_s2023', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=5, pct_start=0.2, percent=100, period_len=7, pred_len=96, root_path='<workspace>\\dataset\\m4', seasonal_patterns='Daily', seed=2023, seq_len=96, stream_metrics=0, stsf_channel_mix='off', stsf_cls_head='flat', stsf_cls_segments=8, stsf_decomp='off', stsf_decomp_kernel=25, stsf_diag_mask=0, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_complete=0, stsf_phase_gate=0, stsf_phase_kernel=3, stsf_phase_mask=0, stsf_phase_mix='off', stsf_phase_rank=0, stsf_refine_gate=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='short_term_forecast', top_k=5, track_emissions=0, train_epochs=10, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+>>>>>>>start training : short_term_forecast_M4_PLUS_fixed_Daily_SparseTSF_s2023_none_SparseTSF_m4_sl96_pl96_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_M4_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 4227
+val 4227
+	iters: 100, epoch: 1 | loss: 2.9821136
+	speed: 0.0210s/iter; left time: 53.5188s
+	iters: 200, epoch: 1 | loss: 2.0516894
+	speed: 0.0027s/iter; left time: 6.5814s
+Epoch: 1 cost time: 2.541606903076172
+Epoch: 1, Steps: 265 | Train Loss: 3.3866331 Vali Loss: 3.8098055 Test Loss: 3.8098055
+Validation loss decreased (inf --> 3.809805).  Saving model ...
+Updating learning rate to 0.00521425295139633
+	iters: 100, epoch: 2 | loss: 2.5129402
+	speed: 0.0049s/iter; left time: 11.2019s
+	iters: 200, epoch: 2 | loss: 3.5067837
+	speed: 0.0028s/iter; left time: 6.1671s
+Epoch: 2 cost time: 0.7460305690765381
+Epoch: 2, Steps: 265 | Train Loss: 3.0386376 Vali Loss: 3.6700265 Test Loss: 3.6700265
+Validation loss decreased (3.809805 --> 3.670026).  Saving model ...
+Updating learning rate to 0.009999994510077477
+	iters: 100, epoch: 3 | loss: 2.2039759
+	speed: 0.0048s/iter; left time: 9.7502s
+	iters: 200, epoch: 3 | loss: 2.8378925
+	speed: 0.0025s/iter; left time: 4.7971s
+Epoch: 3 cost time: 0.7140066623687744
+Epoch: 3, Steps: 265 | Train Loss: 2.9620879 Vali Loss: 3.6857387 Test Loss: 3.6857387
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.009616558664328317
+	iters: 100, epoch: 4 | loss: 6.7903123
+	speed: 0.0051s/iter; left time: 8.9777s
+	iters: 200, epoch: 4 | loss: 2.7748570
+	speed: 0.0029s/iter; left time: 4.8464s
+Epoch: 4 cost time: 0.8050711154937744
+Epoch: 4, Steps: 265 | Train Loss: 3.0192321 Vali Loss: 3.6384112 Test Loss: 3.6384112
+Validation loss decreased (3.670026 --> 3.638411).  Saving model ...
+Updating learning rate to 0.008530296655962374
+	iters: 100, epoch: 5 | loss: 2.4624865
+	speed: 0.0049s/iter; left time: 7.3799s
+	iters: 200, epoch: 5 | loss: 2.0976348
+	speed: 0.0032s/iter; left time: 4.5137s
+Epoch: 5 cost time: 0.8118581771850586
+Epoch: 5, Steps: 265 | Train Loss: 2.9024106 Vali Loss: 3.6442100 Test Loss: 3.6442100
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.006906582028763737
+	iters: 100, epoch: 6 | loss: 2.1912360
+	speed: 0.0052s/iter; left time: 6.3162s
+	iters: 200, epoch: 6 | loss: 3.2551355
+	speed: 0.0031s/iter; left time: 3.5068s
+Epoch: 6 cost time: 0.8145153522491455
+Epoch: 6, Steps: 265 | Train Loss: 2.9607514 Vali Loss: 3.6318991 Test Loss: 3.6318991
+Validation loss decreased (3.638411 --> 3.631899).  Saving model ...
+Updating learning rate to 0.00499261061571365
+	iters: 100, epoch: 7 | loss: 2.9709044
+	speed: 0.0050s/iter; left time: 4.8318s
+	iters: 200, epoch: 7 | loss: 3.3098037
+	speed: 0.0034s/iter; left time: 2.9301s
+Epoch: 7 cost time: 0.8340215682983398
+Epoch: 7, Steps: 265 | Train Loss: 3.0596448 Vali Loss: 3.6311080 Test Loss: 3.6311080
+Validation loss decreased (3.631899 --> 3.631108).  Saving model ...
+Updating learning rate to 0.0030797672142549243
+	iters: 100, epoch: 8 | loss: 6.3044524
+	speed: 0.0054s/iter; left time: 3.7257s
+	iters: 200, epoch: 8 | loss: 2.5529408
+	speed: 0.0027s/iter; left time: 1.6387s
+Epoch: 8 cost time: 0.7871451377868652
+Epoch: 8, Steps: 265 | Train Loss: 2.8987701 Vali Loss: 3.6486262 Test Loss: 3.6486262
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.0014592648922910354
+	iters: 100, epoch: 9 | loss: 2.0206661
+	speed: 0.0056s/iter; left time: 2.4098s
+	iters: 200, epoch: 9 | loss: 2.7672832
+	speed: 0.0025s/iter; left time: 0.8408s
+Epoch: 9 cost time: 0.7690186500549316
+Epoch: 9, Steps: 265 | Train Loss: 2.8663593 Vali Loss: 3.6395794 Test Loss: 3.6395794
+EarlyStopping counter: 2 out of 5
+Updating learning rate to 0.00037781043845085854
+	iters: 100, epoch: 10 | loss: 2.0671108
+	speed: 0.0046s/iter; left time: 0.7641s
+	iters: 200, epoch: 10 | loss: 1.8360833
+	speed: 0.0032s/iter; left time: 0.2084s
+Epoch: 10 cost time: 0.7855627536773682
+Epoch: 10, Steps: 265 | Train Loss: 2.9872130 Vali Loss: 3.6389777 Test Loss: 3.6389777
+EarlyStopping counter: 3 out of 5
+Updating learning rate to 4.548992252368314e-08
+>>>>>>>testing : short_term_forecast_M4_PLUS_fixed_Daily_SparseTSF_s2023_none_SparseTSF_m4_sl96_pl96_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_M4_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+train 4227
+test 4227
+0
+1000
+2000
+3000
+4000
+test shape: (4227, 14, 1)
+SparseTSF
+smape: {'Yearly': 15.652, 'Quarterly': 11.919, 'Monthly': 13.996, 'Others': 5.143, 'Average': 13.436}
+mape: {'Yearly': 17.783, 'Quarterly': 13.5, 'Monthly': 16.678, 'Others': 6.66, 'Average': 15.669}
+mase: {'Yearly': 3.277, 'Quarterly': 1.479, 'Monthly': 1.096, 'Others': 3.802, 'Average': 1.825}
+owa: {'Yearly': 0.891, 'Quarterly': 1.081, 'Monthly': 1.0, 'Others': 1.141, 'Average': 0.972}
