@@ -59,10 +59,10 @@ run yet. The unfinished runs are ruled out on this laptop (TimeMixer Traffic 336
 
 | Task | Paper protocol | SparseTSF | TimeMixer | TimeMixer++ | SparseTSFPlus |
 |---|---|---:|---:|---:|---:|
-| Long-term forecasting | 8 datasets × 4 horizons = 32 | 32 (+20 at lookback 720) | 30 (+2 unfinished) | 21 (+1 unfinished) | 100 |
+| Long-term forecasting | 8 datasets × 4 horizons = 32 | 32 (+20 at lookback 720) | 30 (+2 unfinished) | 21 (+1 unfinished) | 106 |
 | M4 short-term | 6 subsets | 6 | 6 | paper only | 12 |
-| PEMS short-term | 4 datasets | 4 | 4 | paper only | 12 |
-| Imputation | 6 datasets × 4 mask rates = 24 | 24 | 24 | paper only | 151 |
+| PEMS short-term | 4 datasets | 4 | 4 | paper only | 20 |
+| Imputation | 6 datasets × 4 mask rates = 24 | 24 | 24 | paper only | 199 |
 | Few-shot (10% train) | 6 datasets × 4 horizons = 24 | 24 | 24 | paper only | 48 |
 | Zero-shot | 6 pairs × 4 horizons = 24 | 24 | 24 | paper only | 48 |
 | Anomaly detection | 5 datasets (4 obtainable) | 4 | 4 | paper only | 8 |
@@ -75,16 +75,17 @@ run yet. The unfinished runs are ruled out on this laptop (TimeMixer Traffic 336
 | Energy study (fixed settings for every model, 5 datasets × 4 horizons; SparseTSF and TimeMixer measured twice, July and 2026-10-21) | 40 | 40 | 20 | 40 |
 | Period-length tests | 19 |  |  |  |
 | First SparseTSFPlus unit tests |  |  |  | 10 |
+| Seed repeats (seeds 2022 and 2023 of the headline comparisons) | 180 | 16 |  | 400 |
 
 **Totals**
 
 | Model | Finished | Unfinished |
 |---|---:|---|
-| SparseTSF | 207 | 0 |
-| TimeMixer | 166 | 2: `run_logs/Traffic_pred336.log`, `run_logs/Traffic_pred720.log` |
+| SparseTSF | 387 | 0 |
+| TimeMixer | 182 | 2: `run_logs/Traffic_pred336.log`, `run_logs/Traffic_pred720.log` |
 | TimeMixer++ | 41 | 1: `run_logs_pp/Solar-Energy_pred192.log` |
-| SparseTSFPlus | 477 | 0 |
-| **All** | **891** | **3** |
+| SparseTSFPlus | 939 | 0 |
+| **All** | **1549** | **3** |
 <!-- AUTO_RUNS_END -->
 
 ## Protocol deviations worth stating in a write-up

@@ -52,11 +52,12 @@ OTHER = [
      [("run_logs_carbon", None), ("run_logs_plus_suite", r"^energy")]),
     ("Period-length tests", [("run_logs_period_probe", None)]),
     ("First SparseTSFPlus unit tests", [("run_logs_plus_probe", None)]),
+    ("Seed repeats (seeds 2022 and 2023 of the headline comparisons)", [("run_logs_seeds", None)]),
 ]
 
 
 def finished(folder, text, name=""):
-    if folder == "run_logs_plus_suite":   # one folder for every task: dispatch on the file prefix
+    if folder in ("run_logs_plus_suite", "run_logs_seeds"):   # every task: dispatch on the prefix
         folder = {"m4": "run_logs_m4", "zeroshot": "run_logs_zeroshot",
                   "anomaly": "run_logs_anomaly"}.get(name.split("_")[0], folder)
     if folder == "run_logs_m4":

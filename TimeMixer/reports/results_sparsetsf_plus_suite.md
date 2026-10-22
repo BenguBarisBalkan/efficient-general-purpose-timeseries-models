@@ -40,13 +40,22 @@ All runs use one seed, so differences below about 1% are not findings on their o
   (per task). The fixed version is 5.8% behind the per-task one, and all of that comes from phase
   mixing, which the fixed backbone keeps because PEMS needs it. It costs 20.1% on ETTh2 and 10.5% on
   Electricity imputation and is within ±1.2% on the other four. A gate on phase mixing did not
-  remove that cost.
+  remove that cost. **Over three seeds, though, neither that gap nor phase mixing's cost is a
+  finding** ([results_seed_repeats.md](results_seed_repeats.md)): the imputation variants differ by
+  less than their run-to-run spread (3.7% on ETTh1/ETTh2, 7.4% on Electricity).
+- **Seed repeats.** Over seeds 2021–2023 the fixed version's gain over SparseTSF is a finding on
+  PEMS (−24.4% ± 0.9%), imputation on ETTh1/ETTh2 (−16.2% ± 2.6%), M4 (−6.1% ± 0.6%), few-shot
+  (−1.4% ± 0.5%) and long-term (−1.0% ± 0.2%), not on zero-shot or anomaly detection. Against the
+  per-task version, every forecasting difference is under 0.7%. The numbers in the tables below are
+  seed 2021.
 - **Against SparseTSF, the fixed version improves or matches every task:** PEMS −25.4%, imputation
   −17.8%, M4 OWA −6.0%, few-shot −2.0%, long-term −1.8%, zero-shot −0.4%. Anomaly detection and
   classification are unchanged: phase mixing moves anomaly F1 by 0.02 points while raising the
   model from 41 to 666 parameters, and no unit applies to the classification head.
-- **Against TimeMixer (local)** the fixed version wins few-shot (−12.1%), zero-shot (−12.7%) and
-  anomaly detection (+4.5 F1 points, carried by MSL). It loses long-term forecasting (+8.4%), M4
+- **Against TimeMixer (local)** the fixed version wins few-shot (−12.1%) and zero-shot (−12.7%). Its
+  seed-2021 anomaly-detection win (+4.5 F1 points, carried by MSL) does not hold over three seeds:
+  TimeMixer's seed-2021 MSL run failed, and TimeMixer is ahead on the other two seeds
+  ([results_seed_repeats.md](results_seed_repeats.md)). It loses long-term forecasting (+8.4%), M4
   (+8.7%), PEMS (+45.3%), imputation (+10.8%) and classification (−1.5 points). On long-term
   forecasting it beats TimeMixer on both hourly ETT datasets and trails on the rest, most on Solar.
 - **Candidate screen (24-hour plan, step 2).** Two gated channel-context units were screened on
