@@ -1,0 +1,56 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=16, c_out=1, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=16, data='m4', data_path='ETTh1.csv', dec_in=1, decomp_method='moving_avg', des='M4', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=1, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=48, learning_rate=0.01, loss='SMAPE', lradj='TST', mask_rate=0.125, model='SparseTSF', model_id='M4_PLUS_fixed_Hourly_SparseTSF_s2022', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=5, pct_start=0.2, percent=100, period_len=24, pred_len=96, root_path='<workspace>\\dataset\\m4', seasonal_patterns='Hourly', seed=2022, seq_len=96, stream_metrics=0, stsf_channel_mix='off', stsf_cls_head='flat', stsf_cls_segments=8, stsf_decomp='off', stsf_decomp_kernel=25, stsf_diag_mask=0, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_complete=0, stsf_phase_gate=0, stsf_phase_kernel=3, stsf_phase_mask=0, stsf_phase_mix='off', stsf_phase_rank=0, stsf_refine_gate=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='short_term_forecast', top_k=5, track_emissions=0, train_epochs=10, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+>>>>>>>start training : short_term_forecast_M4_PLUS_fixed_Hourly_SparseTSF_s2022_none_SparseTSF_m4_sl96_pl96_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_M4_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 414
+val 414
+Epoch: 1 cost time: 1.866363763809204
+Epoch: 1, Steps: 26 | Train Loss: 36.2797687 Vali Loss: 33.9573735 Test Loss: 33.9573735
+Validation loss decreased (inf --> 33.957373).  Saving model ...
+Updating learning rate to 0.005347816281069616
+Epoch: 2 cost time: 0.07750558853149414
+Epoch: 2, Steps: 26 | Train Loss: 28.6766309 Vali Loss: 23.4630021 Test Loss: 23.4630021
+Validation loss decreased (33.957373 --> 23.463002).  Saving model ...
+Updating learning rate to 0.009999429700368698
+Epoch: 3 cost time: 0.06982684135437012
+Epoch: 3, Steps: 26 | Train Loss: 18.0024105 Vali Loss: 15.8831528 Test Loss: 15.8831528
+Validation loss decreased (23.463002 --> 15.883153).  Saving model ...
+Updating learning rate to 0.00958997362033026
+Epoch: 4 cost time: 0.07331395149230957
+Epoch: 4, Steps: 26 | Train Loss: 16.2702166 Vali Loss: 18.0918016 Test Loss: 18.0918016
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.008481738709629719
+Epoch: 5 cost time: 0.07696843147277832
+Epoch: 5, Steps: 26 | Train Loss: 16.7620636 Vali Loss: 16.0193947 Test Loss: 16.0193947
+EarlyStopping counter: 2 out of 5
+Updating learning rate to 0.006843443687246751
+Epoch: 6 cost time: 0.06950664520263672
+Epoch: 6, Steps: 26 | Train Loss: 15.6106682 Vali Loss: 15.3683987 Test Loss: 15.3683987
+Validation loss decreased (15.883153 --> 15.368399).  Saving model ...
+Updating learning rate to 0.004924504119157802
+Epoch: 7 cost time: 0.07401323318481445
+Epoch: 7, Steps: 26 | Train Loss: 14.7205618 Vali Loss: 15.6017295 Test Loss: 15.6017295
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.003017061159373915
+Epoch: 8 cost time: 0.0672292709350586
+Epoch: 8, Steps: 26 | Train Loss: 14.5358962 Vali Loss: 14.6055684 Test Loss: 14.6055684
+Validation loss decreased (15.368399 --> 14.605568).  Saving model ...
+Updating learning rate to 0.0014115057075086946
+Epoch: 9 cost time: 0.07959675788879395
+Epoch: 9, Steps: 26 | Train Loss: 13.9809939 Vali Loss: 14.3086728 Test Loss: 14.3086728
+Validation loss decreased (14.605568 --> 14.308673).  Saving model ...
+Updating learning rate to 0.0003522690267122103
+Epoch: 10 cost time: 0.06999683380126953
+Epoch: 10, Steps: 26 | Train Loss: 14.5382141 Vali Loss: 14.3102730 Test Loss: 14.3102730
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 6.102996313026349e-07
+>>>>>>>testing : short_term_forecast_M4_PLUS_fixed_Hourly_SparseTSF_s2022_none_SparseTSF_m4_sl96_pl96_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_M4_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+train 414
+test 414
+0
+test shape: (414, 48, 1)
+SparseTSF
+smape: {'Yearly': 15.652, 'Quarterly': 11.919, 'Monthly': 13.996, 'Others': 5.112, 'Average': 13.434}
+mape: {'Yearly': 17.783, 'Quarterly': 13.5, 'Monthly': 16.678, 'Others': 6.669, 'Average': 15.669}
+mase: {'Yearly': 3.277, 'Quarterly': 1.479, 'Monthly': 1.096, 'Others': 3.79, 'Average': 1.824}
+owa: {'Yearly': 0.891, 'Quarterly': 1.081, 'Monthly': 1.0, 'Others': 1.136, 'Average': 0.972}

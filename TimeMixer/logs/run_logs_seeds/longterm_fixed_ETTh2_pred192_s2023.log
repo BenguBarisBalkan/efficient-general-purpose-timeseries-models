@@ -1,0 +1,85 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=256, c_out=7, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=128, data='ETTh2', data_path='ETTh2.csv', dec_in=7, decomp_method='moving_avg', des='PlusSuite', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=7, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=0, learning_rate=0.02, loss='MSE', lradj='type3', mask_rate=0.125, model='SparseTSFPlus', model_id='PLUS_fixed_ETTh2_96_192_fixed_s2023', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=5, pct_start=0.2, percent=100, period_len=24, pred_len=192, root_path='<workspace>\\dataset\\ETT-small', seasonal_patterns='Monthly', seed=2023, seq_len=96, stream_metrics=0, stsf_channel_mix='off', stsf_cls_head='flat', stsf_cls_segments=8, stsf_decomp='linear', stsf_decomp_kernel=25, stsf_diag_mask=0, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_complete=0, stsf_phase_gate=0, stsf_phase_kernel=3, stsf_phase_mask=0, stsf_phase_mix='linear', stsf_phase_rank=0, stsf_refine_gate=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='long_term_forecast', top_k=5, track_emissions=0, train_epochs=30, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+trainable_params:665
+units:phase_mix=linear,decomp=linear
+>>>>>>>start training : long_term_forecast_PLUS_fixed_ETTh2_96_192_fixed_s2023_none_SparseTSFPlus_ETTh2_sl96_pl192_dm128_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_PlusSuite_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 8353
+val 2689
+test 2689
+Epoch: 1 cost time: 2.3182687759399414
+Epoch: 1, Steps: 32 | Train Loss: 0.6408291 Vali Loss: 0.3356469 Test Loss: 0.4279134
+Validation loss decreased (inf --> 0.335647).  Saving model ...
+Updating learning rate to 0.02
+Epoch: 2 cost time: 0.4561653137207031
+Epoch: 2, Steps: 32 | Train Loss: 0.5958068 Vali Loss: 0.2901870 Test Loss: 0.3723310
+Validation loss decreased (0.335647 --> 0.290187).  Saving model ...
+Updating learning rate to 0.02
+Epoch: 3 cost time: 0.47534656524658203
+Epoch: 3, Steps: 32 | Train Loss: 0.5538146 Vali Loss: 0.2765130 Test Loss: 0.3624463
+Validation loss decreased (0.290187 --> 0.276513).  Saving model ...
+Updating learning rate to 0.02
+Epoch: 4 cost time: 0.47170352935791016
+Epoch: 4, Steps: 32 | Train Loss: 0.5468425 Vali Loss: 0.2762132 Test Loss: 0.3593919
+Validation loss decreased (0.276513 --> 0.276213).  Saving model ...
+Updating learning rate to 0.018000000000000002
+Epoch: 5 cost time: 0.46859025955200195
+Epoch: 5, Steps: 32 | Train Loss: 0.5458459 Vali Loss: 0.2754638 Test Loss: 0.3615540
+Validation loss decreased (0.276213 --> 0.275464).  Saving model ...
+Updating learning rate to 0.016200000000000003
+Epoch: 6 cost time: 0.4777865409851074
+Epoch: 6, Steps: 32 | Train Loss: 0.5443123 Vali Loss: 0.2753463 Test Loss: 0.3605790
+Validation loss decreased (0.275464 --> 0.275346).  Saving model ...
+Updating learning rate to 0.014580000000000003
+Epoch: 7 cost time: 0.47139883041381836
+Epoch: 7, Steps: 32 | Train Loss: 0.5423755 Vali Loss: 0.2750818 Test Loss: 0.3575486
+Validation loss decreased (0.275346 --> 0.275082).  Saving model ...
+Updating learning rate to 0.013122
+Epoch: 8 cost time: 0.46021366119384766
+Epoch: 8, Steps: 32 | Train Loss: 0.5360372 Vali Loss: 0.2758269 Test Loss: 0.3572007
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.011809800000000002
+Epoch: 9 cost time: 0.47272300720214844
+Epoch: 9, Steps: 32 | Train Loss: 0.5401031 Vali Loss: 0.2752230 Test Loss: 0.3564076
+EarlyStopping counter: 2 out of 5
+Updating learning rate to 0.01062882
+Epoch: 10 cost time: 0.46013689041137695
+Epoch: 10, Steps: 32 | Train Loss: 0.5382305 Vali Loss: 0.2760164 Test Loss: 0.3578825
+EarlyStopping counter: 3 out of 5
+Updating learning rate to 0.009565938000000001
+Epoch: 11 cost time: 0.46570849418640137
+Epoch: 11, Steps: 32 | Train Loss: 0.5362190 Vali Loss: 0.2726334 Test Loss: 0.3570970
+Validation loss decreased (0.275082 --> 0.272633).  Saving model ...
+Updating learning rate to 0.008609344200000002
+Epoch: 12 cost time: 0.4771721363067627
+Epoch: 12, Steps: 32 | Train Loss: 0.5350764 Vali Loss: 0.2745386 Test Loss: 0.3573277
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.007748409780000002
+Epoch: 13 cost time: 0.4629523754119873
+Epoch: 13, Steps: 32 | Train Loss: 0.5366716 Vali Loss: 0.2723293 Test Loss: 0.3570299
+Validation loss decreased (0.272633 --> 0.272329).  Saving model ...
+Updating learning rate to 0.006973568802000002
+Epoch: 14 cost time: 0.4666619300842285
+Epoch: 14, Steps: 32 | Train Loss: 0.5364786 Vali Loss: 0.2734721 Test Loss: 0.3563437
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.006276211921800001
+Epoch: 15 cost time: 0.47932887077331543
+Epoch: 15, Steps: 32 | Train Loss: 0.5378111 Vali Loss: 0.2747324 Test Loss: 0.3566620
+EarlyStopping counter: 2 out of 5
+Updating learning rate to 0.005648590729620003
+Epoch: 16 cost time: 0.4578986167907715
+Epoch: 16, Steps: 32 | Train Loss: 0.5356649 Vali Loss: 0.2726421 Test Loss: 0.3562672
+EarlyStopping counter: 3 out of 5
+Updating learning rate to 0.005083731656658002
+Epoch: 17 cost time: 0.48621392250061035
+Epoch: 17, Steps: 32 | Train Loss: 0.5327226 Vali Loss: 0.2725245 Test Loss: 0.3568483
+EarlyStopping counter: 4 out of 5
+Updating learning rate to 0.004575358490992202
+Epoch: 18 cost time: 0.4796421527862549
+Epoch: 18, Steps: 32 | Train Loss: 0.5368085 Vali Loss: 0.2732985 Test Loss: 0.3561532
+EarlyStopping counter: 5 out of 5
+Early stopping
+>>>>>>>testing : long_term_forecast_PLUS_fixed_ETTh2_96_192_fixed_s2023_none_SparseTSFPlus_ETTh2_sl96_pl192_dm128_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_PlusSuite_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test 2689
+mse:0.35702991485595703, mae:0.38320887088775635
+RMSE:0.5975198149681091, MAPE:0.5308305025100708, MSPE:396.36419677734375

@@ -76,8 +76,18 @@ CANDIDATES: Dict[str, Tuple[Optional[str], Optional[str]]] = {
     "allrg_pc": (None, "allrg_pc"),
     "allrg_pm": (None, "allrg_pm"),
 }
-ALL_CONFIGS = dict(CONFIGS, **CANDIDATES)
-TASKS = ["longterm", "m4", "pems", "fewshot", "zeroshot", "anomaly", "imputation"]
+# Added once the stretch step closed without training (same rules, more coverage):
+#   task       the per-task SparseTSFPlus on the forecasting tasks (tests "one configuration
+#              costs almost nothing")
+#   TimeMixer  the local baseline on PEMS and anomaly detection, its own runners' commands
+EXTRA: Dict[str, Tuple[Optional[str], Optional[str]]] = {
+    "task": ("task", None),
+    "TimeMixer": (None, None),
+}
+ALL_CONFIGS = dict(CONFIGS, **CANDIDATES, **EXTRA)
+TASKS = ["longterm", "m4", "pems", "fewshot", "zeroshot", "anomaly", "imputation", "imputation_ecl"]
+# Electricity imputation is its own row, so the ETTh1/ETTh2 means stay comparable across configs.
+IMP_TASK_DATASETS = {"imputation": IMP_DATASETS, "imputation_ecl": ["Electricity"]}
 
 
 @dataclass
@@ -151,16 +161,54 @@ def imputation_cmd(ds, mask_rate: float, flags, model: str, model_id: str, seed:
     ] + list(flags) + ["--seed", str(seed)]
 
 
+def timemixer_jobs(task: str, seed: int) -> List[SeedJob]:
+    """TimeMixer's own runner commands (run_pems_benchmarks / run_anomaly_benchmarks), seeded."""
+    out = []
+    if task == "pems":
+        cfg = PEMS.MODEL_CFG["TimeMixer"]
+        for ds in PEMS.DATASETS:
+            cmd = [sys.executable, "-u", str(REPO_ROOT / "run.py"),
+                   "--task_name", "long_term_forecast", "--is_training", "1",
+                   "--model_id", "PEMS_TimeMixer_{}_s{}".format(ds.name, seed), "--model", "TimeMixer",
+                   "--data", "PEMS", "--root_path", str(SUITE.DATA_ROOT / "PEMS"),
+                   "--data_path", ds.data_path, "--features", "M",
+                   "--seq_len", str(PEMS.SEQ_LEN), "--label_len", "0", "--pred_len", str(PEMS.PRED_LEN),
+                   "--enc_in", str(ds.enc_in), "--dec_in", str(ds.enc_in), "--c_out", str(ds.enc_in),
+                   "--use_norm", "0", "--learning_rate", cfg["learning_rate"],
+                   "--train_epochs", cfg["train_epochs"], "--patience", cfg["patience"],
+                   "--batch_size", cfg["batch_size"], "--num_workers", "0", "--des", PEMS.DES,
+                   "--itr", "1"] + cfg["extra"] + ["--seed", str(seed)]
+            out.append(SeedJob(task, "TimeMixer", ds.name, seed, cmd, lambda t: "RMSE:" in t))
+    elif task == "anomaly":
+        for ds in AN.DATASETS:
+            if not AN.available(ds):
+                continue
+            cmd = [sys.executable, "-u", str(REPO_ROOT / "run.py"),
+                   "--task_name", "anomaly_detection", "--is_training", "1",
+                   "--model_id", "ANOM_TM_{}_s{}".format(ds.name, seed), "--model", "TimeMixer",
+                   "--data", ds.name, "--root_path", str(SUITE.DATA_ROOT / ds.folder),
+                   "--features", "M", "--seq_len", str(AN.SEQ_LEN), "--pred_len", "0",
+                   "--enc_in", str(ds.enc_in), "--dec_in", str(ds.enc_in), "--c_out", str(ds.enc_in),
+                   ] + AN._model_args("TimeMixer") + [
+                   "--anomaly_ratio", str(ds.anomaly_ratio), "--learning_rate", str(AN.LEARNING_RATE),
+                   "--train_epochs", str(AN.TRAIN_EPOCHS), "--batch_size", str(AN.BATCH_SIZE),
+                   "--num_workers", "0", "--des", AN.DES, "--itr", "1", "--seed", str(seed)]
+            out.append(SeedJob(task, "TimeMixer", ds.name, seed, cmd, lambda t: "F-score" in t))
+    return out
+
+
 def jobs_for(task: str, config: str, seed: int) -> List[SeedJob]:
+    if config == "TimeMixer":
+        return timemixer_jobs(task, seed)
     version, imp_variant = ALL_CONFIGS[config]
-    if task == "imputation":
+    if task in IMP_TASK_DATASETS:
         if imp_variant is None:
             return []
         pv = {v.name: v for v in PIMP.VARIANTS}[imp_variant]
         model = "SparseTSF" if config == "SparseTSF" else PIMP.MODEL
         out = []
         for ds in PIMP.DATASETS:
-            if ds.name not in IMP_DATASETS:
+            if ds.name not in IMP_TASK_DATASETS[task]:
                 continue
             for m in PIMP.FULL_MASKS:
                 mid = "SEED_IMP_{}_{}_m{}_s{}".format(ds.name, config, m, seed)
@@ -255,7 +303,19 @@ def _mean_or_none(vals: List[Optional[float]]) -> Optional[float]:
 def cell(task: str, config: str, key: str, seed: int) -> Optional[float]:
     """One dataset-level value (a horizon, subset, pair or mask cell)."""
     version, imp_variant = ALL_CONFIGS[config]
-    if task == "imputation":
+    if config == "TimeMixer":
+        if seed == BASE_SEED:
+            if task == "pems":
+                ds = next(d for d in PEMS.DATASETS if d.name == key)
+                return PEMS.parse_log(PEMS.log_path_for("TimeMixer", ds))[0]
+            ds = next(d for d in AN.DATASETS if d.name == key)
+            return AN.parse_log(ds, "TimeMixer")[2]
+        text = _seed_log(task, config, key, seed)
+        if task == "pems":
+            return SUITE._last(SUITE.MAE_PAT, text) if "RMSE:" in text else None
+        f1 = SUITE._last(SUITE.F1_PAT, text)
+        return None if f1 is None else f1 * 100
+    if task in IMP_TASK_DATASETS:
         if seed == BASE_SEED:
             name, m = key.split("_mask")
             pds = next(d for d in PIMP.DATASETS if d.name == name)
@@ -313,15 +373,20 @@ def m4_owa(config: str, seed: int) -> Optional[float]:
 
 
 def task_keys(task: str) -> List[str]:
-    if task == "imputation":
-        return ["{}_mask{}".format(d, m) for d in IMP_DATASETS for m in PIMP.FULL_MASKS]
+    if task in IMP_TASK_DATASETS:
+        return ["{}_mask{}".format(d, m) for d in IMP_TASK_DATASETS[task] for m in PIMP.FULL_MASKS]
     return [j.key for j in suite_jobs_for(task, "fixed")]
 
 
 def task_value(task: str, config: str, seed: int) -> Optional[float]:
     """The task's headline number for one configuration and seed: the mean over its cells."""
     version, imp_variant = ALL_CONFIGS[config]
-    if (task == "imputation" and imp_variant is None) or (task != "imputation" and version is None):
+    if config == "TimeMixer":
+        if task not in ("pems", "anomaly"):
+            return None
+        return _mean_or_none([cell(task, config, k, seed) for k in task_keys(task)])
+    if (task in IMP_TASK_DATASETS and imp_variant is None) or \
+            (task not in IMP_TASK_DATASETS and version is None):
         return None
     if task == "m4":
         return m4_owa(config, seed)
@@ -332,11 +397,12 @@ def task_value(task: str, config: str, seed: int) -> Optional[float]:
 
 METRIC = {"longterm": ("MSE", False), "m4": ("OWA", False), "pems": ("MAE", False),
           "fewshot": ("MSE", False), "zeroshot": ("MSE", False), "anomaly": ("F1", True),
-          "imputation": ("MSE", False)}
+          "imputation": ("MSE", False), "imputation_ecl": ("MSE", False)}
 TITLE = {"longterm": "Long-term (ETT×4, Weather; 4 horizons)", "m4": "M4 (6 subsets)",
          "pems": "PEMS (4 datasets)", "fewshot": "Few-shot (6 datasets)",
          "zeroshot": "Zero-shot (6 pairs)", "anomaly": "Anomaly (4 datasets)",
-         "imputation": "Imputation (ETTh1, ETTh2; 4 mask rates)"}
+         "imputation": "Imputation (ETTh1, ETTh2; 4 mask rates)",
+         "imputation_ecl": "Imputation (Electricity; 4 mask rates)"}
 
 
 def _fmt(x: Optional[float], spec: str = ".4f") -> str:
@@ -344,7 +410,8 @@ def _fmt(x: Optional[float], spec: str = ".4f") -> str:
 
 
 def comparisons(configs: List[str]) -> List[Tuple[str, str]]:
-    pairs = [("fixed", "SparseTSF"), ("u5g", "SparseTSF"), ("u5g", "fixed")]
+    pairs = [("fixed", "SparseTSF"), ("u5g", "SparseTSF"), ("u5g", "fixed"),
+             ("fixed", "task"), ("fixed", "TimeMixer"), ("SparseTSF", "TimeMixer")]
     pairs += [(c, "fixed") for c in configs if c in CANDIDATES]
     pairs += [(c, "u5g") for c in configs if c in ("allrg_pm", "allrg_pc")]
     return pairs
@@ -453,8 +520,8 @@ def main() -> None:
     ap.add_argument("--only", default="", help="comma-separated tasks: " + ",".join(TASKS))
     ap.add_argument("--seeds", default="", help="comma-separated seeds (default: 2022,2023)")
     ap.add_argument("--configs", default="",
-                    help="comma-separated configurations (default: {}; candidates: {})".format(
-                        ",".join(CONFIGS), ",".join(CANDIDATES)))
+                    help="comma-separated configurations (default: {}; others: {})".format(
+                        ",".join(CONFIGS), ",".join(list(CANDIDATES) + list(EXTRA))))
     args = ap.parse_args()
     configs = [c for c in args.configs.split(",") if c] or list(CONFIGS)
     for c in configs:

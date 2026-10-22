@@ -1,0 +1,44 @@
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, batch_size=16, c_out=1, channel_independence=1, checkpoints='./checkpoints/', comment='none', d_ff=32, d_layers=1, d_model=16, data='m4', data_path='ETTh1.csv', dec_in=1, decomp_method='moving_avg', des='M4', devices='0,1', distil=True, down_sampling_layers=0, down_sampling_method='avg', down_sampling_window=1, drop_last=True, dropout=0.1, e_layers=2, embed='timeF', emissions_file='emissions.csv', emissions_output_dir='.', enc_in=1, factor=1, features='M', freq='h', gpu=0, inverse=False, is_training=1, itr=1, label_len=48, learning_rate=0.01, loss='SMAPE', lradj='TST', mask_rate=0.125, model='SparseTSF', model_id='M4_PLUS_fixed_Weekly_SparseTSF_s2023', model_type='linear', moving_avg=25, n_heads=8, num_kernels=6, num_workers=0, output_attention=False, p_hidden_dims=[128, 128], p_hidden_layers=2, patience=5, pct_start=0.2, percent=100, period_len=13, pred_len=96, root_path='<workspace>\\dataset\\m4', seasonal_patterns='Weekly', seed=2023, seq_len=96, stream_metrics=0, stsf_channel_mix='off', stsf_cls_head='flat', stsf_cls_segments=8, stsf_decomp='off', stsf_decomp_kernel=25, stsf_diag_mask=0, stsf_impute_passes=1, stsf_linear_bias=0, stsf_mask_conv=0, stsf_pad_fold=0, stsf_periods='', stsf_phase_complete=0, stsf_phase_gate=0, stsf_phase_kernel=3, stsf_phase_mask=0, stsf_phase_mix='off', stsf_phase_rank=0, stsf_refine_gate=0, stsf_revin=0, stsf_revin_affine=0, target='OT', task_name='short_term_forecast', top_k=5, track_emissions=0, train_epochs=10, use_amp=False, use_future_temporal_feature=0, use_gpu=True, use_multi_gpu=False, use_norm=1)
+Use GPU: cuda:0
+>>>>>>>start training : short_term_forecast_M4_PLUS_fixed_Weekly_SparseTSF_s2023_none_SparseTSF_m4_sl96_pl96_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_M4_0>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 359
+val 359
+Epoch: 1 cost time: 1.8745613098144531
+Epoch: 1, Steps: 23 | Train Loss: 15.1345433 Vali Loss: 12.6790813 Test Loss: 12.6790813
+Validation loss decreased (inf --> 12.679081).  Saving model ...
+Updating learning rate to 0.005367517584172003
+Epoch: 2 cost time: 0.05612301826477051
+Epoch: 2, Steps: 23 | Train Loss: 12.4774712 Vali Loss: 12.0741857 Test Loss: 12.0741857
+Validation loss decreased (12.679081 --> 12.074186).  Saving model ...
+Updating learning rate to 0.009999271227761496
+Epoch: 3 cost time: 0.0632627010345459
+Epoch: 3, Steps: 23 | Train Loss: 10.9272729 Vali Loss: 12.0793276 Test Loss: 12.0793276
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.009586058163301235
+Epoch: 4 cost time: 0.07927846908569336
+Epoch: 4, Steps: 23 | Train Loss: 10.5104359 Vali Loss: 12.1537001 Test Loss: 12.1537001
+EarlyStopping counter: 2 out of 5
+Updating learning rate to 0.008474662361017835
+Epoch: 5 cost time: 0.06951761245727539
+Epoch: 5, Steps: 23 | Train Loss: 9.9489083 Vali Loss: 12.1590189 Test Loss: 12.1590189
+EarlyStopping counter: 3 out of 5
+Updating learning rate to 0.006834283756980907
+Epoch: 6 cost time: 0.0720968246459961
+Epoch: 6, Steps: 23 | Train Loss: 11.4701900 Vali Loss: 12.1462498 Test Loss: 12.1462498
+EarlyStopping counter: 4 out of 5
+Updating learning rate to 0.004914655123585998
+Epoch: 7 cost time: 0.07199406623840332
+Epoch: 7, Steps: 23 | Train Loss: 10.9566780 Vali Loss: 12.1718432 Test Loss: 12.1718432
+EarlyStopping counter: 5 out of 5
+Early stopping
+>>>>>>>testing : short_term_forecast_M4_PLUS_fixed_Weekly_SparseTSF_s2023_none_SparseTSF_m4_sl96_pl96_dm16_nh8_el2_dl1_df32_fc1_ebtimeF_dtTrue_M4_0<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+train 359
+test 359
+0
+test shape: (359, 13, 1)
+SparseTSF
+smape: {'Yearly': 15.652, 'Quarterly': 11.919, 'Monthly': 13.996, 'Others': 5.152, 'Average': 13.436}
+mape: {'Yearly': 17.783, 'Quarterly': 13.5, 'Monthly': 16.678, 'Others': 6.679, 'Average': 15.67}
+mase: {'Yearly': 3.277, 'Quarterly': 1.479, 'Monthly': 1.096, 'Others': 3.852, 'Average': 1.827}
+owa: {'Yearly': 0.891, 'Quarterly': 1.081, 'Monthly': 1.0, 'Others': 1.15, 'Average': 0.973}
