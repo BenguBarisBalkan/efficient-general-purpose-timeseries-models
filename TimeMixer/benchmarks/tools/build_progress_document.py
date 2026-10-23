@@ -379,6 +379,286 @@ def seeds_table() -> List[str]:
     return out
 
 
+
+# ── compact tables in the layout of the TimeMixer++ paper's main results ──────────────────────
+
+import run_sparsetsf_plus_classification as PCLS  # noqa: E402
+import run_sparsetsf_plus_imputation as PIMP  # noqa: E402
+
+RMSE_PAT = re.compile(r"RMSE:" + NUM)
+MAPE_PAT = re.compile(r"MAPE:" + NUM)
+ETT = ["ETTh1", "ETTh2", "ETTm1", "ETTm2"]
+PARTIAL = "partial"
+
+
+def _pair(src: Source, paths: List[Path], zs: bool = False):
+    """Mean (MSE, MAE) over a dataset's cells; PARTIAL if only some finished; None if none did."""
+    mses, maes = [], []
+    for path in paths:
+        t = src.read(path)
+        ok = len(re.findall(r"^mse:", t, re.M)) >= 2 if zs else MSE_PAT.search(t) is not None
+        mses.append(_last(MSE_PAT, t) if ok else None)
+        maes.append(_last(MAE_PAT, t) if ok else None)
+    if all(v is None for v in mses):
+        return None
+    if any(v is None for v in mses):
+        return PARTIAL
+    return mean(mses), mean(maes)
+
+
+def _avg_pairs(pairs):
+    if all(x is None for x in pairs):
+        return None
+    if any(x is None or x == PARTIAL for x in pairs):
+        return PARTIAL
+    return mean(x[0] for x in pairs), mean(x[1] for x in pairs)
+
+
+def _suite(name: str) -> Path:
+    return SUITE.LOGS_DIR / name
+
+
+def _imp_plus_path(ds_name: str, rate: float) -> Path:
+    pds = next(d for d in PIMP.DATASETS if d.name == ds_name)
+    pv = {v.name: v for v in PIMP.VARIANTS}[SUITE.REUSE_IMPUTATION["fixed"]]
+    return PIMP.report_path_for(pds, rate, pv)
+
+
+def lt_paths(model: str, ds: str) -> List[Path]:
+    if model == "SparseTSFPlus":
+        return [_suite("longterm_fixed_{}_pred{}.log".format(ds, h)) for h in LT.PRED_LENS]
+    return [LT_LOGS[model](ds, h) for h in LT.PRED_LENS]
+
+
+def imp_paths(model: str, ds: str) -> List[Path]:
+    if model == "SparseTSFPlus":
+        return [_imp_plus_path(ds, r) for r in IMP.MASK_RATES]
+    d = next(x for x in IMP.DATASETS if x.name == ds)
+    return [IMP.log_path_for(model, d, r) for r in IMP.MASK_RATES]
+
+
+def fs_paths(model: str, ds: str) -> List[Path]:
+    if model == "SparseTSFPlus":
+        return [_suite("fewshot_fixed_{}_pred{}.log".format(ds, h)) for h in FS.PRED_LENS]
+    d = next(x for x in FS.DATASETS if x.name == ds)
+    return [FS.log_path_for(d, h, model) for h in FS.PRED_LENS]
+
+
+def zs_paths(model: str, a: str, b: str) -> List[Path]:
+    if model == "SparseTSFPlus":
+        return [_suite("zeroshot_fixed_{}_to_{}_pred{}.log".format(a, b, h)) for h in ZS.PRED_LENS]
+    return [ZS.log_path_for(a, b, h, model) for h in ZS.PRED_LENS]
+
+
+@functools.lru_cache(maxsize=None)
+def m4_metrics(folder: str) -> Optional[Dict[str, float]]:
+    path = SUITE.M4_RESULTS / folder
+    if not all((path / "{}_forecast.csv".format(x)).exists() for x in M4.SUBSETS):
+        return None
+    from utils.m4_summary import M4Summary
+    smape, owa, _, mase = M4Summary(str(path) + "/", str(M4.M4_ROOT)).evaluate()
+    return {"SMAPE": smape["Average"], "MASE": mase["Average"], "OWA": owa["Average"]}
+
+
+def m4_local(src: Source, model: str) -> Optional[Dict[str, float]]:
+    if model == "SparseTSFPlus":
+        logs = [_suite("m4_fixed_{}.log".format(x)) for x in M4.SUBSETS]
+        folder = "SparseTSFPlus_fixed"
+    elif model in ("TimeMixer", "SparseTSF"):
+        logs = [REPO_ROOT / "logs" / "run_logs_m4" / "{}_{}.log".format(model, x) for x in M4.SUBSETS]
+        folder = model
+    else:
+        return None
+    if not all("test shape:" in src.read(lp) for lp in logs):
+        return None
+    return m4_metrics(folder)
+
+
+def pems_local(src: Source, model: str) -> Optional[Dict[str, float]]:
+    if model == "TimeMixer++":
+        return None
+    vals = []
+    for d in PEMS.DATASETS:
+        path = _suite("pems_fixed_{}.log".format(d.name)) if model == "SparseTSFPlus" \
+            else PEMS.log_path_for(model, d)
+        t = src.read(path)
+        if "RMSE:" not in t:
+            return None
+        vals.append((_last(MAE_PAT, t), _last(MAPE_PAT, t) * 100.0, _last(RMSE_PAT, t)))
+    return {"MAE": mean(v[0] for v in vals), "MAPE": mean(v[1] for v in vals),
+            "RMSE": mean(v[2] for v in vals)}
+
+
+def anomaly_local(src: Source, model: str):
+    if model == "TimeMixer++":
+        return None
+    f1s = []
+    for d in AN.DATASETS:
+        if not AN.available(d):
+            continue
+        path = _suite("anomaly_fixed_{}.log".format(d.name)) if model == "SparseTSFPlus" \
+            else AN.log_path_for(d, model)
+        f1s.append(_last(F1_PAT, src.read(path)))
+    if all(v is None for v in f1s):
+        return None
+    return PARTIAL if any(v is None for v in f1s) else 100 * mean(f1s)
+
+
+def classification_local(src: Source, model: str):
+    if model == "TimeMixer++":
+        return None
+    flat = {v.name: v for v in PCLS.VARIANTS}[SUITE.REUSE_CLASSIFICATION]
+    accs = []
+    for d in CLS.DATASETS:
+        path = PCLS.log_path_for(d, flat) if model == "SparseTSFPlus" else CLS.log_path_for(d, model)
+        accs.append(_last(ACC_PAT, src.read(path)))
+    if all(v is None for v in accs):
+        return None
+    return PARTIAL if any(v is None for v in accs) else 100 * mean(accs)
+
+
+AVAILABLE_ANOMALY = [d.name for d in AN.DATASETS if AN.available(d)]
+
+
+def paper_rows(src: Source, local: List[str]):
+    """-> list of ("group", title) or (label, kind, {column: value}, higher_better, spec).
+    kind "pair" = MSE/MAE; "single" = one metric spanning both sub-columns."""
+    rows = []
+
+    def pub_lt(ds_list):
+        out = {}
+        for key, table in (("pub:TimeMixer", TMLT.PAPER), ("pub:TimeMixer++", PP.PAPER)):
+            out[key] = (mean(mean(table[d][h][0] for h in LT.PRED_LENS) for d in ds_list),
+                        mean(mean(table[d][h][1] for h in LT.PRED_LENS) for d in ds_list))
+        return out
+
+    rows.append(("group", "Long-term forecasting (MSE / MAE, mean of 4 horizons, input 96)"))
+    vals = {m: _avg_pairs([_pair(src, lt_paths(m, d)) for d in ETT]) for m in local}
+    vals.update(pub_lt(ETT))
+    rows.append(("ETT (Avg)", "pair", vals, False, ".3f"))
+    for d in ("Weather", "Solar-Energy", "Electricity", "Traffic"):
+        vals = {m: _pair(src, lt_paths(m, d)) for m in local}
+        vals.update(pub_lt([d]))
+        rows.append((d, "pair", vals, False, ".3f"))
+
+    rows.append(("group", "Univariate short-term forecasting, M4 (average of 6 subsets)"))
+    m4 = {m: m4_local(src, m) for m in local}
+    for metric in ("SMAPE", "MASE", "OWA"):
+        vals = {m: (None if m4[m] is None else m4[m][metric]) for m in local}
+        vals.update({"pub:" + k.split(" ")[0]: v[metric] for k, v in M4.PAPER_REF.items()})
+        rows.append((metric, "single", vals, False, ".3f"))
+
+    rows.append(("group", "Multivariate short-term forecasting, PEMS (average of 4 datasets, 96 → 12)"))
+    pe = {m: pems_local(src, m) for m in local}
+    for metric in ("MAE", "MAPE", "RMSE"):
+        vals = {m: (None if pe[m] is None else pe[m][metric]) for m in local}
+        vals.update({"pub:" + k.split(" ")[0]: v[metric] for k, v in PEMS.PAPER_REF.items()})
+        rows.append((metric + (" (%)" if metric == "MAPE" else ""), "single", vals, False, ".2f"))
+
+    rows.append(("group", "Imputation (MSE / MAE, mean of 4 mask rates, input 96)"))
+    vals = {m: (_avg_pairs([_pair(src, imp_paths(m, d)) for d in ETT]) if m != "TimeMixer++" else None)
+            for m in local}
+    vals.update({"pub:TimeMixer": "n/c", "pub:TimeMixer++": "n/c"})
+    rows.append(("ETT (Avg)", "pair", vals, False, ".3f"))
+    for d in ("Electricity", "Weather"):
+        vals = {m: (_pair(src, imp_paths(m, d)) if m != "TimeMixer++" else None) for m in local}
+        vals.update({"pub:TimeMixer": "n/c", "pub:TimeMixer++": "n/c"})
+        rows.append((d, "pair", vals, False, ".3f"))
+
+    rows.append(("group", "Few-shot forecasting, 10% of training data (MSE / MAE, mean of 4 horizons)"))
+    for label, ds_list in (("ETT (Avg)", ETT), ("Weather", ["Weather"]), ("Electricity", ["Electricity"])):
+        vals = {m: (_avg_pairs([_pair(src, fs_paths(m, d)) for d in ds_list]) if m != "TimeMixer++"
+                    else None) for m in local}
+        ref = FS.PAPER_REF["ETT (Avg)" if label == "ETT (Avg)" else label]
+        vals.update({"pub:" + k.split(" ")[0]: v for k, v in ref.items()})
+        rows.append((label, "pair", vals, False, ".3f"))
+
+    rows.append(("group", "Zero-shot transfer, train → test (MSE / MAE, mean of 4 horizons)"))
+    for a, b in ZS.PAIRS:
+        vals = {m: (_pair(src, zs_paths(m, a, b), zs=True) if m != "TimeMixer++" else None) for m in local}
+        ref = ZS.PAPER_REF["{}->{}".format(a, b)]
+        vals.update({"pub:" + k: v for k, v in ref.items()})
+        rows.append(("{} → {}".format(a, b), "pair", vals, False, ".3f"))
+
+    rows.append(("group", "Anomaly detection and classification (averages)"))
+    vals = {m: anomaly_local(src, m) for m in local}
+    vals.update({"pub:TimeMixer": None,
+                 "pub:TimeMixer++": mean(AN.PAPER_REF_F1[d] for d in AVAILABLE_ANOMALY)})
+    rows.append(("Anomaly F1 (%), {} datasets".format(len(AVAILABLE_ANOMALY)), "single", vals, True, ".2f"))
+    vals = {m: classification_local(src, m) for m in local}
+    vals.update({"pub:TimeMixer": None, "pub:TimeMixer++": CLS.PAPER_REF["TimeMixer++ (paper)"]})
+    rows.append(("Classification accuracy (%), 10 UEA datasets", "single", vals, True, ".2f"))
+    return rows
+
+
+LOCAL_LABEL = {"TimeMixer": "TimeMixer", "TimeMixer++": "TimeMixer++", "SparseTSF": "SparseTSF",
+               "SparseTSFPlus": "SparseTSFPlus"}
+
+
+def _fmt_cell(v, spec, rank=None, italic=False):
+    if v is None:
+        return "—"
+    if v == PARTIAL:
+        return "partial"
+    if v == "n/c":
+        return "n/c"
+    s = format(v, spec)
+    if italic:
+        return "<i>{}</i>".format(s)
+    if rank == 1:
+        return "<b>{}</b>".format(s)
+    if rank == 2:
+        return "<u>{}</u>".format(s)
+    return s
+
+
+def _ranks(values: Dict[str, Optional[float]], higher_better: bool) -> Dict[str, int]:
+    nums = {k: v for k, v in values.items() if isinstance(v, float)}
+    order = sorted(nums, key=nums.get, reverse=higher_better)
+    if len(order) < 2:
+        return {}
+    # the second best is marked only when there are at least three values to rank
+    return {k: i + 1 for i, k in enumerate(order[:2 if len(order) >= 3 else 1])}
+
+
+def paper_table(src: Source, local: List[str], published: List[str]) -> List[str]:
+    cols = local + ["pub:" + m for m in published]
+    n = 1 + 2 * len(cols)
+    head1 = "".join('<th colspan="2">{}</th>'.format(LOCAL_LABEL[c]) for c in local) + \
+        "".join('<th colspan="2" class="pub">{}<br>(paper)</th>'.format(c[4:]) for c in cols[len(local):])
+    head2 = "".join("<th>MSE</th><th>MAE</th>" for _ in cols)
+    out = ['<table class="paper">',
+           '<thead><tr><th rowspan="2">Benchmark</th>{}</tr><tr>{}</tr></thead>'.format(head1, head2),
+           "<tbody>"]
+    for row in paper_rows(src, local):
+        if row[0] == "group":
+            out.append('<tr class="group"><td colspan="{}">{}</td></tr>'.format(n, row[1]))
+            continue
+        label, kind, vals, hb, spec = row
+        cells = []
+        if kind == "pair":
+            r_mse = _ranks({m: (vals.get(m)[0] if isinstance(vals.get(m), tuple) else None)
+                            for m in local}, hb)
+            r_mae = _ranks({m: (vals.get(m)[1] if isinstance(vals.get(m), tuple) else None)
+                            for m in local}, hb)
+            for c in cols:
+                v = vals.get(c)
+                pub = c.startswith("pub:")
+                if isinstance(v, tuple):
+                    cells.append("<td>{}</td><td>{}</td>".format(
+                        _fmt_cell(v[0], spec, r_mse.get(c), pub), _fmt_cell(v[1], spec, r_mae.get(c), pub)))
+                else:
+                    cells.append('<td colspan="2">{}</td>'.format(_fmt_cell(v, spec)))
+        else:
+            r = _ranks({m: vals.get(m) for m in local}, hb)
+            for c in cols:
+                cells.append('<td colspan="2">{}</td>'.format(
+                    _fmt_cell(vals.get(c), spec, r.get(c), c.startswith("pub:"))))
+        out.append("<tr><td>{}</td>{}</tr>".format(label, "".join(cells)))
+    out += ["</tbody>", "</table>"]
+    return out
+
+
 # ── coverage, parameters, energy ─────────────────────────────────────────────────────────────
 
 COVERAGE = [  # (task, folder, completion test)
@@ -494,14 +774,19 @@ def source(commit: Optional[str] = None) -> Source:
     return Source(commit)
 
 
+THREE = (["TimeMixer", "TimeMixer++", "SparseTSF"], ["TimeMixer", "TimeMixer++"])
+WITH_PLUS = (["TimeMixer", "SparseTSF", "SparseTSFPlus"], ["TimeMixer", "TimeMixer++"])
+
 BLOCKS = {
-    "T1": lambda: comparison_table(source(SNAPSHOT)),
+    "T1": lambda: paper_table(source(SNAPSHOT), *THREE),
+    "T2": lambda: paper_table(source(), *THREE),
     "COVERAGE": lambda: coverage_table(source(SNAPSHOT), source()),
-    "T2": lambda: comparison_table(source()),
-    "T3": lambda: comparison_table(source(), plus_columns()),
+    "T5": lambda: paper_table(source(), *WITH_PLUS),
     "SEEDS": seeds_table,
     "PARAMS": params_table,
     "ENERGY": energy_table,
+    "A1": lambda: comparison_table(source(), plus_columns()),
+    "A2": lambda: comparison_table(source(SNAPSHOT)),
 }
 
 
@@ -529,6 +814,11 @@ p, li { text-align: justify; }
 table { border-collapse: collapse; width: 100%; font-size: 7.6pt; margin: 6pt 0 10pt 0;
         page-break-inside: auto; }
 th { font-size: 7.4pt; }
+table.paper { font-size: 7.4pt; }
+table.paper th, table.paper td { text-align: center; padding: 2pt 3pt; }
+table.paper td:first-child { text-align: left; white-space: nowrap; }
+table.paper tr.group td { text-align: left; font-weight: bold; background: #f4f4f4; }
+table.paper th.pub { font-style: italic; }
 tr { page-break-inside: avoid; }
 th, td { border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; padding: 2.5pt 4pt; }
 th { background: #eee; font-weight: bold; }
