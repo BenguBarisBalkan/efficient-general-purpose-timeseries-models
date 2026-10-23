@@ -27,6 +27,14 @@ backbone, and the full comparison including SparseTSFPlus.
 Local and published values sit in separate columns. `CLAUDE.md` now lists the ideas already tested,
 with a pointer to the report, so they are not repeated.
 
+Revised the same day after review:
+- **Comparison tables:** they now follow the layout of the TimeMixer++ paper's main results (ETT
+  averaged, MSE/MAE pairs, M4 and PEMS averaged, anomaly and classification averages). The full
+  per-dataset tables moved to Appendices A and B.
+- **Section 3:** it now lists only the twelve modules tested on SparseTSF, grouped by the part of the
+  model they change. The one-model decision moved to Section 4, the task-head adaptation to
+  Section 1.4, and the seed repeats to the method and results.
+
 **Found.** Nothing new is measured; the report consolidates existing results. Building Table 1 from
 the snapshot made the two weeks' progress countable:
 - **TimeMixer:** from long-term and five imputation datasets to every task.
